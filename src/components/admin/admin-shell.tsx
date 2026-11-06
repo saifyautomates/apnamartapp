@@ -1,27 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 
 export type AdminNavItem = { href: string; label: string; badge?: string | number };
-
-function SvgIcon({ path }: { path: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={path} />
-    </svg>
-  );
-}
 
 function getIcon(href: string): React.ReactNode {
   switch (href) {
@@ -129,6 +112,59 @@ const SIDEBAR_ITEMS = [
   { href: "/admin/settings", label: "Settings" },
 ];
 
+const SEARCH_LINKS = [
+  { title: "Store Dashboard", category: "Navigation", href: "/admin", icon: "📊" },
+  { title: "Live Orders & Processing", category: "Navigation", href: "/admin/orders", icon: "📦" },
+  { title: "BUSY Counter POS Terminal", category: "POS & Billing", href: "/admin/pos", icon: "🏪" },
+  { title: "Catalog Products & Barcodes", category: "Catalog", href: "/admin/products", icon: "🏷️" },
+  { title: "Product Categories", category: "Catalog", href: "/admin/categories", icon: "📁" },
+  { title: "Inventory & Low Stock", category: "Catalog", href: "/admin/inventory", icon: "📉" },
+  { title: "Customer Database", category: "CRM", href: "/admin/customers", icon: "👥" },
+  { title: "Coupons & Discounts", category: "Marketing", href: "/admin/coupons", icon: "🎟️" },
+  { title: "Delivery Radius & Slots", category: "Operations", href: "/admin/delivery", icon: "🚚" },
+  { title: "Store Settings & Super Admin", category: "Settings", href: "/admin/settings", icon: "⚙️" },
+  { title: "Recent Order #ORD-20261107-0037", category: "Recent Orders", href: "/admin/orders", icon: "🧾" },
+  { title: "BUSY Counter Bill #POS638367", category: "Recent POS", href: "/admin/pos", icon: "🧾" },
+  { title: "Amul Taaza Fresh Milk 500ml", category: "Top Products", href: "/admin/products", icon: "🥛" },
+  { title: "Fortune Sunlite Sunflower Oil 1L", category: "Top Products", href: "/admin/products", icon: "🌻" },
+  { title: "Aashirvaad Shudh Chakki Atta 5kg", category: "Top Products", href: "/admin/products", icon: "🌾" },
+];
+
+const NOTIFICATIONS = [
+  {
+    id: "1",
+    title: "New Online Order Placed",
+    desc: "Order #ORD-20261107-0037 received for ₹1,595 via UPI",
+    time: "4 mins ago",
+    unread: true,
+    icon: "🛍️",
+  },
+  {
+    id: "2",
+    title: "BUSY POS Counter Synced",
+    desc: "Terminal 01 synced 42 counter bills (₹1,61,680)",
+    time: "18 mins ago",
+    unread: true,
+    icon: "🏪",
+  },
+  {
+    id: "3",
+    title: "Low Stock Warning",
+    desc: "Fortune Oil 1L inventory is down to 4 units",
+    time: "1 hour ago",
+    unread: false,
+    icon: "⚠️",
+  },
+  {
+    id: "4",
+    title: "Delivery Completed",
+    desc: "Order #ORD-20261107-0034 delivered in 14 minutes",
+    time: "2 hours ago",
+    unread: false,
+    icon: "✅",
+  },
+];
+
 export default function AdminShell({
   children,
 }: {
@@ -138,15 +174,68 @@ export default function AdminShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [greeting, setGreeting] = useState("Good Evening, Admin 👋");
+
+  // Interactive UI Dropdowns & Modals
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(2);
+
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good Morning, Admin 👋");
     else if (hour < 17) setGreeting("Good Afternoon, Admin 👋");
     else setGreeting("Good Evening, Admin 👋");
+
+    // Global Ctrl+K / Cmd+K listener
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      } else if (e.key === "Escape") {
+        setSearchOpen(false);
+        setNotifOpen(false);
+        setProfileOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Close popovers when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredLinks = SEARCH_LINKS.filter(
+    (item) =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleLogout = async () => {
+    // Clear cookies & redirect
+    document.cookie = "gcp_admin_token=; path=/; max-age=0";
+    document.cookie = "gcp_session=; path=/; max-age=0";
+    router.push("/admin/login");
+  };
 
   return (
     <div className="flex min-h-screen bg-[#f3f6f4] text-[#1c1c1c] font-sans antialiased">
@@ -222,19 +311,18 @@ export default function AdminShell({
                 </li>
                 <li className="flex items-center gap-1.5">
                   <span className="text-[#a3e635]">✓</span>
-                  <span>Manage Inventory</span>
+                  <span>BUSY POS Live Sync</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <span className="text-[#a3e635]">✓</span>
-                  <span>Handle Deliveries</span>
+                  <span>Instant Barcode Listing</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <span className="text-[#a3e635]">✓</span>
-                  <span>Grow Online Orders</span>
+                  <span>Smart Location Delivery</span>
                 </li>
               </ul>
             </div>
-            {/* Background Leaf Accent */}
             <div className="absolute -bottom-6 -right-6 text-6xl opacity-20 pointer-events-none select-none">
               🍃
             </div>
@@ -244,85 +332,285 @@ export default function AdminShell({
 
       {/* 2. Main Workspace */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Topbar matching exact screenshot */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-neutral-200/80 bg-white/95 px-5 sm:px-8 py-3.5 backdrop-blur-md shadow-xs">
+        {/* Topbar */}
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-neutral-200/80 bg-white/95 px-4 sm:px-6 lg:px-8 py-3.5 backdrop-blur-md shadow-xs">
           {/* Left Greeting */}
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="rounded-xl border border-neutral-200 p-2 text-sm font-bold lg:hidden text-neutral-700"
+              className="rounded-xl border border-neutral-200 p-2 text-sm font-bold lg:hidden text-neutral-700 hover:bg-neutral-100 cursor-pointer"
               aria-label="Open menu"
             >
               ☰
             </button>
             <div>
-              <h1 className="text-lg sm:text-xl font-black text-[#1c1c1c] tracking-tight leading-none">
+              <h1 className="text-base sm:text-lg lg:text-xl font-black text-[#1c1c1c] tracking-tight leading-none">
                 {greeting}
               </h1>
               <p className="text-xs text-neutral-500 font-medium mt-0.5 hidden sm:block">
-                Here&apos;s what&apos;s happening at Central Mart today.
+                Here&apos;s what&apos;s happening across Central Mart today.
               </p>
             </div>
           </div>
 
-          {/* Center Search Bar with Ctrl K */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
-            <div className="relative w-full flex items-center">
-              <span className="absolute left-3.5 text-neutral-400">
+          {/* Center Search Bar with Ctrl+K trigger */}
+          <div className="hidden md:flex items-center flex-1 max-w-lg mx-4">
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="w-full relative flex items-center justify-between rounded-full border border-neutral-200/90 bg-[#f8faf9] hover:bg-white hover:border-[#0c831f] pl-10 pr-3 py-2 text-xs font-semibold text-neutral-400 shadow-inner transition cursor-pointer text-left group"
+            >
+              <span className="absolute left-3.5 text-neutral-400 group-hover:text-[#0c831f] transition">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </span>
-              <input
-                type="search"
-                placeholder="Search for products, orders, customers…"
-                className="w-full rounded-full border border-neutral-200/90 bg-[#f8faf9] pl-10 pr-16 py-2 text-xs font-semibold text-[#1c1c1c] placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition shadow-inner"
-              />
-              <span className="absolute right-3 rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-[10px] font-black text-neutral-600">
+              <span>Search products, orders, POS slips, settings…</span>
+              <span className="rounded-md bg-neutral-200/80 px-2 py-0.5 text-[10px] font-black text-neutral-600">
                 Ctrl K
               </span>
-            </div>
+            </button>
           </div>
 
           {/* Right Header Actions */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Notification Bell */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Search Trigger for Mobile */}
             <button
               type="button"
-              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition cursor-pointer"
-              title="Notifications"
+              onClick={() => setSearchOpen(true)}
+              className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition cursor-pointer"
+              title="Search"
             >
-              <span className="text-sm">🔔</span>
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </button>
+
+            {/* Notification Bell with Interactive Popover */}
+            <div className="relative" ref={notifRef}>
+              <button
+                type="button"
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="relative flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition active:scale-95 cursor-pointer"
+                title="Notifications"
+                aria-expanded={notifOpen}
+              >
+                <span className="text-sm">🔔</span>
+                {unreadCount > 0 ? (
+                  <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
+                ) : null}
+              </button>
+
+              {notifOpen ? (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-neutral-200 shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black text-[#1c1c1c]">Store Notifications</span>
+                      {unreadCount > 0 ? (
+                        <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[10px] font-black">
+                          {unreadCount} new
+                        </span>
+                      ) : null}
+                    </div>
+                    {unreadCount > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setUnreadCount(0)}
+                        className="text-xs font-bold text-[#0c831f] hover:underline cursor-pointer"
+                      >
+                        Mark all read
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className="divide-y divide-neutral-100 max-h-72 overflow-y-auto py-1">
+                    {NOTIFICATIONS.map((n) => (
+                      <div
+                        key={n.id}
+                        className={`flex items-start gap-3 py-2.5 px-1.5 rounded-xl transition ${
+                          n.unread && unreadCount > 0 ? "bg-emerald-50/50" : "hover:bg-neutral-50"
+                        }`}
+                      >
+                        <span className="text-lg shrink-0 mt-0.5">{n.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black text-[#1c1c1c] leading-snug">{n.title}</p>
+                          <p className="text-[11px] font-medium text-neutral-600 truncate mt-0.5">{n.desc}</p>
+                          <span className="text-[10px] font-semibold text-neutral-400 mt-1 block">{n.time}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 border-t border-neutral-100 text-center">
+                    <Link
+                      href="/admin/orders"
+                      onClick={() => setNotifOpen(false)}
+                      className="text-xs font-black text-[#0c831f] hover:underline block"
+                    >
+                      View All Live Activity →
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
+            </div>
 
             {/* Quick Link to Customer Storefront */}
             <Link
               href="/"
               target="_blank"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 hover:bg-[#e8f5e9] hover:text-[#0c831f] text-neutral-700 transition cursor-pointer"
-              title="Open Customer Storefront"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 hover:bg-[#e8f5e9] hover:text-[#0c831f] text-neutral-700 transition active:scale-95 cursor-pointer"
+              title="Open Customer Storefront (New Tab)"
             >
               <span className="text-sm">🏪</span>
             </Link>
 
-            {/* Admin User Profile Pill */}
-            <div className="flex items-center gap-2.5 rounded-full border border-neutral-200/90 bg-neutral-50 pl-1.5 pr-3 py-1 shadow-xs">
-              <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-[#0c831f] to-[#22c55e] flex items-center justify-center text-white text-xs font-black shadow-xs">
-                👤
-              </div>
-              <div className="flex flex-col text-left leading-none">
-                <span className="text-xs font-black text-[#1c1c1c]">Admin User</span>
-                <span className="text-[10px] font-medium text-neutral-400">Store Administrator</span>
-              </div>
+            {/* Admin User Profile Pill with Interactive Dropdown */}
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-2.5 rounded-full border border-neutral-200/90 bg-white hover:bg-neutral-50 pl-1.5 pr-3 py-1 shadow-xs transition active:scale-95 cursor-pointer"
+                aria-expanded={profileOpen}
+              >
+                <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-[#0c831f] to-[#22c55e] flex items-center justify-center text-white text-xs font-black shadow-xs">
+                  👑
+                </div>
+                <div className="flex flex-col text-left leading-none hidden sm:flex">
+                  <span className="text-xs font-black text-[#1c1c1c]">Super Admin</span>
+                  <span className="text-[10px] font-bold text-emerald-700">OWNER · Full Rights</span>
+                </div>
+                <span className="text-[10px] text-neutral-400">▾</span>
+              </button>
+
+              {profileOpen ? (
+                <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-neutral-200 shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-2 py-2 border-b border-neutral-100">
+                    <div className="text-xs font-black text-[#1c1c1c]">jackxparrowww@gmail.com</div>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="inline-block h-2 w-2 rounded-full bg-[#22c55e]" />
+                      <span className="text-[10px] font-black text-[#0c831f] uppercase tracking-wider">
+                        Master Administrator (24/24)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="py-2 space-y-1">
+                    <Link
+                      href="/admin/settings"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-50 hover:text-[#0c831f] transition cursor-pointer"
+                    >
+                      <span>⚙️</span>
+                      <span>Store Settings</span>
+                    </Link>
+                    <Link
+                      href="/admin/pos"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-50 hover:text-[#0c831f] transition cursor-pointer"
+                    >
+                      <span>🏪</span>
+                      <span>BUSY POS Terminal Hub</span>
+                    </Link>
+                    <Link
+                      href="/"
+                      target="_blank"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-50 hover:text-[#0c831f] transition cursor-pointer"
+                    >
+                      <span>🌐</span>
+                      <span>Customer Storefront</span>
+                    </Link>
+                  </div>
+
+                  <div className="pt-2 border-t border-neutral-100">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-black text-red-600 hover:bg-red-50 transition cursor-pointer"
+                    >
+                      <span>🚪</span>
+                      <span>Log Out of Admin</span>
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </header>
 
-        {/* Page Main Content Area */}
-        <main className="flex-1 p-4 sm:p-7 max-w-[1600px] w-full mx-auto">{children}</main>
+        {/* Page Main Content Area: Gracefully fluid without cramped centering */}
+        <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1920px] mx-auto">
+          {children}
+        </main>
       </div>
+
+      {/* Global Command Palette (Ctrl+K Modal) */}
+      {searchOpen ? (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4" role="dialog" aria-modal="true">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setSearchOpen(false)}
+          />
+          <div className="relative w-full max-w-xl rounded-3xl bg-white shadow-2xl border border-neutral-200 overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+            {/* Search Input */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-neutral-200">
+              <span className="text-neutral-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+              <input
+                type="text"
+                autoFocus
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products, orders, POS bills, or settings…"
+                className="w-full text-sm font-semibold text-[#1c1c1c] placeholder-neutral-400 focus:outline-hidden"
+              />
+              <button
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                className="rounded-lg bg-neutral-100 px-2 py-1 text-xs font-black text-neutral-500 hover:bg-neutral-200 cursor-pointer"
+              >
+                ESC
+              </button>
+            </div>
+
+            {/* Quick Links / Search Results */}
+            <div className="max-h-80 overflow-y-auto p-3 space-y-1">
+              {filteredLinks.length > 0 ? (
+                filteredLinks.map((item, idx) => (
+                  <Link
+                    key={idx}
+                    href={item.href}
+                    onClick={() => setSearchOpen(false)}
+                    className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-700 hover:bg-[#e8f5e9] hover:text-[#0c831f] transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-base">{item.icon}</span>
+                      <span>{item.title}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-neutral-400 uppercase tracking-wider">
+                      {item.category}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <div className="py-8 text-center text-xs font-bold text-neutral-400">
+                  No matching items found for &quot;{searchQuery}&quot;
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-2.5 bg-neutral-50 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400 font-semibold">
+              <span>Tip: Press <strong>ESC</strong> to exit</span>
+              <span>Fast Omnichannel Navigation</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Mobile Drawer */}
       {drawerOpen ? (
