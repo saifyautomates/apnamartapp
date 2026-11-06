@@ -480,3 +480,4 @@ export function lookupMasterFmcgBarcode(barcode: string): MasterCatalogItem {
     description: `Grocery product with barcode ${clean}. Ready to sell.`,
   };
 }
+

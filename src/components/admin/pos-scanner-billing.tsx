@@ -699,3 +699,4 @@ export function PosScannerBilling({
     </div>
   );
 }
+
