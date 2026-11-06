@@ -6,6 +6,7 @@ import { CartDrawer } from "@/components/cart/cart-drawer";
 import { MobileBottomNav } from "./mobile-nav";
 import { SiteFooter } from "./footer";
 import { AdminQuickSwitch } from "./admin-quick-switch";
+import { ActiveOrderPill } from "./active-order-pill";
 
 export function SiteChrome({
   header,
@@ -29,6 +30,9 @@ export function SiteChrome({
 
       {/* Slide-over Cart Drawer (accessible globally from header & cards) */}
       <CartDrawer />
+
+      {/* Floating Active Delivery Live Tracking Pill */}
+      <ActiveOrderPill />
 
       {/* Mobile Floating Cart & Bottom Nav */}
       <MobileBottomNav />
