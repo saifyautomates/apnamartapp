@@ -58,7 +58,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 1: Homepage & Storefront
     // ------------------------------------------------------------------------
-    console.log("▶ [FEATURE 1/13] HOMEPAGE & CENTRAL MART BRANDING");
+    console.log("▶ [FEATURE 1/14] HOMEPAGE & CENTRAL MART BRANDING");
     await page.goto(`${BASE_URL}/`, { waitUntil: "networkidle2" });
     await snap("01_storefront_home");
 
@@ -71,7 +71,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 2: Search & Autocomplete
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 2/13] SEARCH & AUTOCOMPLETE SUGGESTIONS");
+    console.log("\n▶ [FEATURE 2/14] SEARCH & AUTOCOMPLETE SUGGESTIONS");
     await page.goto(`${BASE_URL}/search?q=atta`, { waitUntil: "networkidle2" });
     await snap("02_search_results");
 
@@ -81,7 +81,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 3: Product Detail Page (PDP)
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 3/13] PRODUCT DETAIL PAGE (PDP)");
+    console.log("\n▶ [FEATURE 3/14] PRODUCT DETAIL PAGE (PDP)");
     const firstProductHref = await page.$eval("a[href*='/product/']", (el) => el.getAttribute("href")).catch(() => null);
     if (firstProductHref) {
       await page.goto(`${BASE_URL}${firstProductHref}`, { waitUntil: "networkidle2" });
@@ -95,7 +95,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 4: Cart Page
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 4/13] CART & SHOPPING BAG");
+    console.log("\n▶ [FEATURE 4/14] CART & SHOPPING BAG");
     await page.goto(`${BASE_URL}/cart`, { waitUntil: "networkidle2" });
     await snap("04_cart_page");
     const cartText = await page.$eval("body", (el) => el.innerText);
@@ -104,7 +104,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 5: Customer Login Page
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 5/13] CUSTOMER OTP LOGIN");
+    console.log("\n▶ [FEATURE 5/14] CUSTOMER OTP LOGIN");
     await page.goto(`${BASE_URL}/login`, { waitUntil: "networkidle2" });
     await page.waitForSelector("input[inputmode='tel'], input[placeholder*='10-digit']", { visible: true, timeout: 5000 });
     await snap("05_customer_login");
@@ -114,7 +114,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 6: Staff Login
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 6/13] STAFF ADMINISTRATOR LOGIN");
+    console.log("\n▶ [FEATURE 6/14] STAFF ADMINISTRATOR LOGIN");
     await page.goto(`${BASE_URL}/staff-login`, { waitUntil: "networkidle2" });
     await snap("06_staff_login");
 
@@ -147,7 +147,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 7: Admin Dashboard (1:1 Reference Design)
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 7/13] ADMIN DASHBOARD (1:1 REFERENCE UI)");
+    console.log("\n▶ [FEATURE 7/14] ADMIN DASHBOARD (1:1 REFERENCE UI)");
     await page.goto(`${BASE_URL}/admin`, { waitUntil: "networkidle2" });
     await sleep(600);
     await snap("08_admin_dashboard_full");
@@ -163,7 +163,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 8: Fast Barcode FMCG Product Lister (3-Second Quick Lister)
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 8/13] FAST BARCODE PRODUCT LISTER (3-SECOND LISTING)");
+    console.log("\n▶ [FEATURE 8/14] FAST BARCODE PRODUCT LISTER (3-SECOND LISTING)");
     await page.goto(`${BASE_URL}/admin/products`, { waitUntil: "networkidle2" });
     await snap("09_admin_products_page");
 
@@ -220,7 +220,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 9: Offline & In-Store Barcode Scanner POS Billing
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 9/13] OFFLINE & IN-STORE BARCODE SCANNER BILLING");
+    console.log("\n▶ [FEATURE 9/14] OFFLINE & IN-STORE BARCODE SCANNER BILLING");
     await page.goto(`${BASE_URL}/admin/pos`, { waitUntil: "networkidle2" });
     await snap("12_pos_scanner_billing_screen");
 
@@ -279,7 +279,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 10: BUSY POS Terminal Hub & Bridge Settings
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 10/13] BUSY POS TERMINAL HUB & BRIDGE SETTINGS");
+    console.log("\n▶ [FEATURE 10/14] BUSY POS TERMINAL HUB & BRIDGE SETTINGS");
     await page.goto(`${BASE_URL}/admin/pos`, { waitUntil: "networkidle2" });
     await sleep(400);
 
@@ -306,7 +306,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 11: Admin Categories Management
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 11/13] ADMIN CATEGORIES MANAGEMENT");
+    console.log("\n▶ [FEATURE 11/14] ADMIN CATEGORIES MANAGEMENT");
     await page.goto(`${BASE_URL}/admin/categories`, { waitUntil: "networkidle2" });
     await sleep(400);
     await snap("17_admin_categories");
@@ -316,7 +316,7 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 12: Admin Inventory Management
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 12/13] ADMIN INVENTORY MANAGEMENT");
+    console.log("\n▶ [FEATURE 12/14] ADMIN INVENTORY MANAGEMENT");
     await page.goto(`${BASE_URL}/admin/inventory`, { waitUntil: "networkidle2" });
     await sleep(400);
     await snap("18_admin_inventory");
@@ -326,12 +326,24 @@ async function runBrowserTests() {
     // ------------------------------------------------------------------------
     // FEATURE 13: Admin Reports & Analytics
     // ------------------------------------------------------------------------
-    console.log("\n▶ [FEATURE 13/13] ADMIN REPORTS & ANALYTICS");
+    console.log("\n▶ [FEATURE 13/14] ADMIN REPORTS & ANALYTICS");
     await page.goto(`${BASE_URL}/admin/reports`, { waitUntil: "networkidle2" });
     await sleep(400);
     await snap("19_admin_reports");
     const repPageText = await page.$eval("body", (el) => el.innerText);
     assertTest("Admin Reports page loads sales breakdown and CSV export", repPageText.includes("Reports") || repPageText.includes("Sales"));
+
+    // ------------------------------------------------------------------------
+    // FEATURE 14: Admin Delivery & Location Command Center
+    // ------------------------------------------------------------------------
+    console.log("\n▶ [FEATURE 14/14] ADMIN DELIVERY & LOCATION COMMAND CENTER");
+    await page.goto(`${BASE_URL}/admin/delivery`, { waitUntil: "networkidle2" });
+    await sleep(600);
+    await snap("20_admin_delivery_control_center");
+    const delPageText = await page.$eval("body", (el) => el.innerText);
+    assertTest("Admin Delivery Center loads with Delivery Model selector", delPageText.includes("Delivery Model") || delPageText.includes("Same-Day Delivery"));
+    assertTest("Admin Delivery Center displays configurable zones & pincodes", delPageText.includes("South Delhi") || delPageText.includes("Pincodes") || delPageText.includes("Zones") || delPageText.includes("Delivery Zones"));
+    assertTest("Admin Delivery Center displays Save Changes button", delPageText.includes("Save Delivery Settings") || delPageText.includes("Save"));
 
   } catch (err) {
     console.error("FATAL BROWSER TESTING ERROR:", err);

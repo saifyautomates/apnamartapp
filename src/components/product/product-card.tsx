@@ -5,6 +5,7 @@ import { effectivePrice, discountPercent } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import { ProductImage } from "./product-image";
 import { AddButton } from "./add-button";
+import { useDelivery } from "@/lib/delivery-context";
 
 export interface VariantCardProps {
   id: string;
@@ -23,6 +24,7 @@ export interface VariantCardProps {
 }
 
 export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
+  const { deliveryBadgeText } = useDelivery();
   const product = v.product;
   const price = effectivePrice(v as never);
   const pct = discountPercent(v.mrpPaise, price);
@@ -36,9 +38,9 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
       <div className="relative">
         {/* Top Badges Row */}
         <div className="flex items-center justify-between gap-1 w-full z-10">
-          {/* Time badge: ⏱ 8 MINS */}
+          {/* Delivery Promise Badge */}
           <span className="inline-flex items-center gap-1 rounded bg-[#f4f6fb] px-1.5 py-0.5 text-[10px] font-extrabold text-[#333333]">
-            <span className="text-[11px]">⏱</span> 8 MINS
+            <span className="text-[11px] text-[#0c831f]">⚡</span> {deliveryBadgeText ? deliveryBadgeText.replace(/^⚡\s*/, "") : "SAME DAY"}
           </span>
 
           {/* Discount Badge: e.g. 6% OFF in Blue */}

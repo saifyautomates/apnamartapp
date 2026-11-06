@@ -146,7 +146,7 @@ async function runAudit() {
   const zonesRes = await makeRequest("/api/delivery/zones");
   const zones = zonesRes.json.data as Array<{ id: string; minOrderPaise: number }>;
   assertCheck(
-    "Public 10-minute delivery zones load with minimum order thresholds",
+    "Public delivery zones load with minimum order thresholds and pincodes",
     zonesRes.status === 200 && Array.isArray(zones) && zones.length > 0,
     `zonesCount=${zones?.length}`
   );

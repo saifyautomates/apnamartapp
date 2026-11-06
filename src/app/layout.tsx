@@ -3,7 +3,8 @@ import Header from "@/components/header/header-server";
 import LaunchLoader from "@/components/loader";
 import { PwaRegister } from "@/components/pwa";
 import SiteChrome from "@/components/layout/site-chrome";
-import { getAllSettings } from "@/lib/settings";
+import { getAllSettings, type DeliveryConfig } from "@/lib/settings";
+import { DeliveryProvider } from "@/lib/delivery-context";
 import "./globals.css";
 
 // Live catalogue, prices and stock must never be baked in at build time:
@@ -11,8 +12,8 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Central Mart — 8 Minute FMCG Grocery Delivery",
-  description: "India's 8-minute FMCG app. Order 100% genuine packaged groceries, dairy, staples, snacks, cold drinks, cleaning & personal care essentials online with Central Mart 8-minute instant delivery.",
+  title: "Central Mart — Same-Day FMCG Grocery Delivery",
+  description: "Order 100% genuine packaged groceries, dairy, staples, snacks, cold drinks, cleaning & personal care essentials online with Central Mart reliable Same-Day Doorstep Delivery.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"),
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -25,8 +26,8 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Central Mart — 8 Minute FMCG Grocery Delivery",
-    description: "India's 8-minute FMCG app. Order 100% genuine packaged groceries delivered in 8 minutes with Central Mart.",
+    title: "Central Mart — Same-Day FMCG Grocery Delivery",
+    description: "Order 100% genuine packaged groceries delivered right to your doorstep with Central Mart Same-Day Delivery.",
     type: "website",
   },
 };
@@ -46,19 +47,23 @@ function monogramFor(name: string): string {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let storeName = "Central Mart";
+  let deliveryConfig: Partial<DeliveryConfig> = {};
   try {
     const settings = await getAllSettings();
     const store = settings.store as { name?: string } | undefined;
     if (store?.name) storeName = store.name;
+    if (settings.delivery) deliveryConfig = settings.delivery as Partial<DeliveryConfig>;
   } catch {
     /* settings table may not exist yet on first boot — fall back to the default name */
   }
   return (
     <html lang="en">
       <body>
-        <LaunchLoader storeName={storeName} monogram={monogramFor(storeName)} />
-        <PwaRegister />
-        <SiteChrome header={<Header storeName={storeName} />}>{children}</SiteChrome>
+        <DeliveryProvider initialConfig={deliveryConfig}>
+          <LaunchLoader storeName={storeName} monogram={monogramFor(storeName)} />
+          <PwaRegister />
+          <SiteChrome header={<Header storeName={storeName} />}>{children}</SiteChrome>
+        </DeliveryProvider>
       </body>
     </html>
   );

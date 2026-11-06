@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const product = await prisma.product.findUnique({ where: { slug: params.slug } });
   if (!product) return { title: "Product not found" };
   return {
-    title: `${product.name} — 8 Mins Delivery | Blinkit`,
+    title: `${product.name} — Same-Day Delivery | Central Mart`,
     description: product.description ?? product.name,
     openGraph: { title: product.name, description: product.description ?? undefined, type: "website" },
   };

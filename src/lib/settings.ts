@@ -1,9 +1,49 @@
 import { prisma } from "./prisma";
 
+export interface DeliveryConfig {
+  mode: "SAME_DAY" | "LOCATION_BASED" | "SCHEDULED" | "EXPRESS";
+  promiseText: string;
+  badgeText: string;
+  defaultEta: string;
+  cutoffTime: string;
+  cutoffNotice: string;
+  minOrderPaise: number;
+  defaultChargePaise: number;
+  freeThresholdPaise: number | null;
+  expressAvailable: boolean;
+  expressChargePaise: number;
+  expressEta: string;
+  locationBasedEnabled: boolean;
+}
+
+export interface ZoneDeliveryRule {
+  estimatedTime?: string;
+  badgeText?: string;
+  deliveryChargePaise?: number;
+  freeThresholdPaise?: number | null;
+  minOrderPaise?: number;
+}
+
+export const DEFAULT_DELIVERY_CONFIG: DeliveryConfig = {
+  mode: "SAME_DAY",
+  promiseText: "Same Day Delivery",
+  badgeText: "⚡ Same Day Delivery",
+  defaultEta: "Today by 8:00 PM",
+  cutoffTime: "19:00",
+  cutoffNotice: "Orders placed before 7:00 PM are delivered today. Later orders arrive tomorrow morning.",
+  minOrderPaise: 19900,
+  defaultChargePaise: 3000,
+  freeThresholdPaise: 49900,
+  expressAvailable: true,
+  expressChargePaise: 4900,
+  expressEta: "Within 60-90 mins",
+  locationBasedEnabled: true,
+};
+
 export const DEFAULT_SETTINGS: Record<string, unknown> = {
   store: {
     name: "Central Mart",
-    tagline: "India's 8-minute FMCG grocery app",
+    tagline: "India's Same-Day FMCG Grocery Store",
     phone: "",
     email: "",
     address: "",
@@ -12,7 +52,16 @@ export const DEFAULT_SETTINGS: Record<string, unknown> = {
     logoUrl: "",
   },
   businessHours: { open: "08:00", close: "21:00", days: "Mon-Sun" },
-  delivery: { minOrderPaise: 0, defaultChargePaise: 0, freeThresholdPaise: null as number | null },
+  delivery: DEFAULT_DELIVERY_CONFIG,
+  zoneDeliveryRules: {
+    "00000000-0000-0000-0000-000000000001": {
+      estimatedTime: "Same Day in 2-3 Hours",
+      badgeText: "⚡ Fast Same-Day",
+      deliveryChargePaise: 3000,
+      freeThresholdPaise: 49900,
+      minOrderPaise: 19900,
+    },
+  },
   pickup: { enabled: true, instructions: "Show your order number at the counter." },
   tax: { inclusive: true, note: "Prices are inclusive of GST (Indian MRP)." },
   payments: { cod: true, upi: true, online: true },

@@ -54,12 +54,12 @@ export default function LaunchLoader({ storeName }: { storeName?: string; monogr
         </div>
 
         <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#1c1c1c] text-white px-3.5 py-1 text-xs font-black uppercase tracking-wider shadow-sm">
-          ⚡ 8 Minute Delivery
+          ⚡ Same-Day FMCG Delivery
         </span>
       </div>
 
       <p className={`mt-4 text-xs font-bold text-neutral-800 ${reduced ? "" : "loader-fade"}`}>
-        {storeName ?? "Central Mart"} · India&apos;s Fastest 8-Minute FMCG App
+        {storeName ?? "Central Mart"} · Same-Day FMCG Grocery Store
       </p>
 
       {/* Shimmer Bar */}

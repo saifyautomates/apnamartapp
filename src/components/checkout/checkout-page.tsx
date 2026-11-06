@@ -5,6 +5,7 @@ import { api } from "@/lib/api/client";
 import { Price, EtaBadge } from "@/components/ui";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useDelivery } from "@/lib/delivery-context";
 
 type Zone = {
   id: string;
@@ -28,6 +29,7 @@ type Address = {
 };
 
 export function CheckoutPageView() {
+  const { deliveryPromiseText } = useDelivery();
   const router = useRouter();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -115,7 +117,7 @@ export function CheckoutPageView() {
         </div>
         <h2 className="text-xl font-black text-[#1c1c1c]">Login required to checkout</h2>
         <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
-          Please log in to your account with your mobile number to complete your order in 8 minutes.
+          Please log in to your account with your mobile number to complete your Same-Day Delivery order.
         </p>
         <Link
           href="/login?next=/checkout"
@@ -158,7 +160,7 @@ export function CheckoutPageView() {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-lg">⚡</span>
-                  <span className="text-xs font-black text-[#1c1c1c]">8 Mins Delivery</span>
+                  <span className="text-xs font-black text-[#1c1c1c]">{deliveryPromiseText || "Same Day Delivery"}</span>
                 </div>
                 <p className="text-[11px] text-neutral-500 mt-1">Delivered to your doorstep</p>
               </button>

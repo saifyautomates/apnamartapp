@@ -46,7 +46,7 @@ const STEPS = [
   { key: "PREPARING", label: "Packing Essentials", sub: "100% genuine packaged goods checked", icon: "📦" },
   { key: "PACKED", label: "Packed & Sealed", sub: "Handed over to delivery rider", icon: "🛍️" },
   { key: "OUT_FOR_DELIVERY", label: "Out for Delivery", sub: "Rider speeding to your doorstep", icon: "🛵" },
-  { key: "DELIVERED", label: "Delivered at Doorstep", sub: "Enjoy your 8-minute delivery!", icon: "🎉" },
+  { key: "DELIVERED", label: "Delivered at Doorstep", sub: "Enjoy your fresh groceries!", icon: "🎉" },
 ];
 
 function playChime() {
@@ -76,7 +76,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
   const [noteSent, setNoteSent] = useState(false);
   const prevStatusRef = useRef(initialOrder.status);
 
-  // Remaining Seconds Calculator for 8-minute countdown
+  // Remaining Seconds Calculator for delivery countdown
   const elapsedSeconds = useMemo(() => {
     const createdTime = new Date(order.createdAt).getTime();
     return Math.max(0, Math.floor((Date.now() - createdTime) / 1000));
@@ -160,13 +160,13 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
     <div className="max-w-2xl mx-auto space-y-5 pb-12">
       {/* 1. Main Live Delivery ETA & Status Card */}
       <div className="overflow-hidden rounded-3xl bg-white border border-neutral-200/90 shadow-md">
-        {/* Top Header with Glowing 8-Minute Dial */}
+        {/* Top Header with Glowing Delivery Dial */}
         <div className="bg-gradient-to-r from-[#0c831f] via-[#107d22] to-[#15803d] p-5 sm:p-6 text-white relative">
           <div className="flex items-center justify-between">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white">
                 <span className="h-2 w-2 rounded-full bg-[#f8cb46] animate-ping" />
-                Live 8-Minute Tracking
+                Live Dispatch &amp; Delivery Tracking
               </span>
               <h1 className="mt-2 text-2xl sm:text-3xl font-black text-white tracking-tight">
                 {isDelivered
@@ -175,7 +175,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
                   ? "Order Cancelled"
                   : isOutForDelivery
                   ? "Rider on the way 🛵"
-                  : "Arriving in 8 minutes ⚡"}
+                  : "Same-Day Delivery in Progress ⚡"}
               </h1>
               <p className="mt-1 text-xs text-emerald-100 font-medium">
                 Order #{order.orderNumber} · Placed{" "}
@@ -469,7 +469,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
             Items in this Delivery ({order.items.length})
           </h2>
           <span className="text-xs font-bold text-neutral-500">
-            {order.deliveryMethod === "DELIVERY" ? "🚀 Instant 8 Mins Delivery" : "🏬 Store Pickup"}
+            {order.deliveryMethod === "DELIVERY" ? "🚀 Same-Day FMCG Delivery" : "🏬 Store Pickup"}
           </span>
         </div>
 

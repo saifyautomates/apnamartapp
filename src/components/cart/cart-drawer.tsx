@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatPaise } from "@/lib/money";
 import { ProductImage } from "@/components/product/product-image";
 import { api } from "@/lib/api/client";
+import { useDelivery } from "@/lib/delivery-context";
 
 export interface CartLine {
   variantId: string;
@@ -33,6 +34,7 @@ export interface CartDetail {
 }
 
 export function CartDrawer() {
+  const { deliveryPromiseText, deliveryBadgeText, activeLocation } = useDelivery();
   const [open, setOpen] = useState(false);
   const [cart, setCart] = useState<CartDetail | null>(null);
   const [loading, setLoading] = useState(false);
@@ -146,7 +148,7 @@ export function CartDrawer() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0c831f] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0c831f]"></span>
               </span>
-              <span>⚡ Delivery in 8 minutes</span>
+              <span>⚡ {deliveryPromiseText || "Same Day Delivery"}</span>
             </div>
             <span className="text-[11px] font-bold text-[#0c831f] bg-white px-2 py-0.5 rounded-full border border-[#0c831f]/20">
               Shipment of {cart?.count ?? 0} items
@@ -186,7 +188,7 @@ export function CartDrawer() {
                 </div>
                 <h3 className="font-black text-[#1c1c1c] text-lg">Your cart is empty</h3>
                 <p className="text-xs text-neutral-500 mt-1 max-w-xs leading-relaxed">
-                  Your favourite groceries are just 8 minutes away. Add some items to begin!
+                  Your favourite groceries delivered directly with Same-Day Delivery. Add items to begin!
                 </p>
                 <button
                   onClick={() => setOpen(false)}
@@ -315,10 +317,10 @@ export function CartDrawer() {
             <div className="border-t border-neutral-200 bg-white p-4 sticky bottom-0 z-10 shadow-lg">
               <div className="flex items-center justify-between mb-2 text-xs">
                 <div>
-                  <p className="font-medium text-neutral-400">Delivery Address</p>
-                  <p className="font-bold text-[#1c1c1c] truncate max-w-[200px]">R K Nagar, Police Line, Kota</p>
+                  <p className="font-medium text-neutral-400">Delivery Location</p>
+                  <p className="font-bold text-[#1c1c1c] truncate max-w-[200px]">{activeLocation ? `${activeLocation.zoneName || activeLocation.address || activeLocation.pincode}` : "Storefront Service Area"}</p>
                 </div>
-                <span className="text-[11px] font-bold text-[#0c831f] bg-[#e8f5e9] px-2 py-0.5 rounded">⚡ 8 mins</span>
+                <span className="text-[11px] font-bold text-[#0c831f] bg-[#e8f5e9] px-2 py-0.5 rounded">{deliveryBadgeText || "⚡ SAME DAY"}</span>
               </div>
               <Link
                 href="/checkout"

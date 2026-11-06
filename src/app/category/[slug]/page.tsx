@@ -65,12 +65,12 @@ export default async function CategoryPage({
           {category.description ? (
             <p className="mt-1 text-xs text-neutral-400 font-medium">{category.description}</p>
           ) : (
-            <p className="mt-1 text-xs text-neutral-400 font-medium">Delivered to your doorstep in 8 minutes</p>
+            <p className="mt-1 text-xs text-neutral-400 font-medium">Delivered to your doorstep with Same-Day Delivery</p>
           )}
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-black">
-            ⚡ Delivery in 8 mins
+            ⚡ Same Day Delivery
           </span>
         </div>
       </div>

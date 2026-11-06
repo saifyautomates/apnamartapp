@@ -6,6 +6,7 @@ import { SearchInput } from "./search-input";
 import { LocationModal } from "./location-modal";
 import { CartHeaderButton } from "./cart-button";
 import { CentralMartLogo } from "@/components/ui/logo";
+import { useDelivery } from "@/lib/delivery-context";
 
 export interface HeaderProps {
   storeName?: string;
@@ -24,7 +25,8 @@ export function BlinkitHeader({
   const [count, setCount] = useState(initialCount);
   const [total, setTotal] = useState(initialTotal);
   const [locationOpen, setLocationOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("R K Nagar, Police Line, Kota, Raj...");
+
+  const { deliveryPromiseText, activeLocation, setActiveLocation, zones } = useDelivery();
 
   const refreshCart = async () => {
     try {
@@ -64,10 +66,10 @@ export function BlinkitHeader({
               className="flex flex-col text-left group transition max-w-[170px] sm:max-w-[240px] cursor-pointer"
             >
               <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-[#1c1c1c] leading-tight">
-                Delivery in 8 minutes
+                <span>⚡ {deliveryPromiseText}</span>
               </div>
               <div className="flex items-center gap-1 text-[11px] sm:text-xs text-neutral-500 font-medium truncate mt-0.5 group-hover:text-[#0c831f]">
-                <span className="truncate">{selectedLocation}</span>
+                <span className="truncate">{activeLocation.address || activeLocation.zoneName || "Select Location"}</span>
                 <span className="text-[9px]">▾</span>
               </div>
             </button>
@@ -123,8 +125,6 @@ export function BlinkitHeader({
       <LocationModal
         isOpen={locationOpen}
         onClose={() => setLocationOpen(false)}
-        onSelect={(addr) => setSelectedLocation(addr)}
-        currentLocation={selectedLocation}
       />
     </>
   );

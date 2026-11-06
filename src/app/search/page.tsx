@@ -19,11 +19,11 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
             {q ? `Search results for "${q}"` : "Search Groceries"}
           </h1>
           <p className="mt-0.5 text-xs text-neutral-400 font-medium">
-            {result.total > 0 ? `Found ${result.total} items delivering in 8 minutes` : "Delivered to your doorstep in 8 minutes"}
+            {result.total > 0 ? `Found ${result.total} items with Same-Day Delivery` : "Delivered to your doorstep with Same-Day Delivery"}
           </p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-black self-start sm:self-auto">
-          ⚡ 8 Mins Delivery
+          ⚡ Same Day Delivery
         </span>
       </div>
 

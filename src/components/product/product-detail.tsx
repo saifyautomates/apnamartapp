@@ -6,6 +6,7 @@ import { ProductImage } from "./product-image";
 import { Price, Mrp, DiscountBadge, EtaBadge } from "@/components/ui";
 import { discountPercent } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
+import { useDelivery } from "@/lib/delivery-context";
 
 export type VariantDetail = {
   id: string;
@@ -31,6 +32,7 @@ export function ProductDetailView({
   productName,
   brandName,
 }: ProductDetailProps) {
+  const { deliveryPromiseText, estimatedArrivalNotice } = useDelivery();
   const [selected, setSelected] = useState<VariantDetail>(variants[0]);
   const [activeImg, setActiveImg] = useState(images[0] ?? "/placeholder.svg");
 
@@ -159,17 +161,17 @@ export function ProductDetailView({
           </div>
         </div>
 
-        {/* Blinkit Trust Badges */}
+        {/* Central Mart Trust Badges */}
         <div className="rounded-2xl bg-[#f4f7fc] p-4 space-y-3 border border-neutral-100">
           <h4 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider">
-            Why shop from Blinkit?
+            Why shop from Central Mart?
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="flex items-center gap-2.5">
               <span className="text-xl">⚡</span>
               <div>
-                <p className="text-xs font-bold text-[#1c1c1c]">Superfast Delivery</p>
-                <p className="text-[11px] text-neutral-500">Get your order in 8 mins</p>
+                <p className="text-xs font-bold text-[#1c1c1c]">{deliveryPromiseText || "Same-Day Delivery"}</p>
+                <p className="text-[11px] text-neutral-500">{estimatedArrivalNotice || "Doorstep delivery"}</p>
               </div>
             </div>
             <div className="flex items-center gap-2.5">

@@ -6,12 +6,14 @@ export interface LogoProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   showBadge?: boolean;
+  subtitle?: string;
 }
 
 export function CentralMartLogo({
   className = "",
   size = "md",
   showBadge = false,
+  subtitle = "Same Day FMCG Delivery",
 }: LogoProps) {
   const sizeClasses = {
     sm: "text-2xl sm:text-2xl",
@@ -64,7 +66,7 @@ export function CentralMartLogo({
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
           <span className="text-[9px] font-black tracking-wider uppercase text-neutral-400 group-hover:text-[#0c831f] transition-colors">
-            8 Mins FMCG Delivery
+            {subtitle}
           </span>
         </div>
       </div>

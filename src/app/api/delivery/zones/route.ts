@@ -3,6 +3,7 @@ import { handler, ok } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const GET = handler(async (req: NextRequest) => {
   const zones = await prisma.deliveryZone.findMany({

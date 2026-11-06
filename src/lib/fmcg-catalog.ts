@@ -340,7 +340,7 @@ export function buildFmcgProductCatalogue(targetCount = 500) {
         categorySlug: cat.slug,
         subcategoryName: item.sub,
         gstBps: item.gstBps ?? cat.defaultGstBps,
-        description: `${item.name} by ${item.brand}. Authentic high-quality Indian FMCG product. 100% genuine with 8-minute delivery.`,
+        description: `${item.name} by ${item.brand}. Authentic high-quality Indian FMCG product. 100% genuine with same-day doorstep delivery.`,
         variants: item.variants.map((v) => ({
           name: v.pack,
           packSize: v.pack,
@@ -380,7 +380,7 @@ export function buildFmcgProductCatalogue(targetCount = 500) {
           categorySlug: cat.slug,
           subcategoryName: sub,
           gstBps: cat.defaultGstBps,
-          description: `Premium quality ${brand} ${sub} FMCG grocery item. Fresh, sealed, and guaranteed for 8-minute delivery.`,
+          description: `Premium quality ${brand} ${sub} FMCG grocery item. Fresh, sealed, and guaranteed for same-day doorstep delivery.`,
           variants: [
             {
               name: pack,

@@ -7,14 +7,16 @@ export interface HeroBannerProps {
   buttonText?: string;
   href?: string;
   imageSrc?: string;
+  promiseBadge?: string;
 }
 
 export function HeroBanner({
   title = "Stock up on daily essentials",
-  subtitle = "Order 100% genuine packaged FMCG brands — staples, dairy, munchies, cold drinks, cleaning & personal care delivered in 8 minutes.",
+  subtitle = "Order 100% genuine packaged FMCG brands — staples, dairy, munchies, cold drinks, cleaning & personal care with Same-Day Doorstep Delivery.",
   buttonText = "Shop Now",
   href = "/category/dairy-eggs",
   imageSrc = "/images/banners/central-mart-fmcg-hero.jpg",
+  promiseBadge = "Same Day FMCG Delivery",
 }: HeroBannerProps) {
   return (
     <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0c831f] via-[#107d22] to-[#146b2b] text-white shadow-xl cinematic-shine">
@@ -28,7 +30,7 @@ export function HeroBanner({
           {/* Animated Flash Pill */}
           <div className="inline-flex items-center gap-2 rounded-full bg-black/25 backdrop-blur-md px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#f8cb46] border border-white/10 animate-pulse-subtle">
             <span className="text-sm">⚡</span>
-            <span>Central Mart Express · 8 Mins FMCG Delivery</span>
+            <span>Central Mart · {promiseBadge}</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.1] text-white drop-shadow-xs">
@@ -67,8 +69,8 @@ export function HeroBanner({
 
             {/* Floating Glassmorphism Badge 1 (Top Left) */}
             <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-black px-3 py-1.5 rounded-xl border border-white/20 shadow-lg animate-float flex items-center gap-1.5">
-              <span>⏱️</span>
-              <span>8 MINS AT DOORSTEP</span>
+              <span>⚡</span>
+              <span>SAME DAY AT DOORSTEP</span>
             </div>
 
             {/* Floating Glassmorphism Badge 2 (Bottom Right) */}

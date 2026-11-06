@@ -14,10 +14,10 @@ export default async function CategoriesPage() {
       <div className="rounded-2xl bg-white p-5 sm:p-6 border border-neutral-200/80 shadow-xs flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#1c1c1c]">All Categories</h1>
-          <p className="mt-0.5 text-xs text-neutral-500 font-medium">All items delivered to your doorstep in 8 minutes</p>
+          <p className="mt-0.5 text-xs text-neutral-500 font-medium">All items delivered to your doorstep with Same-Day Delivery</p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-black">
-          ⚡ 8 Mins Delivery
+          ⚡ Same Day Delivery
         </span>
       </div>
 

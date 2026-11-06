@@ -12,7 +12,7 @@ export function SiteFooter() {
               <CentralMartLogo size="sm" showBadge />
             </div>
             <p className="text-xs text-neutral-500 leading-relaxed mt-2">
-              Central Mart · India&apos;s 8-minute FMCG app. Delivering 100% genuine packaged staples, dairy, snacks, beverages, cleaning &amp; personal care in 8 minutes.
+              Central Mart · India&apos;s Same-Day FMCG Grocery Store. Delivering 100% genuine packaged staples, dairy, snacks, beverages, cleaning &amp; personal care with reliable doorstep delivery.
             </p>
           </div>
 
@@ -42,7 +42,7 @@ export function SiteFooter() {
             <ul className="space-y-2 text-xs text-neutral-600">
               <li className="flex items-center gap-2">
                 <span className="text-amber-500 font-bold">⚡</span>
-                <span className="font-bold text-[#1c1c1c]">Superfast 8 Mins Delivery</span>
+                <span className="font-bold text-[#1c1c1c]">Same-Day Doorstep Delivery</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-[#0c831f] font-bold">🏷️</span>

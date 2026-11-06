@@ -90,7 +90,7 @@ export function AccountPageView() {
         </div>
         <h1 className="text-xl font-black text-[#1c1c1c]">My Account</h1>
         <p className="mt-2 text-xs text-neutral-500 leading-relaxed">
-          Sign in to manage your addresses, rewards, and track your instant 8-minute grocery orders.
+          Sign in to manage your addresses, rewards, and track your Same-Day grocery orders.
         </p>
         <Link
           href="/login?next=/account"

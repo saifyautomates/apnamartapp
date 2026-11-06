@@ -68,7 +68,7 @@ export function ActiveOrderPill() {
         <div className="flex flex-col text-left leading-tight">
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-black text-[#f8cb46] uppercase tracking-wider">
-              {isRiderOut ? "Rider on the way" : "Arriving in 8 mins"}
+              {isRiderOut ? "Rider on the way" : "Same-Day Dispatch"}
             </span>
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </div>

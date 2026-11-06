@@ -7,6 +7,7 @@ import { Price, Mrp, EmptyState } from "@/components/ui";
 import { CartSkeleton } from "@/components/ui/skeletons";
 import { formatPaise } from "@/lib/money";
 import Link from "next/link";
+import { useDelivery } from "@/lib/delivery-context";
 
 export type CartLine = {
   variantId: string;
@@ -36,6 +37,8 @@ export function CartPageView() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [tip, setTip] = useState<number | null>(null);
+
+  const { deliveryPromiseText, estimatedArrivalNotice, deliveryConfig } = useDelivery();
 
   const load = useCallback(async () => {
     try {
@@ -73,7 +76,7 @@ export function CartPageView() {
       <div className="max-w-xl mx-auto py-8">
         <EmptyState
           title="Your cart is empty"
-          body="Looks like you haven't added anything to your cart yet. Explore fresh groceries delivering in 8 minutes."
+          body="Looks like you haven't added anything to your cart yet. Explore fresh groceries delivered with Same-Day Delivery."
           action={
             <Link
               href="/"
@@ -97,19 +100,19 @@ export function CartPageView() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* 8 Mins ETA Alert */}
+      {/* Delivery Promise Alert */}
       <div className="rounded-2xl bg-[#e8f5e9] border border-[#0c831f]/20 p-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-[#0c831f] text-white flex items-center justify-center text-lg font-bold">
             ⚡
           </div>
           <div>
-            <h2 className="text-sm font-black text-[#1c1c1c]">Delivery in 8 minutes</h2>
-            <p className="text-xs text-neutral-600 mt-0.5">Shipment of {cart.count} items</p>
+            <h2 className="text-sm font-black text-[#1c1c1c]">{deliveryPromiseText || "Same Day Delivery"}</h2>
+            <p className="text-xs text-neutral-600 mt-0.5">{estimatedArrivalNotice} · Shipment of {cart.count} items</p>
           </div>
         </div>
         <span className="text-xs font-black text-[#0c831f] bg-white px-3 py-1 rounded-full border border-[#0c831f]/30">
-          Superfast
+          {deliveryConfig.badgeText || "Same Day"}
         </span>
       </div>
 

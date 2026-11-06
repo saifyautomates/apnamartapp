@@ -171,7 +171,7 @@ function LoginInner() {
           India&apos;s Fastest FMCG App
         </h1>
         <p className="mt-1 text-xs text-neutral-500 font-medium">
-          Log in or sign up to get 100% genuine FMCG essentials delivered in 8 minutes
+          Log in or sign up to get 100% genuine FMCG essentials with reliable Same-Day Delivery
         </p>
 
         {/* Auth Mode Toggle Tabs (Phone vs Supabase Email) */}
