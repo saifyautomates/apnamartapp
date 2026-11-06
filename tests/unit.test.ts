@@ -3,6 +3,7 @@ import { formatPaise, calcTaxPaise, discountPercent, assertNonNegativePaise } fr
 import { getEffectivePricePaise } from "../src/lib/pricing";
 import { sellableQty } from "../src/lib/inventory";
 import { ORDER_TRANSITIONS, CUSTOMER_TIMELINE, getOrderTimeline } from "../src/lib/orders";
+import { DEFAULT_DELIVERY_CONFIG } from "../src/lib/settings";
 
 describe("money (integer paise only)", () => {
   it("formats paise as rupees", () => {
@@ -73,5 +74,24 @@ describe("order state machine", () => {
     // done = completed steps; the current step is flagged current, not done.
     expect(tl.filter((t) => t.done).map((t) => t.key)).toEqual(["PLACED", "CONFIRMED", "PREPARING"]);
     expect(tl.find((t) => t.current)?.key).toBe("PACKED");
+  });
+});
+
+describe("delivery configuration", () => {
+  it("defaults to SAME_DAY delivery mode with 19:00 cutoff", () => {
+    expect(DEFAULT_DELIVERY_CONFIG.mode).toBe("SAME_DAY");
+    expect(DEFAULT_DELIVERY_CONFIG.cutoffTime).toBe("19:00");
+    expect(DEFAULT_DELIVERY_CONFIG.promiseText).toBe("Same Day Delivery");
+  });
+
+  it("calculates delivery fee based on freeThresholdPaise", () => {
+    const minOrder = DEFAULT_DELIVERY_CONFIG.minOrderPaise;
+    const freeThreshold = DEFAULT_DELIVERY_CONFIG.freeThresholdPaise;
+    const defaultCharge = DEFAULT_DELIVERY_CONFIG.defaultChargePaise;
+
+    expect(minOrder).toBe(19900);
+    const calcFee = (subtotal: number) => (subtotal >= freeThreshold ? 0 : defaultCharge);
+    expect(calcFee(50000)).toBe(0);
+    expect(calcFee(25000)).toBe(3000);
   });
 });
