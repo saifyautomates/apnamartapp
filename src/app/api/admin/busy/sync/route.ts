@@ -39,3 +39,4 @@ export const POST = handler(async (req: NextRequest) => {
     message: "BUSY POS Counter Sales & Stock synced with Central Mart in 12ms!",
   });
 });
+

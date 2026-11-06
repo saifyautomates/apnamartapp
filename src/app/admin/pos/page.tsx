@@ -1,6 +1,6 @@
 import { adminPageDenied } from "@/lib/admin-page";
 import { getBusyPosConfig, getBusyPosMetrics } from "@/lib/busy-pos";
-import { BusyPosTerminal } from "@/components/admin/busy-pos-terminal";
+import { PosViewTabs } from "@/components/admin/pos-view-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -13,5 +13,5 @@ export default async function AdminBusyPosPage() {
     getBusyPosMetrics(),
   ]);
 
-  return <BusyPosTerminal initialConfig={config} initialMetrics={metrics} />;
+  return <PosViewTabs initialConfig={config} initialMetrics={metrics} />;
 }

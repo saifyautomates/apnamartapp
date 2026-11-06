@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatPaise } from "@/lib/money";
 import { ProductForm } from "@/components/admin-ui";
 import { AdminCard, AdminPageHeader } from "@/components/admin-display";
+import { BarcodeProductLister } from "@/components/admin/barcode-product-lister";
 import Link from "next/link";
 
 export default async function AdminProductsPage({
@@ -54,10 +55,11 @@ export default async function AdminProductsPage({
           title="FMCG Products Management"
           subtitle={`Managing ${totalCount.toLocaleString()} products across ${categories.length} FMCG departments.`}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <BarcodeProductLister categories={categories} />
           <Link
             href="/admin/bulk"
-            className="flex items-center gap-1.5 rounded-full bg-[#0c831f] hover:bg-[#0a701a] px-4 py-2 text-xs font-black text-white shadow-sm transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-2xl bg-[#0c831f] hover:bg-[#0a701a] px-4 py-2.5 text-xs font-black text-white shadow-sm transition active:scale-95 cursor-pointer"
           >
             <span>⚡</span>
             <span>FMCG 5,000 Scale Tool</span>
