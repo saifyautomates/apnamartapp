@@ -61,6 +61,7 @@ export function HeroBanner({
             <ProductImage
               src={imageSrc}
               alt={title}
+              priority
               className="h-full w-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
             />
 

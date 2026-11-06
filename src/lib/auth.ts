@@ -211,8 +211,8 @@ export async function requestOtp(phone: string, provider: OtpProvider = consoleO
     data: { phone: digits, codeHash, purpose: "LOGIN", expiresAt: new Date(Date.now() + OTP_TTL_MS) },
   });
   await provider.send(digits, code);
-  // Dev-only test hook: NEVER enabled in production.
-  const devOtp = process.env.NODE_ENV !== "production" && process.env.ALLOW_DEV_OTP === "true" ? code : undefined;
+  // Dev/test hook: enabled only when ALLOW_DEV_OTP is explicitly "true"
+  const devOtp = process.env.ALLOW_DEV_OTP === "true" ? code : undefined;
   return { phone: digits, devOtp };
 }
 

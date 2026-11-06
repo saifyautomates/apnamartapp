@@ -6,9 +6,10 @@ export interface ProductImageProps {
   src: string;
   alt: string;
   className?: string;
+  priority?: boolean;
 }
 
-export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
+export function ProductImage({ src, alt, className = "", priority = false }: ProductImageProps) {
   const [imgSrc, setImgSrc] = useState(src);
 
   useEffect(() => {
@@ -20,7 +21,9 @@ export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
     <img
       src={imgSrc || "/placeholder.svg"}
       alt={alt}
-      loading="lazy"
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      fetchPriority={priority ? "high" : "auto"}
       className={`transition-transform duration-200 group-hover:scale-105 ${className}`}
       onError={() => {
         if (imgSrc !== "/placeholder.svg") {

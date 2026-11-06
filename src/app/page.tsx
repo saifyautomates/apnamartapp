@@ -1,106 +1,113 @@
 import { prisma } from "@/lib/prisma";
+import { cachedJson } from "@/lib/cache";
 import { HeroBanner, PromoCards, CategoryGrid } from "@/components/home";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
 
 export default async function HomePage() {
-  const [dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals] = await Promise.all([
-    // Dairy & Eggs
-    prisma.productVariant.findMany({
-      where: {
-        product: {
-          category: { slug: "dairy-eggs" },
-          isActive: true,
-          onlineVisible: true,
-          deletedAt: null,
-        },
-      },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      take: 12,
-    }),
+  const [dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals] = await cachedJson(
+    "home_rails_fmcg_v1",
+    30,
+    async () => {
+      return Promise.all([
+        // Dairy & Eggs
+        prisma.productVariant.findMany({
+          where: {
+            product: {
+              category: { slug: "dairy-eggs" },
+              isActive: true,
+              onlineVisible: true,
+              deletedAt: null,
+            },
+          },
+          include: {
+            product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+            inventory: true,
+          },
+          take: 12,
+        }),
 
-    // Snacks & Munchies
-    prisma.productVariant.findMany({
-      where: {
-        product: {
-          category: { slug: "snacks" },
-          isActive: true,
-          onlineVisible: true,
-          deletedAt: null,
-        },
-      },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      take: 12,
-    }),
+        // Snacks & Munchies
+        prisma.productVariant.findMany({
+          where: {
+            product: {
+              category: { slug: "snacks" },
+              isActive: true,
+              onlineVisible: true,
+              deletedAt: null,
+            },
+          },
+          include: {
+            product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+            inventory: true,
+          },
+          take: 12,
+        }),
 
-    // Cold Drinks & Juices
-    prisma.productVariant.findMany({
-      where: {
-        product: {
-          category: { slug: { in: ["cold-drinks", "beverages", "tea-coffee"] } },
-          isActive: true,
-          onlineVisible: true,
-          deletedAt: null,
-        },
-      },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      take: 12,
-    }),
+        // Cold Drinks & Juices
+        prisma.productVariant.findMany({
+          where: {
+            product: {
+              category: { slug: { in: ["cold-drinks", "beverages", "tea-coffee"] } },
+              isActive: true,
+              onlineVisible: true,
+              deletedAt: null,
+            },
+          },
+          include: {
+            product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+            inventory: true,
+          },
+          take: 12,
+        }),
 
-    // Atta, Rice & Dal (Staples)
-    prisma.productVariant.findMany({
-      where: {
-        product: {
-          category: { slug: { in: ["staples", "masala-oil"] } },
-          isActive: true,
-          onlineVisible: true,
-          deletedAt: null,
-        },
-      },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      take: 12,
-    }),
+        // Atta, Rice & Dal (Staples)
+        prisma.productVariant.findMany({
+          where: {
+            product: {
+              category: { slug: { in: ["staples", "masala-oil"] } },
+              isActive: true,
+              onlineVisible: true,
+              deletedAt: null,
+            },
+          },
+          include: {
+            product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+            inventory: true,
+          },
+          take: 12,
+        }),
 
-    // Personal Care & Cleaning Essentials
-    prisma.productVariant.findMany({
-      where: {
-        product: {
-          category: { slug: { in: ["personal-care", "cleaning-essentials", "household"] } },
-          isActive: true,
-          onlineVisible: true,
-          deletedAt: null,
-        },
-      },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      take: 12,
-    }),
+        // Personal Care & Cleaning Essentials
+        prisma.productVariant.findMany({
+          where: {
+            product: {
+              category: { slug: { in: ["personal-care", "cleaning-essentials", "household"] } },
+              isActive: true,
+              onlineVisible: true,
+              deletedAt: null,
+            },
+          },
+          include: {
+            product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+            inventory: true,
+          },
+          take: 12,
+        }),
 
-    // Deals with discounts
-    prisma.productVariant.findMany({
-      where: {
-        product: { isActive: true, onlineVisible: true, deletedAt: null },
-      },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      take: 30,
-    }),
-  ]);
+        // Deals with discounts
+        prisma.productVariant.findMany({
+          where: {
+            product: { isActive: true, onlineVisible: true, deletedAt: null },
+          },
+          include: {
+            product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+            inventory: true,
+          },
+          take: 30,
+        }),
+      ]);
+    }
+  );
 
   const discountDeals = deals.filter((v) => v.sellingPaise < v.mrpPaise).slice(0, 10);
 
