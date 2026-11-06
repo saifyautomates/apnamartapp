@@ -152,6 +152,7 @@ enum CreditTxnType {
 
 model User {
   id           String    @id @default(uuid())
+  supabaseId   String?   @unique
   phone        String    @unique
   name         String
   email        String?

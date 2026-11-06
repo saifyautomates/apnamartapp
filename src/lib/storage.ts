@@ -69,7 +69,39 @@ class S3Driver implements StorageDriver {
   }
 }
 
+class SupabaseStorageDriver implements StorageDriver {
+  private bucket: string;
+  constructor(bucket: string) {
+    this.bucket = bucket;
+  }
+  async upload(key: string, buffer: Buffer, contentType: string): Promise<string> {
+    const { createAdminClient } = await import("./supabase/admin");
+    const supabase = createAdminClient();
+    const safeKey = key.replace(/^\/+/, "");
+    const { error } = await supabase.storage.from(this.bucket).upload(safeKey, buffer, {
+      contentType,
+      upsert: true,
+    });
+    if (error) throw new Error(`Supabase upload failed: ${error.message}`);
+    const { data } = supabase.storage.from(this.bucket).getPublicUrl(safeKey);
+    return data.publicUrl;
+  }
+  async delete(key: string): Promise<void> {
+    try {
+      const { createAdminClient } = await import("./supabase/admin");
+      const supabase = createAdminClient();
+      const safeKey = key.replace(/^\/+/, "");
+      await supabase.storage.from(this.bucket).remove([safeKey]);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 export function getStorage(): StorageDriver {
+  if (process.env.SUPABASE_STORAGE_BUCKET && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return new SupabaseStorageDriver(process.env.SUPABASE_STORAGE_BUCKET);
+  }
   if (process.env.S3_BUCKET && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY) {
     return new S3Driver();
   }

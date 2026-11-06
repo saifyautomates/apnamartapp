@@ -103,12 +103,44 @@ export async function getSession(req: NextRequest): Promise<Session | null> {
   }
 }
 
-/** Server-component session reader (reads cookies via next/headers). */
+/** Server-component session reader (reads cookies via next/headers and supports Supabase Auth). */
 export async function getServerSession(): Promise<Session | null> {
   try {
     const token = cookies().get(ACCESS_COOKIE)?.value;
-    if (!token) return null;
-    return verifyAccess(token);
+    if (token) {
+      try {
+        return verifyAccess(token);
+      } catch {
+        /* token invalid, continue to fallback */
+      }
+    }
+
+    // Supabase Auth session fallback
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      try {
+        const { createClient } = await import("./supabase/server");
+        const supabase = await createClient();
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          const user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { supabaseId: data.user.id },
+                ...(data.user.email ? [{ email: data.user.email }] : []),
+                ...(data.user.phone ? [{ phone: data.user.phone.replace(/^\+91/, "").replace(/\s/g, "") }] : []),
+              ],
+            },
+          });
+          if (user && user.isActive) {
+            return { kind: "CUSTOMER", userId: user.id };
+          }
+        }
+      } catch {
+        /* ignore supabase error */
+      }
+    }
+
+    return null;
   } catch {
     return null;
   }
