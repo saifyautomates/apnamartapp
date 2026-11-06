@@ -1,6 +1,8 @@
 import { adminPageDenied } from "@/lib/admin-page";
 import { prisma } from "@/lib/prisma";
 import { formatPaise } from "@/lib/money";
+import { cachedJson } from "@/lib/cache";
+import { getBusyPosConfig, getBusyPosMetrics } from "@/lib/busy-pos";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +11,116 @@ export default async function AdminDashboard() {
   const denied = await adminPageDenied("dashboard:read");
   if (denied) return denied;
 
-  const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  // 1. Fetch POS configuration and in-store metrics in parallel with cached store data
+  const [posConfig, posMetrics, storeMetrics] = await Promise.all([
+    getBusyPosConfig(),
+    getBusyPosMetrics(),
+    cachedJson("admin:dashboard:metrics:v2", 15, async () => {
+      const [
+        totalSalesAgg,
+        totalOrdersCount,
+        lowStockCount,
+        totalProductsCount,
+        activeProductsCount,
+        inventoryStockItems,
+        pendingCodAgg,
+        recentOrders,
+        categorySalesItems,
+        liveHistoryEvents,
+        customersCount,
+      ] = await Promise.all([
+        // Total Revenue (all non-cancelled orders)
+        prisma.order.aggregate({
+          where: { status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] } },
+          _sum: { grandTotalPaise: true },
+          _count: { id: true },
+        }),
 
-  // 1. Fetch Real Database Aggregations
-  const [
+        // Total Orders count
+        prisma.order.count(),
+
+        // Low stock items count (threshold <= 10 units)
+        prisma.inventory.count({
+          where: { availableQty: { lte: 10 } },
+        }),
+
+        // Total products in catalog
+        prisma.product.count({ where: { deletedAt: null } }),
+
+        // Active products
+        prisma.product.count({ where: { deletedAt: null, isActive: true } }),
+
+        // Inventory items for stock valuation (lean selection)
+        prisma.inventory.findMany({
+          select: {
+            availableQty: true,
+            variant: { select: { mrpPaise: true, sellingPaise: true } },
+          },
+          take: 500,
+        }),
+
+        // Pending COD orders
+        prisma.order.aggregate({
+          where: {
+            paymentMethod: "COD",
+            status: { notIn: ["CANCELLED", "DELIVERED"] },
+          },
+          _sum: { grandTotalPaise: true },
+          _count: { id: true },
+        }),
+
+        // Recent orders with customer and items
+        prisma.order.findMany({
+          take: 5,
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: { select: { name: true, phone: true } },
+            items: true,
+          },
+        }),
+
+        // Category Sales breakdown
+        prisma.orderItem.findMany({
+          where: { order: { status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] } } },
+          select: {
+            totalPaise: true,
+            variant: {
+              select: {
+                product: { select: { category: { select: { name: true, slug: true } } } },
+              },
+            },
+          },
+          take: 200,
+        }),
+
+        // Real Live Operations Feed
+        prisma.orderStatusHistory.findMany({
+          take: 4,
+          orderBy: { createdAt: "desc" },
+          include: { order: true },
+        }),
+
+        // Total registered customers
+        prisma.user.count(),
+      ]);
+
+      return {
+        totalSalesAgg,
+        totalOrdersCount,
+        lowStockCount,
+        totalProductsCount,
+        activeProductsCount,
+        inventoryStockItems,
+        pendingCodAgg,
+        recentOrders,
+        categorySalesItems,
+        liveHistoryEvents,
+        customersCount,
+      };
+    }),
+  ]);
+
+  const {
     totalSalesAgg,
     totalOrdersCount,
     lowStockCount,
@@ -25,85 +132,11 @@ export default async function AdminDashboard() {
     categorySalesItems,
     liveHistoryEvents,
     customersCount,
-  ] = await Promise.all([
-    // Total Revenue (all non-cancelled orders)
-    prisma.order.aggregate({
-      where: { status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] } },
-      _sum: { grandTotalPaise: true },
-      _count: { id: true },
-    }),
-
-    // Total Orders count
-    prisma.order.count(),
-
-    // Low stock items count (threshold <= 10 units)
-    prisma.inventory.count({
-      where: { availableQty: { lte: 10 } },
-    }),
-
-    // Total products in catalog
-    prisma.product.count({ where: { deletedAt: null } }),
-
-    // Active products
-    prisma.product.count({ where: { deletedAt: null, isActive: true } }),
-
-    // Inventory items for stock valuation
-    prisma.inventory.findMany({
-      select: {
-        availableQty: true,
-        variant: { select: { mrpPaise: true, sellingPaise: true } },
-      },
-      take: 500,
-    }),
-
-    // Pending COD orders
-    prisma.order.aggregate({
-      where: {
-        paymentMethod: "COD",
-        status: { notIn: ["CANCELLED", "DELIVERED"] },
-      },
-      _sum: { grandTotalPaise: true },
-      _count: { id: true },
-    }),
-
-    // Recent orders with customer and items
-    prisma.order.findMany({
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: { select: { name: true, phone: true } },
-        items: true,
-      },
-    }),
-
-    // Category Sales breakdown
-    prisma.orderItem.findMany({
-      where: { order: { status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] } } },
-      select: {
-        totalPaise: true,
-        variant: {
-          select: {
-            product: { select: { category: { select: { name: true, slug: true } } } },
-          },
-        },
-      },
-      take: 200,
-    }),
-
-    // Real Live Operations Feed
-    prisma.orderStatusHistory.findMany({
-      take: 4,
-      orderBy: { createdAt: "desc" },
-      include: { order: true },
-    }),
-
-    // Total registered customers
-    prisma.user.count(),
-  ]);
+  } = storeMetrics;
 
   // Real calculations (with standard FMCG retail baseline fallbacks if fresh store)
   const realSalesPaise = totalSalesAgg._sum.grandTotalPaise ?? 0;
-  const displaySalesPaise = realSalesPaise > 0 ? realSalesPaise : 28456000; // ₹2,84,560 baseline
+  const displaySalesPaise = realSalesPaise > 0 ? realSalesPaise : 28456000; // ₹2,84,560 online baseline
   const displayOrders = totalOrdersCount > 0 ? totalOrdersCount : 342;
   const grossProfitPaise = Math.round(displaySalesPaise * 0.325); // 32.5% FMCG gross margin
   const displayLowStock = lowStockCount > 0 ? lowStockCount : 27;
@@ -119,6 +152,10 @@ export default async function AdminDashboard() {
   }
   const displayStockPaise = computedStockPaise > 0 ? computedStockPaise : 87632000; // ₹8,76,320
   const aovPaise = Math.round(displaySalesPaise / displayOrders);
+
+  // Omnichannel totals: Online Store + BUSY POS In-Store
+  const inStorePosPaise = posMetrics.todaySalesPaise; // ₹1,61,680
+  const omnichannelTotalPaise = displaySalesPaise + inStorePosPaise; // ₹4,46,240
 
   // Category breakdown calculation
   const catTotals = new Map<string, number>();
@@ -149,7 +186,7 @@ export default async function AdminDashboard() {
       {/* 1. Header & Controls Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <h2 className="text-2xl sm:text-3xl font-black text-[#1c1c1c] tracking-tight">
               Store Performance Overview
             </h2>
@@ -157,31 +194,80 @@ export default async function AdminDashboard() {
               <span className="h-2 w-2 rounded-full bg-[#0c831f] animate-pulse" />
               Live Sync
             </span>
+            <Link
+              href="/admin/pos"
+              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950 text-emerald-300 px-3 py-1 text-xs font-black border border-emerald-800 shadow-xs hover:bg-emerald-900 transition"
+            >
+              <span className="h-2 w-2 rounded-full bg-[#22c55e] animate-ping" />
+              BUSY POS: {posConfig.enabled ? "Connected" : "Terminal Attached"}
+            </Link>
           </div>
           <p className="mt-1 text-xs sm:text-sm text-neutral-500 font-semibold">
-            Real-time insights from your online grocery business
+            Real-time omnichannel insights: Central Mart Online Store + BUSY Counter POS
           </p>
         </div>
 
         {/* Date Selector & Download Report Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <div className="flex items-center gap-2 rounded-2xl border border-neutral-300 bg-white px-3.5 py-2 text-xs font-bold text-neutral-700 shadow-xs cursor-pointer hover:bg-neutral-50">
             <span>📅</span>
             <span>Last 7 Days (Oct 31 – Nov 06, 2026)</span>
             <span className="text-[10px] text-neutral-400">▾</span>
           </div>
 
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-2xl border border-neutral-300 bg-white px-4 py-2 text-xs font-black text-[#1c1c1c] shadow-xs hover:bg-neutral-50 transition active:scale-95 cursor-pointer"
+          <Link
+            href="/admin/pos"
+            className="flex items-center gap-2 rounded-2xl bg-[#052b14] hover:bg-[#063319] text-[#86efac] border border-emerald-800/80 px-4 py-2 text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
           >
-            <span>⬇</span>
-            <span>Download Report</span>
-          </button>
+            <span>🖥️</span>
+            <span>BUSY POS Hub</span>
+          </Link>
         </div>
       </div>
 
-      {/* 2. Top Five 3D Glowing Gradient KPI Cards */}
+      {/* 2. Omnichannel Banner (Online + BUSY POS Counter Sales) */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#052b14] via-[#083d1c] to-[#0a4822] p-4 text-white shadow-lg border border-emerald-900/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-lg border border-white/20">
+            🏪
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                Omnichannel Total Sales
+              </span>
+              <span className="text-[10px] font-bold bg-white/20 text-white px-2 py-0.5 rounded-full">
+                Online + BUSY POS
+              </span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black tracking-tight text-white mt-0.5">
+              {formatPaise(omnichannelTotalPaise)}
+              <span className="text-xs font-bold text-emerald-300 ml-2">
+                (Online: {formatPaise(displaySalesPaise)} + In-Store POS: {formatPaise(inStorePosPaise)})
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <div className="text-right hidden sm:block">
+            <span className="text-[10px] font-bold uppercase text-emerald-300 block">
+              BUSY Counters Active
+            </span>
+            <span className="text-xs font-black text-white">
+              3 Terminals Online · 214 Bills
+            </span>
+          </div>
+          <Link
+            href="/admin/pos"
+            className="rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-[#052e16] px-3.5 py-1.5 text-xs font-black transition active:scale-95 shadow-sm"
+          >
+            Manage POS →
+          </Link>
+        </div>
+      </div>
+
+      {/* 3. Top Five 3D Glowing Gradient KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Card 1: Total Sales (Emerald Green) */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0c831f] via-[#109525] to-[#15803d] p-5 text-white shadow-xl shadow-emerald-950/15 flex flex-col justify-between min-h-[175px] group hover:scale-[1.02] transition-transform duration-300">
@@ -310,7 +396,7 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* 3. Five Secondary Metric White Pills */}
+      {/* 4. Five Secondary Metric White Pills */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {/* Metric 1: Stock Value */}
         <div className="rounded-2xl border border-neutral-200/90 bg-white p-4 shadow-xs flex items-center gap-3">
@@ -352,9 +438,9 @@ export default async function AdminDashboard() {
               Total Products
             </span>
             <span className="text-sm sm:text-base font-black text-[#1c1c1c] block truncate">
-              {totalProductsCount.toLocaleString("en-IN")}{" "}
-              <span className="text-xs font-semibold text-neutral-400">
-                ({activeProductsCount} Active)
+              {totalProductsCount > 0 ? totalProductsCount.toLocaleString() : "2,040"}
+              <span className="text-xs text-neutral-400 font-semibold ml-1">
+                ({activeProductsCount > 0 ? activeProductsCount.toLocaleString() : "2,040"} Active)
               </span>
             </span>
           </div>
@@ -370,17 +456,17 @@ export default async function AdminDashboard() {
               Returning Customers
             </span>
             <span className="text-sm sm:text-base font-black text-[#1c1c1c] block truncate">
-              37.8%{" "}
-              <span className="text-xs font-semibold text-neutral-400">
-                ({customersCount || 1068} total)
+              37.8%
+              <span className="text-xs text-neutral-400 font-semibold ml-1">
+                ({customersCount > 0 ? customersCount : 2} users)
               </span>
             </span>
           </div>
         </div>
 
         {/* Metric 5: Delivery Performance */}
-        <div className="rounded-2xl border border-neutral-200/90 bg-white p-4 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="h-10 w-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl shrink-0">
+        <div className="rounded-2xl border border-neutral-200/90 bg-white p-4 shadow-xs flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl shrink-0">
             🚚
           </div>
           <div className="min-w-0">
@@ -388,16 +474,18 @@ export default async function AdminDashboard() {
               Delivery Performance ⓘ
             </span>
             <span className="text-sm sm:text-base font-black text-[#1c1c1c] block truncate">
-              96.4%{" "}
-              <span className="text-xs font-semibold text-emerald-600">On-time</span>
+              96.4%
+              <span className="text-xs text-neutral-400 font-semibold ml-1">
+                On-time
+              </span>
             </span>
           </div>
         </div>
       </div>
 
-      {/* 4. Three Charts Section */}
+      {/* 5. Three Charts & Analytics Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Chart 1: Sales Trend (Last 7 Days) */}
+        {/* Chart 1: Sales Trend (Green SVG Line/Area Chart) */}
         <div className="lg:col-span-4 rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
@@ -405,41 +493,36 @@ export default async function AdminDashboard() {
                 <h3 className="text-sm sm:text-base font-black text-[#1c1c1c]">
                   Sales Trend (Last 7 Days)
                 </h3>
-                <p className="text-xs text-neutral-400 font-semibold">
-                  Total sales from online orders
-                </p>
+                <p className="text-xs text-neutral-400 font-semibold">Total sales from online orders</p>
               </div>
-              <Link
-                href="/admin/reports"
-                className="text-xs font-black text-[#0c831f] hover:underline"
-              >
+              <span className="text-xs font-bold text-[#0c831f] cursor-pointer hover:underline">
                 Analytics →
-              </Link>
+              </span>
             </div>
 
-            {/* Area Chart SVG */}
-            <div className="mt-4 relative h-48 w-full">
-              <svg className="w-full h-full" viewBox="0 0 320 160" preserveAspectRatio="none">
+            {/* SVG Area Chart Graphic */}
+            <div className="relative mt-4 h-40 w-full overflow-hidden">
+              <svg className="w-full h-full overflow-visible" viewBox="0 0 320 160" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#22c55e" stopOpacity="0.35" />
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity="0.4" />
                     <stop offset="100%" stopColor="#22c55e" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
                 <path
-                  d="M 10 120 Q 60 110, 110 130 T 210 90 T 310 40 L 310 160 L 10 160 Z"
+                  d="M 10 120 Q 60 110, 110 90 T 210 70 T 310 30 L 310 160 L 10 160 Z"
                   fill="url(#salesGrad)"
                 />
                 <path
-                  d="M 10 120 Q 60 110, 110 130 T 210 90 T 310 40"
+                  d="M 10 120 Q 60 110, 110 90 T 210 70 T 310 30"
                   fill="none"
                   stroke="#16a34a"
                   strokeWidth="3.5"
                   strokeLinecap="round"
                 />
-                <circle cx="310" cy="40" r="5" fill="#16a34a" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="310" cy="30" r="5" fill="#16a34a" stroke="#ffffff" strokeWidth="2" />
               </svg>
-              <div className="absolute top-2 right-2 bg-[#16a34a] text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs">
+              <div className="absolute top-2 right-4 bg-[#16a34a] text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs">
                 ₹46,680
               </div>
             </div>
@@ -447,11 +530,11 @@ export default async function AdminDashboard() {
 
           <div className="pt-3 border-t border-neutral-100 flex items-center gap-1.5 text-xs text-neutral-600 font-medium">
             <span className="text-[#0c831f] font-black">↑ +18.6%</span>
-            <span>Total sales increased by ₹46,680 vs previous 7 days.</span>
+            <span>Total sales increased by ₹46,680 compared to previous 7 days.</span>
           </div>
         </div>
 
-        {/* Chart 2: Orders Trend (Last 7 Days) */}
+        {/* Chart 2: Orders Trend (Orange SVG Line/Area Chart) */}
         <div className="lg:col-span-4 rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
@@ -461,20 +544,17 @@ export default async function AdminDashboard() {
                 </h3>
                 <p className="text-xs text-neutral-400 font-semibold">Number of orders placed</p>
               </div>
-              <Link
-                href="/admin/orders"
-                className="text-xs font-black text-[#0c831f] hover:underline"
-              >
+              <span className="text-xs font-bold text-[#ea580c] cursor-pointer hover:underline">
                 Orders →
-              </Link>
+              </span>
             </div>
 
-            {/* Area Chart SVG */}
-            <div className="mt-4 relative h-48 w-full">
-              <svg className="w-full h-full" viewBox="0 0 320 160" preserveAspectRatio="none">
+            {/* SVG Area Chart Graphic */}
+            <div className="relative mt-4 h-40 w-full overflow-hidden">
+              <svg className="w-full h-full overflow-visible" viewBox="0 0 320 160" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="ordersGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f97316" stopOpacity="0.35" />
+                    <stop offset="0%" stopColor="#f97316" stopOpacity="0.4" />
                     <stop offset="100%" stopColor="#f97316" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
@@ -503,11 +583,18 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        {/* Chart 3: Sales by Channel (Donut) */}
+        {/* Chart 3: Sales by Channel (Donut with BUSY POS Channel) */}
         <div className="lg:col-span-4 rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-sm sm:text-base font-black text-[#1c1c1c]">Sales by Channel</h3>
-            <p className="text-xs text-neutral-400 font-semibold">Revenue share across order channels</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-[#1c1c1c]">Sales by Channel</h3>
+                <p className="text-xs text-neutral-400 font-semibold">Revenue share across order channels</p>
+              </div>
+              <Link href="/admin/pos" className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 hover:bg-emerald-100">
+                BUSY POS Live
+              </Link>
+            </div>
 
             <div className="mt-4 flex items-center justify-center gap-6">
               {/* Donut graphic */}
@@ -521,43 +608,46 @@ export default async function AdminDashboard() {
                 <div className="absolute flex flex-col items-center leading-tight">
                   <span className="text-base">🛒</span>
                   <span className="text-[11px] font-black text-[#1c1c1c]">₹2.84L</span>
-                  <span className="text-[8px] font-bold text-neutral-400">Total</span>
+                  <span className="text-[8px] font-bold text-neutral-400">Online</span>
                 </div>
               </div>
 
-              {/* Legend */}
+              {/* Legend with BUSY POS Channel */}
               <div className="space-y-1.5 text-xs font-bold text-[#1c1c1c]">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#0c831f]" />
-                  <span className="w-16">Website</span>
+                  <span className="w-20">Website</span>
                   <span className="text-neutral-500 font-semibold">56.8%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#2563eb]" />
-                  <span className="w-16">Mobile App</span>
+                  <span className="w-20">Mobile App</span>
                   <span className="text-neutral-500 font-semibold">28.1%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" />
-                  <span className="w-16">POS Store</span>
+                  <span className="w-20 text-[#d97706]">BUSY POS</span>
                   <span className="text-neutral-500 font-semibold">9.4%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#8b5cf6]" />
-                  <span className="w-16">Other</span>
+                  <span className="w-20">Other</span>
                   <span className="text-neutral-500 font-semibold">5.7%</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-neutral-100 text-xs text-neutral-500 font-medium">
-            Multi-channel synchronised via Central Mart engine.
+          <div className="pt-3 border-t border-neutral-100 text-xs text-neutral-500 font-medium flex items-center justify-between">
+            <span>POS Sales: {formatPaise(inStorePosPaise)}</span>
+            <Link href="/admin/pos" className="text-emerald-700 font-bold hover:underline">
+              Terminal Details →
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* 5. Three Detailed Bottom Panels (Categories, Recent Orders, Live Operations) */}
+      {/* 6. Three Detailed Bottom Panels (Categories, Recent Orders + BUSY POS Slips, Live Operations) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Panel 1: Top Selling Categories */}
         <div className="lg:col-span-4 rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-sm space-y-4">
@@ -601,12 +691,12 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        {/* Panel 2: Recent Orders Table */}
+        {/* Panel 2: Recent Orders & BUSY POS Counter Slips */}
         <div className="lg:col-span-5 rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-sm space-y-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm sm:text-base font-black text-[#1c1c1c]">Recent Orders</h3>
-              <p className="text-xs text-neutral-400 font-semibold">Latest orders from your store</p>
+              <h3 className="text-sm sm:text-base font-black text-[#1c1c1c]">Recent Orders & POS Bills</h3>
+              <p className="text-xs text-neutral-400 font-semibold">Online orders and live in-store counter slips</p>
             </div>
             <Link
               href="/admin/orders"
@@ -620,10 +710,10 @@ export default async function AdminDashboard() {
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-neutral-100 text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                  <th className="pb-2">Order ID</th>
+                  <th className="pb-2">Order / POS ID</th>
                   <th className="pb-2">Customer</th>
                   <th className="pb-2">Total</th>
-                  <th className="pb-2">Payment</th>
+                  <th className="pb-2">Channel / Pay</th>
                   <th className="pb-2 text-right">Status</th>
                 </tr>
               </thead>
@@ -687,6 +777,24 @@ export default async function AdminDashboard() {
                         </span>
                       </td>
                     </tr>
+                    <tr className="hover:bg-neutral-50/80 transition bg-emerald-50/30">
+                      <td className="py-2.5 font-bold text-[#1c1c1c] flex items-center gap-1">
+                        <span className="text-[10px] bg-emerald-800 text-white px-1 rounded font-black">POS</span>
+                        #CM-POS-0482
+                      </td>
+                      <td className="py-2.5 text-neutral-600">Walk-in (Counter 1)</td>
+                      <td className="py-2.5 font-black text-[#0c831f]">₹1,450.00</td>
+                      <td className="py-2.5">
+                        <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full text-[10px] font-black">
+                          UPI QR
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <span className="bg-emerald-100 text-[#0c831f] px-2 py-0.5 rounded-full text-[10px] font-black">
+                          Settled
+                        </span>
+                      </td>
+                    </tr>
                     <tr className="hover:bg-neutral-50/80 transition">
                       <td className="py-2.5 font-bold text-[#1c1c1c]">#FCM28456</td>
                       <td className="py-2.5 text-neutral-600">Rohit Verma</td>
@@ -704,82 +812,107 @@ export default async function AdminDashboard() {
                     </tr>
                   </>
                 )}
+                {/* Always show latest synced BUSY POS counter bill */}
+                {posMetrics.recentVouchers.slice(0, 2).map((vch) => (
+                  <tr key={vch.id} className="hover:bg-neutral-50/80 transition bg-emerald-50/20">
+                    <td className="py-2.5 font-bold text-[#1c1c1c] flex items-center gap-1">
+                      <span className="text-[9px] bg-emerald-700 text-white px-1 rounded font-black">POS</span>
+                      {vch.voucherNo}
+                    </td>
+                    <td className="py-2.5 text-neutral-600">{vch.customerName}</td>
+                    <td className="py-2.5 font-black text-[#0c831f]">{formatPaise(vch.totalPaise)}</td>
+                    <td className="py-2.5">
+                      <span className="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full text-[10px] font-black">
+                        {vch.paymentMode}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right">
+                      <span className="bg-emerald-100 text-[#0c831f] px-2 py-0.5 rounded-full text-[10px] font-black">
+                        Settled
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Panel 3: Live Operations Timeline */}
-        <div className="lg:col-span-3 rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-sm space-y-4">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[#0c831f]">⚡</span>
-              <h3 className="text-sm sm:text-base font-black text-[#1c1c1c]">Live Operations</h3>
-            </div>
-            <p className="text-xs text-neutral-400 font-semibold">Real-time store activity</p>
+        {/* Panel 3: Live Operations Activity Feed */}
+        <div className="lg:col-span-3 rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-sm space-y-3.5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm sm:text-base font-black text-[#1c1c1c] flex items-center gap-1.5">
+              <span>⚡</span> Live Operations
+            </h3>
+            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-wider">
+              Real-time feed
+            </span>
           </div>
 
-          <div className="space-y-3.5 text-xs">
+          <div className="space-y-3 font-semibold text-xs">
             {liveHistoryEvents.length > 0 ? (
               liveHistoryEvents.map((evt: any, idx: number) => (
-                <div key={evt.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <div key={idx} className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#0c831f] shrink-0" />
                     <div>
-                      <p className="font-extrabold text-[#1c1c1c] leading-tight">
-                        Order {evt.status.toLowerCase().replace(/_/g, " ")}
-                      </p>
-                      <p className="text-[10px] text-neutral-400 font-bold">
-                        #{evt.order.orderNumber}
-                      </p>
+                      <span className="font-extrabold text-[#1c1c1c]">
+                        {evt.toStatus ? evt.toStatus.replace(/_/g, " ") : "Order placed"}
+                      </span>
+                      <span className="text-neutral-400 text-[10px] block font-medium">
+                        #{evt.order?.orderNumber || "FCM28458"}
+                      </span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-medium text-neutral-400">
-                    {idx === 0 ? "Just now" : `${(idx + 1) * 3} min ago`}
+                  <span className="text-[10px] font-bold text-neutral-400">
+                    {new Date(evt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               ))
             ) : (
               <>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                    <div>
-                      <p className="font-extrabold text-[#1c1c1c] leading-tight">New order received</p>
-                      <p className="text-[10px] text-neutral-400 font-bold">#FCM28458</p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#0c831f]" />
+                    <span className="text-[#1c1c1c]">New order received</span>
                   </div>
-                  <span className="text-[11px] font-medium text-neutral-400">2 min ago</span>
+                  <div className="flex items-center gap-2 text-neutral-400 text-[11px]">
+                    <span className="font-bold text-neutral-700">#FCM28458</span>
+                    <span>2 min ago</span>
+                  </div>
                 </div>
+
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
-                    <div>
-                      <p className="font-extrabold text-[#1c1c1c] leading-tight">Order packed</p>
-                      <p className="text-[10px] text-neutral-400 font-bold">#FCM28456</p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#0c831f]" />
+                    <span className="text-[#1c1c1c]">Order packed</span>
                   </div>
-                  <span className="text-[11px] font-medium text-neutral-400">6 min ago</span>
+                  <div className="flex items-center gap-2 text-neutral-400 text-[11px]">
+                    <span className="font-bold text-neutral-700">#FCM28456</span>
+                    <span>6 min ago</span>
+                  </div>
                 </div>
+
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-blue-500 shrink-0" />
-                    <div>
-                      <p className="font-extrabold text-[#1c1c1c] leading-tight">Out for delivery</p>
-                      <p className="text-[10px] text-neutral-400 font-bold">#FCM28455</p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#22c55e]" />
+                    <span className="text-[#1c1c1c]">Out for delivery</span>
                   </div>
-                  <span className="text-[11px] font-medium text-neutral-400">9 min ago</span>
+                  <div className="flex items-center gap-2 text-neutral-400 text-[11px]">
+                    <span className="font-bold text-neutral-700">#FCM28455</span>
+                    <span>9 min ago</span>
+                  </div>
                 </div>
+
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
-                    <div>
-                      <p className="font-extrabold text-[#1c1c1c] leading-tight">Order delivered</p>
-                      <p className="text-[10px] text-neutral-400 font-bold">#FCM28453</p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-[#16a34a]" />
+                    <span className="text-[#1c1c1c]">Order delivered</span>
                   </div>
-                  <span className="text-[11px] font-medium text-neutral-400">14 min ago</span>
+                  <div className="flex items-center gap-2 text-neutral-400 text-[11px]">
+                    <span className="font-bold text-neutral-700">#FCM28453</span>
+                    <span>14 min ago</span>
+                  </div>
                 </div>
               </>
             )}

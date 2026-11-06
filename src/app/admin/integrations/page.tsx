@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getBusyStatus } from "@/lib/busy";
 import { getShiprocketStatus } from "@/lib/shiprocket";
 import { SyncJobButton } from "@/components/admin-ui";
+import Link from "next/link";
 
 export default async function AdminIntegrationsPage() {
   const denied = await adminPageDenied("integrations:read");
@@ -21,7 +22,16 @@ export default async function AdminIntegrationsPage() {
   ];
   return (
     <div>
-      <h1 className="text-2xl font-bold">Integrations</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Integrations</h1>
+        <Link
+          href="/admin/pos"
+          className="rounded-2xl bg-[#052b14] hover:bg-[#063319] text-[#86efac] border border-emerald-800/80 px-4 py-2 text-xs font-black shadow-xs transition active:scale-95 flex items-center gap-2"
+        >
+          <span>🖥️</span>
+          <span>BUSY POS Terminal Hub →</span>
+        </Link>
+      </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {cards.map((c) => (
           <article key={c.name} className="rounded-lg border border-line bg-white p-4">

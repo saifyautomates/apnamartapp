@@ -37,6 +37,12 @@ function getIcon(href: string): React.ReactNode {
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
       );
+    case "/admin/pos":
+      return (
+        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      );
     case "/admin/products":
       return (
         <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -110,6 +116,7 @@ function getIcon(href: string): React.ReactNode {
 const SIDEBAR_ITEMS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/orders", label: "Orders", badge: 24 },
+  { href: "/admin/pos", label: "BUSY POS", badge: "Sync" },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/inventory", label: "Inventory" },
