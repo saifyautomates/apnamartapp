@@ -3,7 +3,7 @@ import { HeroBanner, PromoCards, CategoryGrid } from "@/components/home";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
 
 export default async function HomePage() {
-  const [dairyItems, snackItems, drinkItems, stapleItems, deals] = await Promise.all([
+  const [dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals] = await Promise.all([
     // Dairy & Eggs
     prisma.productVariant.findMany({
       where: {
@@ -72,6 +72,23 @@ export default async function HomePage() {
       take: 12,
     }),
 
+    // Personal Care & Cleaning Essentials
+    prisma.productVariant.findMany({
+      where: {
+        product: {
+          category: { slug: { in: ["personal-care", "cleaning-essentials", "household"] } },
+          isActive: true,
+          onlineVisible: true,
+          deletedAt: null,
+        },
+      },
+      include: {
+        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+        inventory: true,
+      },
+      take: 12,
+    }),
+
     // Deals with discounts
     prisma.productVariant.findMany({
       where: {
@@ -95,7 +112,7 @@ export default async function HomePage() {
       {/* 2. Three Promotional Cards Row */}
       <PromoCards />
 
-      {/* 3. Blinkit Signature 2-Row Category Rail (20 Categories) */}
+      {/* 3. Blinkit Signature 2-Row FMCG Category Rail (20 Packaged Categories) */}
       <CategoryGrid />
 
       {/* 4. Product Rails */}
@@ -135,10 +152,19 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* Rail 5: Best Offers & Savings */}
+      {/* Rail 5: Personal Care & Cleaning Essentials */}
+      {personalCareItems.length > 0 ? (
+        <ProductCarousel
+          title="Personal Care & Cleaning Essentials"
+          seeAllHref="/category/personal-care"
+          items={personalCareItems as unknown as VariantCardProps[]}
+        />
+      ) : null}
+
+      {/* Rail 6: Best Offers & Savings */}
       {discountDeals.length > 0 ? (
         <ProductCarousel
-          title="🔥 Best Offers on Groceries"
+          title="🔥 Best Offers on FMCG Essentials"
           seeAllHref="/category"
           items={discountDeals as unknown as VariantCardProps[]}
         />

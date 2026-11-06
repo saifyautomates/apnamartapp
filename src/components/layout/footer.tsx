@@ -12,7 +12,7 @@ export function SiteFooter() {
               <CentralMartLogo size="sm" showBadge />
             </div>
             <p className="text-xs text-neutral-500 leading-relaxed mt-2">
-              Central Mart · India&apos;s last minute app. Delivering groceries, fresh staples, dairy, snacks, and household essentials in 8 minutes.
+              Central Mart · India&apos;s 8-minute FMCG app. Delivering 100% genuine packaged staples, dairy, snacks, beverages, cleaning &amp; personal care in 8 minutes.
             </p>
           </div>
 

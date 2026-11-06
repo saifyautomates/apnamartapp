@@ -11,10 +11,10 @@ export interface HeroBannerProps {
 
 export function HeroBanner({
   title = "Stock up on daily essentials",
-  subtitle = "Get farm-fresh goodness & a wide range of exotic fruits, vegetables, dairy, eggs & more delivered to your door.",
+  subtitle = "Order 100% genuine packaged FMCG brands — staples, dairy, munchies, cold drinks, cleaning & personal care delivered in 8 minutes.",
   buttonText = "Shop Now",
   href = "/category/dairy-eggs",
-  imageSrc = "/images/banners/hero-groceries.jpg",
+  imageSrc = "/images/banners/central-mart-fmcg-hero.jpg",
 }: HeroBannerProps) {
   return (
     <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0c831f] via-[#107d22] to-[#146b2b] text-white shadow-xl cinematic-shine">
@@ -28,7 +28,7 @@ export function HeroBanner({
           {/* Animated Flash Pill */}
           <div className="inline-flex items-center gap-2 rounded-full bg-black/25 backdrop-blur-md px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#f8cb46] border border-white/10 animate-pulse-subtle">
             <span className="text-sm">⚡</span>
-            <span>Central Mart Express · 8 Mins Delivery</span>
+            <span>Central Mart Express · 8 Mins FMCG Delivery</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.1] text-white drop-shadow-xs">
@@ -50,14 +50,14 @@ export function HeroBanner({
 
             <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-white/90 bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-white/10">
               <span className="text-base">🛡️</span>
-              <span>100% Genuine Branded Items</span>
+              <span>100% Genuine Branded FMCG Goods</span>
             </div>
           </div>
         </div>
 
         {/* Right Column: Visual with Floating 3D Badges */}
         <div className="md:col-span-5 relative flex justify-center md:justify-end">
-          <div className="relative h-52 sm:h-60 md:h-72 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/20 group">
+          <div className="relative h-56 sm:h-64 md:h-76 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/20 group">
             <ProductImage
               src={imageSrc}
               alt={title}
@@ -71,9 +71,9 @@ export function HeroBanner({
             </div>
 
             {/* Floating Glassmorphism Badge 2 (Bottom Right) */}
-            <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-[#0c831f] text-[11px] font-black px-3 py-1.5 rounded-xl border border-white/40 shadow-lg animate-float-delayed flex items-center gap-1.5">
-              <span>🌱</span>
-              <span>FARM FRESH TODAY</span>
+            <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-[#0c831f] text-[11px] font-black px-3.5 py-1.5 rounded-xl border border-white/40 shadow-lg animate-float-delayed flex items-center gap-1.5">
+              <span>🏷️</span>
+              <span>100% GENUINE FMCG</span>
             </div>
           </div>
         </div>

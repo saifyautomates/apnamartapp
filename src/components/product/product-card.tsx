@@ -31,7 +31,7 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   const inStock = sellable > 0;
 
   return (
-    <article className="group relative flex flex-col justify-between rounded-xl border border-neutral-200/80 bg-white p-3 shadow-xs hover:shadow-md transition-all duration-200 h-full">
+    <article className="group relative flex flex-col justify-between rounded-2xl border border-neutral-200/70 bg-white p-3 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 h-full">
       {/* Top Media Container */}
       <div className="relative">
         {/* Top Badges Row */}

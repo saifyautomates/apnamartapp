@@ -64,7 +64,7 @@ export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselPro
         {canScrollLeft ? (
           <button
             onClick={() => scroll("left")}
-            className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white shadow-lg border border-neutral-200 flex items-center justify-center text-neutral-700 hover:bg-neutral-50 transition active:scale-95 cursor-pointer"
+            className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-neutral-200/90 flex items-center justify-center text-neutral-700 hover:bg-neutral-50 hover:shadow-lg transition active:scale-95 cursor-pointer"
             aria-label="Scroll left"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +79,7 @@ export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselPro
           className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1"
         >
           {items.map((item) => (
-            <div key={item.id} className="w-[170px] sm:w-[195px] shrink-0">
+            <div key={item.id} className="w-[172px] sm:w-[195px] shrink-0">
               <BlinkitProductCard v={item} />
             </div>
           ))}
@@ -89,7 +89,7 @@ export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselPro
         {canScrollRight ? (
           <button
             onClick={() => scroll("right")}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white shadow-lg border border-neutral-200 flex items-center justify-center text-neutral-700 hover:bg-neutral-50 transition active:scale-95 cursor-pointer"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-neutral-200/90 flex items-center justify-center text-neutral-700 hover:bg-neutral-50 hover:shadow-lg transition active:scale-95 cursor-pointer"
             aria-label="Scroll right"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

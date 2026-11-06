@@ -59,7 +59,7 @@ export default function LaunchLoader({ storeName }: { storeName?: string; monogr
       </div>
 
       <p className={`mt-4 text-xs font-bold text-neutral-800 ${reduced ? "" : "loader-fade"}`}>
-        {storeName ?? "Central Mart"} · India&apos;s Fastest Grocery App
+        {storeName ?? "Central Mart"} · India&apos;s Fastest 8-Minute FMCG App
       </p>
 
       {/* Shimmer Bar */}

@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 export const DEFAULT_SETTINGS: Record<string, unknown> = {
   store: {
     name: "Central Mart",
-    tagline: "India's 8-minute grocery app",
+    tagline: "India's 8-minute FMCG grocery app",
     phone: "",
     email: "",
     address: "",

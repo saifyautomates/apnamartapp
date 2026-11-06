@@ -11,8 +11,8 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Central Mart — 8 Minute Grocery Delivery",
-  description: "India's last minute app. Order fresh groceries, milk, staples, snacks, cold drinks and daily essentials online with Central Mart 8-minute instant delivery.",
+  title: "Central Mart — 8 Minute FMCG Grocery Delivery",
+  description: "India's 8-minute FMCG app. Order 100% genuine packaged groceries, dairy, staples, snacks, cold drinks, cleaning & personal care essentials online with Central Mart 8-minute instant delivery.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"),
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -25,8 +25,8 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Central Mart — 8 Minute Grocery Delivery",
-    description: "India's last minute app. Order fresh groceries delivered in 8 minutes with Central Mart.",
+    title: "Central Mart — 8 Minute FMCG Grocery Delivery",
+    description: "India's 8-minute FMCG app. Order 100% genuine packaged groceries delivered in 8 minutes with Central Mart.",
     type: "website",
   },
 };
@@ -45,7 +45,7 @@ function monogramFor(name: string): string {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  let storeName = "Apna Grocery Store";
+  let storeName = "Central Mart";
   try {
     const settings = await getAllSettings();
     const store = settings.store as { name?: string } | undefined;
