@@ -39,6 +39,12 @@ module.exports = {
         adminbg: "#f6f7f9",
         adminline: "#e5e7eb",
       },
+      boxShadow: {
+        xs: "0 1px 2px 0 rgba(0, 0, 0, 0.04)",
+      },
+      backdropBlur: {
+        xs: "2px",
+      },
       fontFamily: {
         sans: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
       },
