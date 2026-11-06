@@ -38,6 +38,7 @@
     "prisma:migrate": "prisma migrate dev",
     "seed": "tsx prisma/seed.ts",
     "smoke": "tsx tests/smoke.ts",
+    "test:e2e": "tsx tests/e2e-production-audit.ts",
     "start": "next start",
     "test": "vitest run",
     "seed:fmcg": "tsx prisma/seed-fmcg.ts"
