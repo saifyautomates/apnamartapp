@@ -518,3 +518,4 @@ export async function seedFmcgDatabase(targetCount = 500) {
     insertedVariants,
   };
 }
+

@@ -33,3 +33,4 @@ export const POST = handler(async (req: NextRequest) => {
     message: `Successfully seeded ${result.processedProducts} FMCG products with live inventory!`,
   });
 });
+

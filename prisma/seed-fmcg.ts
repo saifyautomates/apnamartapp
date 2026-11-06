@@ -15,3 +15,4 @@ run()
     console.error("❌ FMCG Seed Failed:", err);
     process.exit(1);
   });
+

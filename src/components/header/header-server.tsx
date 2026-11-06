@@ -67,3 +67,4 @@ export default async function Header({ storeName }: { storeName: string }) {
 }
 
 export { Header };
+
