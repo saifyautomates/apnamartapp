@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifyAccess } from "@/lib/auth";
 import { getEffectivePricePaise } from "@/lib/pricing";
-import BlinkitHeader from "@/components/blinkit-header";
+import { BlinkitHeader } from "@/components/header/blinkit-header";
 
 async function getCartStats(): Promise<{ count: number; total: number; isLoggedIn: boolean; customerName: string | null }> {
   try {

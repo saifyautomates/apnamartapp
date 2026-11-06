@@ -1,5 +1,5 @@
 import { searchProducts } from "@/lib/search";
-import BlinkitProductCard, { VariantCardProps } from "@/components/product-card";
+import { BlinkitProductCard, VariantCardProps } from "@/components/product";
 import { EmptyState } from "@/components/ui";
 import Link from "next/link";
 
@@ -13,17 +13,17 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   return (
     <div className="space-y-6">
       {/* Search Header Banner */}
-      <div className="rounded-2xl bg-white p-4 sm:p-6 border border-slate-100 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-2xl bg-white p-4 sm:p-6 border border-neutral-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-ink">
+          <h1 className="text-xl sm:text-2xl font-black text-[#1c1c1c]">
             {q ? `Search results for "${q}"` : "Search Groceries"}
           </h1>
-          <p className="mt-0.5 text-xs text-muted font-medium">
-            {result.total > 0 ? `Found ${result.total} items delivering in 10 minutes` : "Delivered to your doorstep in 10 minutes"}
+          <p className="mt-0.5 text-xs text-neutral-400 font-medium">
+            {result.total > 0 ? `Found ${result.total} items delivering in 8 minutes` : "Delivered to your doorstep in 8 minutes"}
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 text-xs font-extrabold self-start sm:self-auto">
-          ⚡ 10 Mins Delivery
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-black self-start sm:self-auto">
+          ⚡ 8 Mins Delivery
         </span>
       </div>
 
@@ -69,8 +69,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
               href={`/search?q=${encodeURIComponent(q)}&page=${p}`}
               className={`h-9 w-9 rounded-xl flex items-center justify-center text-xs font-bold transition ${
                 p === page
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "bg-white text-slate-700 border border-slate-200 hover:border-emerald-500"
+                  ? "bg-[#0c831f] text-white shadow-xs"
+                  : "bg-white text-neutral-700 border border-neutral-200 hover:border-[#0c831f]"
               }`}
             >
               {p}

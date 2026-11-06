@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import ProductDetailClient from "@/components/product-detail";
-import BlinkitProductCard, { VariantCardProps } from "@/components/product-card";
+import { ProductDetailView, BlinkitProductCard, VariantCardProps } from "@/components/product";
 import { SectionTitle } from "@/components/ui";
 import Link from "next/link";
 
@@ -10,7 +9,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const product = await prisma.product.findUnique({ where: { slug: params.slug } });
   if (!product) return { title: "Product not found" };
   return {
-    title: `${product.name} — 10 Mins Delivery`,
+    title: `${product.name} — 8 Mins Delivery | Blinkit`,
     description: product.description ?? product.name,
     openGraph: { title: product.name, description: product.description ?? undefined, type: "website" },
   };
@@ -70,70 +69,60 @@ export default async function ProductPage({ params }: { params: { slug: string }
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted font-medium overflow-x-auto no-scrollbar py-1">
-        <Link href="/" className="hover:text-emerald-700">Home</Link>
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium overflow-x-auto no-scrollbar py-1">
+        <Link href="/" className="hover:text-[#0c831f]">Home</Link>
         <span>/</span>
-        <Link href={`/category/${product.category.slug}`} className="hover:text-emerald-700">{product.category.name}</Link>
+        <Link href={`/category/${product.category.slug}`} className="hover:text-[#0c831f]">{product.category.name}</Link>
         {product.subcategory ? (
           <>
             <span>/</span>
-            <Link href={`/category/${product.category.slug}?sub=${product.subcategory.slug}`} className="hover:text-emerald-700">{product.subcategory.name}</Link>
+            <Link href={`/category/${product.category.slug}?sub=${product.subcategory.slug}`} className="hover:text-[#0c831f]">{product.subcategory.name}</Link>
           </>
         ) : null}
         <span>/</span>
-        <span className="text-ink font-bold truncate">{product.name}</span>
+        <span className="text-[#1c1c1c] font-bold truncate">{product.name}</span>
       </nav>
 
-      {/* Title & Brand */}
-      <div>
-        <p className="text-xs font-black text-muted uppercase tracking-wider">
-          {product.brand?.name ?? "Grocery Essential"}
-        </p>
-        <h1 className="mt-1 text-2xl sm:text-3xl font-black text-ink">{product.name}</h1>
-      </div>
-
       {/* Main Product Showcase Card */}
-      <ProductDetailClient variants={variants} images={images} productName={product.name} />
+      <ProductDetailView
+        variants={variants}
+        images={images}
+        productName={product.name}
+        brandName={product.brand?.name}
+      />
 
       {/* Product Information Details */}
-      <div className="rounded-3xl border border-slate-100 bg-white p-5 sm:p-7 shadow-xs space-y-4">
-        <h2 className="text-base sm:text-lg font-black text-ink">Product Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm text-slate-700">
-          <div>
-            <h4 className="font-bold text-ink">Description</h4>
-            <p className="mt-1 text-muted leading-relaxed">
-              {product.description ?? `${product.name} is a high quality grocery essential, packed and delivered fresh to your doorstep in 10 minutes.`}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between py-1.5 border-b border-slate-100">
-              <span className="text-muted">Brand</span>
-              <span className="font-bold text-ink">{product.brand?.name ?? "General"}</span>
+      <div className="rounded-3xl border border-neutral-200/80 bg-white p-5 sm:p-7 shadow-xs space-y-4">
+        <h2 className="text-base sm:text-lg font-black text-[#1c1c1c]">Product Details</h2>
+        <div className="prose prose-sm text-neutral-600 max-w-none space-y-2">
+          <p>{product.description ?? "Authentic, fresh, top-quality groceries delivered straight to your doorstep."}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-neutral-100 text-xs">
+            <div>
+              <span className="font-bold text-[#1c1c1c]">Brand: </span>
+              <span className="text-neutral-500">{product.brand?.name ?? "General"}</span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-100">
-              <span className="text-muted">Category</span>
-              <span className="font-bold text-ink">{product.category.name}</span>
+            <div>
+              <span className="font-bold text-[#1c1c1c]">Category: </span>
+              <span className="text-neutral-500">{product.category.name}</span>
             </div>
-            {product.hsnSac ? (
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="text-muted">HSN Code</span>
-                <span className="font-bold text-ink">{product.hsnSac}</span>
-              </div>
-            ) : null}
-            <div className="flex justify-between py-1.5">
-              <span className="text-muted">GST Rate (Included)</span>
-              <span className="font-bold text-emerald-700">{(product.gstBps / 100).toFixed(1)}%</span>
+            <div>
+              <span className="font-bold text-[#1c1c1c]">FSSAI License: </span>
+              <span className="text-neutral-500">10012011000123 (Verified)</span>
+            </div>
+            <div>
+              <span className="font-bold text-[#1c1c1c]">Shelf Life: </span>
+              <span className="text-neutral-500">Best before indicated date on pack</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Frequently Bought Together / Related */}
+      {/* Similar Products Rail */}
       {related.length > 0 ? (
-        <section className="space-y-4">
+        <section className="pt-2">
           <SectionTitle
             title="Customers Also Bought"
-            subtitle="Popular companion items delivered in 10 mins"
+            subtitle="Frequently purchased together in this category"
             href={`/category/${product.category.slug}`}
           />
           <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">

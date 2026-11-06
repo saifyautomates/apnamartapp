@@ -1,5 +1,5 @@
-import AccountPageClient from "@/components/account-page";
+import { AccountPageView } from "@/components/account";
 
 export default function AccountPage() {
-  return <AccountPageClient />;
+  return <AccountPageView />;
 }

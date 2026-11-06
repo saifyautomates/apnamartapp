@@ -421,7 +421,7 @@ export function BulkImportForm() {
     setError("");
     setResult(null);
     try {
-      const data = await api("/api/admin/bulk/products", { method: "POST", body: JSON.stringify({ csv, preview }) });
+      const data = await api<Record<string, unknown>>("/api/admin/bulk/products", { method: "POST", body: JSON.stringify({ csv, preview }) });
       setResult(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
