@@ -50,11 +50,18 @@ export function verifyAccess(token: string): Session {
   }
 }
 
+function isSecureCookie(): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+  if (base.startsWith("http://localhost") || base.startsWith("http://127.0.0.1")) return false;
+  return true;
+}
+
 function cookieOpts(maxAge: number) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecureCookie(),
     path: "/",
     maxAge,
   };
@@ -77,7 +84,7 @@ export function newCsrfToken(): string {
   cookies().set(CSRF_COOKIE, token, {
     httpOnly: false,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecureCookie(),
     path: "/",
     maxAge: 60 * 60 * 24,
   });

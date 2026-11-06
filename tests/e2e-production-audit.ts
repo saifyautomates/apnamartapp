@@ -14,8 +14,10 @@
  * 10. Background Cron Jobs & Database Integrity
  */
 
+export {};
+
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
-const PHONE = "9876500001";
+const PHONE = `9876${Math.floor(100000 + Math.random() * 900000)}`;
 const ADMIN_USER = process.env.SMOKE_ADMIN_USER ?? "saif";
 const ADMIN_PASS = process.env.SMOKE_ADMIN_PASS ?? "AdminPassword123!";
 
@@ -322,8 +324,10 @@ async function runAudit() {
   };
   assertCheck(
     "EAN-13 Barcode Lookup identifies FMCG item & auto-populates title & brand",
-    barcodeLookupRes.status === 200 &&
-      (lookupData?.name?.includes("Maggi") || lookupData?.suggestion?.name?.includes("Maggi")),
+    Boolean(
+      barcodeLookupRes.status === 200 &&
+        (lookupData?.name?.includes("Maggi") || lookupData?.suggestion?.name?.includes("Maggi"))
+    ),
     `matchedName=${lookupData?.name || lookupData?.suggestion?.name}`
   );
 

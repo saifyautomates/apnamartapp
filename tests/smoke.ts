@@ -9,6 +9,8 @@
  *
  * The script prints one PASS/FAIL line per check and exits non-zero on any failure.
  */
+export {};
+
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const PHONE = "9876500001";
 

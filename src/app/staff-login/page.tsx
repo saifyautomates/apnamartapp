@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message ?? "Login failed");
-      router.push("/admin");
+      window.location.href = "/admin";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
