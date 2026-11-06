@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { effectivePrice, discountPercent } from "@/lib/pricing";
-import { Price, Mrp, DiscountBadge, EtaBadge } from "@/components/ui";
+import { formatPaise } from "@/lib/money";
 import { AddButton, ProductImage } from "@/components/shop";
 
 export interface VariantCardProps {
@@ -28,19 +30,28 @@ export default function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   const inStock = sellable > 0;
 
   return (
-    <article className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-2.5 sm:p-3.5 shadow-xs hover:shadow-md hover:border-slate-200 transition-all duration-200">
+    <article className="group relative flex flex-col justify-between rounded-xl border border-neutral-200/80 bg-white p-3 shadow-xs hover:shadow-md transition-all duration-200 h-full">
       {/* Top Media Container */}
       <div className="relative">
-        {/* Badges Row */}
-        <div className="absolute left-0 top-0 z-10 flex flex-col gap-1 items-start">
-          <EtaBadge minutes={10} className="shadow-xs" />
-          {pct > 0 ? <DiscountBadge percent={pct} className="shadow-xs" /> : null}
+        {/* Top Badges Row */}
+        <div className="flex items-center justify-between gap-1 w-full z-10">
+          {/* Time badge: ⏱ 8 MINS */}
+          <span className="inline-flex items-center gap-1 rounded bg-[#f4f6fb] px-1.5 py-0.5 text-[10px] font-extrabold text-[#333333]">
+            <span className="text-[11px]">⏱</span> 8 MINS
+          </span>
+
+          {/* Discount Badge: e.g. 6% OFF in Blue */}
+          {pct > 0 ? (
+            <span className="inline-flex items-center rounded-sm bg-[#256fe8] px-1.5 py-0.5 text-[10px] font-black text-white shadow-xs uppercase tracking-tight">
+              {pct}% OFF
+            </span>
+          ) : <span />}
         </div>
 
         {/* Product Image */}
         <Link
           href={`/product/${product.slug}`}
-          className="block h-32 sm:h-36 w-full overflow-hidden rounded-xl bg-white p-2 flex items-center justify-center"
+          className="block h-28 sm:h-32 w-full overflow-hidden bg-white p-1 my-1 flex items-center justify-center"
           aria-label={product.name}
         >
           <ProductImage
@@ -52,50 +63,46 @@ export default function BlinkitProductCard({ v }: { v: VariantCardProps }) {
       </div>
 
       {/* Product Details */}
-      <div className="mt-2.5 flex-1 flex flex-col justify-between">
+      <div className="mt-1 flex-1 flex flex-col justify-between">
         <div>
-          <p className="text-[11px] font-bold text-muted uppercase tracking-wider truncate">
-            {product.brand?.name ?? "Grocery"}
-          </p>
           <Link
             href={`/product/${product.slug}`}
-            className="mt-0.5 line-clamp-2 text-xs sm:text-sm font-bold text-ink leading-snug hover:text-emerald-700 transition"
+            className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] leading-snug hover:text-[#0c831f] transition min-h-[2.4rem]"
           >
             {product.name}
           </Link>
+          <p className="mt-1 text-xs text-neutral-500 font-medium">
+            {v.packSize ?? v.name ?? "Standard"}
+          </p>
         </div>
 
-        <div className="mt-2">
-          {/* Pack size pill */}
-          <span className="inline-block rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600 border border-slate-100">
-            {v.packSize ?? v.name ?? "Standard"}
-          </span>
+        {/* Pricing & Add Button Row */}
+        <div className="mt-3 flex items-center justify-between gap-2 pt-1 border-t border-neutral-100/60">
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs sm:text-sm font-black text-[#1c1c1c]">
+              {formatPaise(price)}
+            </span>
+            {v.mrpPaise > price ? (
+              <span className="text-[11px] text-neutral-400 line-through font-normal">
+                {formatPaise(v.mrpPaise)}
+              </span>
+            ) : null}
+          </div>
 
-          {/* Pricing & Add Button Row */}
-          <div className="mt-2.5 flex items-center justify-between gap-2">
-            <div className="flex flex-col leading-tight">
-              <Price paise={price} className="text-sm sm:text-base font-black text-ink" />
-              {v.mrpPaise > price ? (
-                <Mrp paise={v.mrpPaise} className="text-[11px]" />
-              ) : null}
-            </div>
-
-            <div className="w-20 sm:w-22 shrink-0">
-              {inStock ? (
-                <AddButton variantId={v.id} />
-              ) : (
-                <button
-                  disabled
-                  className="w-full rounded-lg bg-slate-100 py-1.5 text-center text-[11px] font-bold text-slate-400 cursor-not-allowed uppercase"
-                >
-                  Sold Out
-                </button>
-              )}
-            </div>
+          <div className="w-[72px] sm:w-[78px] shrink-0">
+            {inStock ? (
+              <AddButton variantId={v.id} />
+            ) : (
+              <button
+                disabled
+                className="w-full rounded-lg bg-neutral-100 py-1.5 text-center text-[10px] font-bold text-neutral-400 cursor-not-allowed uppercase"
+              >
+                Sold Out
+              </button>
+            )}
           </div>
         </div>
       </div>
     </article>
   );
 }
-

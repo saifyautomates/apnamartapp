@@ -1,41 +1,38 @@
 import { prisma } from "@/lib/prisma";
-import { SectionTitle } from "@/components/ui";
+import ProductCarousel from "@/components/product-carousel";
+import { VariantCardProps } from "@/components/product-card";
 import { ProductImage } from "@/components/shop";
-import BlinkitProductCard, { VariantCardProps } from "@/components/product-card";
 import Link from "next/link";
 
+// Exact 20 categories from Blinkit screenshots
+const CATEGORIES_ROW_1 = [
+  { slug: "paan-corner", name: "Paan\nCorner", img: "/images/categories/paan-corner.jpg", href: "/category/paan-corner" },
+  { slug: "dairy-eggs", name: "Dairy, Bread\n& Eggs", img: "/images/categories/dairy-bread.jpg", href: "/category/dairy-eggs" },
+  { slug: "fruits-vegetables", name: "Fruits &\nVegetables", img: "/images/categories/fruits-vegetables.jpg", href: "/category/fruits-vegetables" },
+  { slug: "cold-drinks", name: "Cold Drinks\n& Juices", img: "/images/categories/cold-drinks.jpg", href: "/category/cold-drinks" },
+  { slug: "snacks", name: "Snacks &\nMunchies", img: "/images/categories/snacks-munchies.jpg", href: "/category/snacks" },
+  { slug: "breakfast", name: "Breakfast &\nInstant Food", img: "/images/categories/breakfast-instant.jpg", href: "/category/breakfast" },
+  { slug: "sweet-tooth", name: "Sweet\nTooth", img: "/images/categories/sweet-tooth.jpg", href: "/category/sweet-tooth" },
+  { slug: "bakery-biscuits", name: "Bakery &\nBiscuits", img: "/images/categories/bakery-biscuits.jpg", href: "/category/bakery-biscuits" },
+  { slug: "tea-coffee", name: "Tea, Coffee &\nMilk Drinks", img: "/images/categories/tea-coffee.jpg", href: "/category/tea-coffee" },
+  { slug: "staples", name: "Atta, Rice\n& Dal", img: "/images/categories/atta-rice-dal.jpg", href: "/category/staples" },
+];
+
+const CATEGORIES_ROW_2 = [
+  { slug: "masala-oil", name: "Masala, Oil\n& More", img: "/images/categories/masala-oil.jpg", href: "/category/masala-oil" },
+  { slug: "sauces-spreads", name: "Sauces &\nSpreads", img: "/images/categories/sauces-spreads.jpg", href: "/category/sauces-spreads" },
+  { slug: "chicken-meat", name: "Chicken, Meat\n& Fish", img: "/images/categories/chicken-meat.jpg", href: "/category/chicken-meat" },
+  { slug: "organic-healthy", name: "Organic &\nHealthy Living", img: "/images/categories/organic-healthy.jpg", href: "/category/organic-healthy" },
+  { slug: "baby-care", name: "Baby\nCare", img: "/images/categories/baby-care-cat.jpg", href: "/category/baby-care" },
+  { slug: "pharma-wellness", name: "Pharma &\nWellness", img: "/images/categories/pharma-wellness.jpg", href: "/category/pharma-wellness" },
+  { slug: "cleaning-essentials", name: "Cleaning\nEssentials", img: "/images/categories/cleaning-essentials.jpg", href: "/category/cleaning-essentials" },
+  { slug: "home-office", name: "Home &\nOffice", img: "/images/categories/home-office.jpg", href: "/category/home-office" },
+  { slug: "personal-care", name: "Personal\nCare", img: "/images/categories/personal-care-cat.jpg", href: "/category/personal-care" },
+  { slug: "pet-care", name: "Pet\nCare", img: "/images/categories/pet-care-cat.jpg", href: "/category/pet-care" },
+];
+
 export default async function HomePage() {
-  const [categories, popular, deals, dairyItems, snackItems, stapleItems, brands] = await Promise.all([
-    // Categories
-    prisma.category.findMany({
-      where: { isVisible: true },
-      orderBy: { sortOrder: "asc" },
-      take: 8,
-    }),
-
-    // Popular items
-    prisma.productVariant.findMany({
-      where: { product: { isActive: true, onlineVisible: true, deletedAt: null } },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    }),
-
-    // Deals with discounts
-    prisma.productVariant.findMany({
-      where: {
-        product: { isActive: true, onlineVisible: true, deletedAt: null },
-      },
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      take: 40,
-    }),
-
+  const [dairyItems, snackItems, drinkItems, stapleItems, deals] = await Promise.all([
     // Dairy & Eggs
     prisma.productVariant.findMany({
       where: {
@@ -50,7 +47,7 @@ export default async function HomePage() {
         product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
         inventory: true,
       },
-      take: 6,
+      take: 12,
     }),
 
     // Snacks & Munchies
@@ -67,14 +64,14 @@ export default async function HomePage() {
         product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
         inventory: true,
       },
-      take: 6,
+      take: 12,
     }),
 
-    // Staples (Atta, Rice, Dal)
+    // Cold Drinks & Juices
     prisma.productVariant.findMany({
       where: {
         product: {
-          category: { slug: "staples" },
+          category: { slug: { in: ["cold-drinks", "beverages", "tea-coffee"] } },
           isActive: true,
           onlineVisible: true,
           deletedAt: null,
@@ -84,232 +81,250 @@ export default async function HomePage() {
         product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
         inventory: true,
       },
-      take: 6,
+      take: 12,
     }),
 
-    // Brands
-    prisma.brand.findMany({ orderBy: { name: "asc" }, take: 16 }),
+    // Atta, Rice & Dal (Staples)
+    prisma.productVariant.findMany({
+      where: {
+        product: {
+          category: { slug: { in: ["staples", "masala-oil"] } },
+          isActive: true,
+          onlineVisible: true,
+          deletedAt: null,
+        },
+      },
+      include: {
+        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+        inventory: true,
+      },
+      take: 12,
+    }),
+
+    // Deals with discounts
+    prisma.productVariant.findMany({
+      where: {
+        product: { isActive: true, onlineVisible: true, deletedAt: null },
+      },
+      include: {
+        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+        inventory: true,
+      },
+      take: 30,
+    }),
   ]);
 
-  const discountDeals = deals.filter((v) => v.sellingPaise < v.mrpPaise).slice(0, 6);
-
-  const categoryVisuals: Record<string, { icon: string; bg: string; img: string }> = {
-    "dairy-eggs": { icon: "🥛", bg: "bg-blue-50 text-blue-900 border-blue-100", img: "/images/categories/dairy-eggs.jpg" },
-    "staples": { icon: "🌾", bg: "bg-amber-50 text-amber-900 border-amber-100", img: "/images/categories/staples.jpg" },
-    "snacks": { icon: "🍿", bg: "bg-yellow-50 text-yellow-900 border-yellow-100", img: "/images/categories/snacks.jpg" },
-    "beverages": { icon: "🥤", bg: "bg-rose-50 text-rose-900 border-rose-100", img: "/images/categories/beverages.jpg" },
-    "household": { icon: "🧼", bg: "bg-teal-50 text-teal-900 border-teal-100", img: "/images/categories/household.jpg" },
-    "personal-care": { icon: "🧴", bg: "bg-purple-50 text-purple-900 border-purple-100", img: "/images/categories/personal-care.jpg" },
-    "breakfast": { icon: "🥣", bg: "bg-orange-50 text-orange-900 border-orange-100", img: "/images/categories/breakfast.jpg" },
-  };
+  const discountDeals = deals.filter((v) => v.sellingPaise < v.mrpPaise).slice(0, 10);
 
   return (
-    <div className="space-y-6 sm:space-y-10">
-      {/* Hero Promotional Banners */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5">
-        {/* Banner 1: 10 Mins Delivery */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 via-amber-300 to-yellow-200 p-5 sm:p-6 text-ink shadow-sm flex flex-col justify-between min-h-[160px] sm:min-h-[180px]">
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink text-white px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wide">
-              ⚡ 10 Mins Delivery
-            </span>
-            <h2 className="mt-2.5 text-xl sm:text-2xl font-black leading-tight">
-              India&apos;s Last Minute App
-            </h2>
-            <p className="mt-1 text-xs sm:text-sm font-semibold opacity-85">
-              Fresh groceries & household essentials at your door in minutes.
+    <div className="space-y-6 sm:space-y-8 pb-10">
+      {/* 1. Hero Big Banner: "Stock up on daily essentials" */}
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#146b2b] via-[#10782e] to-[#0c831f] text-white shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-12 items-center p-5 sm:p-8 md:p-10 gap-6">
+          <div className="md:col-span-7 z-10">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
+              Stock up on daily essentials
+            </h1>
+            <p className="mt-3 text-sm sm:text-base lg:text-lg font-medium text-emerald-100 max-w-xl">
+              Get farm-fresh goodness &amp; a range of exotic fruits, vegetables, eggs &amp; more
             </p>
-          </div>
-          <div className="mt-3">
-            <Link
-              href="/category"
-              className="inline-flex items-center gap-1 rounded-xl bg-ink text-white px-4 py-2 text-xs font-black shadow-sm hover:bg-slate-800 transition active:scale-95"
-            >
-              Order Now →
-            </Link>
-          </div>
-          <div className="absolute -right-4 -bottom-6 text-7xl opacity-20 pointer-events-none select-none">
-            🛒
-          </div>
-        </div>
-
-        {/* Banner 2: Fresh Dairy & Morning Essentials */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-5 sm:p-6 text-white shadow-sm flex flex-col justify-between min-h-[160px] sm:min-h-[180px]">
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 text-white px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wide">
-              🥛 Fresh Dairy Daily
-            </span>
-            <h2 className="mt-2.5 text-xl sm:text-2xl font-black leading-tight">
-              Amul, Curd & Butter
-            </h2>
-            <p className="mt-1 text-xs sm:text-sm text-emerald-100 font-medium">
-              Chilled toned milk, creamy butter & paneer delivered instant.
-            </p>
-          </div>
-          <div className="mt-3">
-            <Link
-              href="/category/dairy-eggs"
-              className="inline-flex items-center gap-1 rounded-xl bg-white text-emerald-900 px-4 py-2 text-xs font-black shadow-sm hover:bg-emerald-50 transition active:scale-95"
-            >
-              Explore Dairy →
-            </Link>
-          </div>
-          <div className="absolute -right-4 -bottom-6 text-7xl opacity-20 pointer-events-none select-none">
-            🧀
-          </div>
-        </div>
-
-        {/* Banner 3: Munchies & Snacks */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 p-5 sm:p-6 text-white shadow-sm flex flex-col justify-between min-h-[160px] sm:min-h-[180px]">
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 text-white px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wide">
-              🍿 Craving Sorted
-            </span>
-            <h2 className="mt-2.5 text-xl sm:text-2xl font-black leading-tight">
-              Maggi, Chips & Coke
-            </h2>
-            <p className="mt-1 text-xs sm:text-sm text-rose-100 font-medium">
-              Biscuits, chocolates & soft drinks ready whenever you want.
-            </p>
-          </div>
-          <div className="mt-3">
-            <Link
-              href="/category/snacks"
-              className="inline-flex items-center gap-1 rounded-xl bg-white text-rose-900 px-4 py-2 text-xs font-black shadow-sm hover:bg-rose-50 transition active:scale-95"
-            >
-              Get Snacks →
-            </Link>
-          </div>
-          <div className="absolute -right-4 -bottom-6 text-7xl opacity-20 pointer-events-none select-none">
-            🍫
-          </div>
-        </div>
-      </section>
-
-      {/* Visual Category Rail (Blinkit Signature Grid) */}
-      <section>
-        <SectionTitle title="Shop by Category" subtitle="Explore your daily essentials" href="/category" />
-        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-7 gap-2.5 sm:gap-4">
-          {categories.map((c) => {
-            const visual = categoryVisuals[c.slug] ?? {
-              icon: "🛍️",
-              bg: "bg-slate-50 text-slate-800 border-slate-100",
-              img: `/images/categories/${c.slug}.jpg`,
-            };
-            return (
+            <div className="mt-5 sm:mt-6">
               <Link
-                key={c.id}
-                href={`/category/${c.slug}`}
-                className="group flex flex-col items-center text-center rounded-2xl bg-white border border-slate-100 p-2 sm:p-3 shadow-xs hover:border-emerald-500 hover:shadow-md transition duration-200"
+                href="/category/dairy-eggs"
+                className="inline-flex items-center justify-center rounded-lg bg-white text-[#1c1c1c] font-black text-sm sm:text-base px-6 py-2.5 sm:py-3 shadow-md hover:bg-neutral-100 transition active:scale-95 cursor-pointer"
               >
-                <div className="h-14 w-14 sm:h-18 sm:w-18 rounded-2xl overflow-hidden bg-slate-50 p-1 flex items-center justify-center border border-slate-100 group-hover:scale-105 transition duration-200">
-                  <ProductImage
-                    src={visual.img}
-                    alt={c.name}
-                    className="h-full w-full object-cover rounded-xl"
-                  />
-                </div>
-                <span className="mt-2 text-xs sm:text-sm font-bold text-ink leading-tight group-hover:text-emerald-700 transition line-clamp-2">
-                  {c.name}
-                </span>
+                Shop Now
               </Link>
-            );
-          })}
+            </div>
+          </div>
+          <div className="md:col-span-5 relative flex justify-center md:justify-end">
+            <div className="relative h-44 sm:h-56 md:h-64 w-full max-w-md rounded-2xl overflow-hidden">
+              <ProductImage
+                src="/images/banners/hero-groceries.jpg"
+                alt="Stock up on daily essentials"
+                className="h-full w-full object-cover rounded-2xl"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Instant Dairy, Bread & Eggs Rail */}
-      {dairyItems.length > 0 ? (
-        <section>
-          <SectionTitle
-            title="🥛 Dairy, Bread & Eggs"
-            subtitle="Amul milk, butter, cheese, and curd in 10 mins"
-            href="/category/dairy-eggs"
-          />
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {dairyItems.map((v) => (
-              <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
-            ))}
+      {/* 2. Three Promotional Cards Row: Pharmacy, Pet care, Baby care */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+        {/* Card 1: Pharmacy */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#009688] to-[#00796b] p-5 text-white shadow-sm flex flex-col justify-between min-h-[160px]">
+          <div className="pr-28 z-10">
+            <h3 className="text-lg sm:text-xl font-black leading-tight text-white">
+              Pharmacy at your doorstep!
+            </h3>
+            <p className="mt-1 text-xs text-teal-100 font-medium">
+              Cough syrups, pain relief sprays &amp; more
+            </p>
           </div>
-        </section>
-      ) : null}
-
-      {/* Deals of the Day (Blinkit Super Saver) */}
-      {discountDeals.length > 0 ? (
-        <section className="rounded-3xl bg-gradient-to-r from-emerald-50/70 via-teal-50/50 to-emerald-50/70 p-4 sm:p-6 border border-emerald-100">
-          <SectionTitle
-            title="🔥 Mega Savings on Daily Essentials"
-            subtitle="Lowest prices guaranteed on grocery staples"
-            actionText="view all deals"
-          />
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {discountDeals.map((v) => (
-              <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
-            ))}
+          <div className="mt-4 z-10">
+            <Link
+              href="/category/pharma-wellness"
+              className="inline-block rounded-lg bg-white text-[#00796b] font-black text-xs px-4 py-2 shadow-sm hover:bg-teal-50 transition active:scale-95"
+            >
+              Order Now
+            </Link>
           </div>
-        </section>
-      ) : null}
-
-      {/* Snacks & Munchies Rail */}
-      {snackItems.length > 0 ? (
-        <section>
-          <SectionTitle
-            title="🍿 Snacks & Munchies"
-            subtitle="Biscuits, chips, Maggi & chocolates for your quick cravings"
-            href="/category/snacks"
-          />
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {snackItems.map((v) => (
-              <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
-            ))}
+          <div className="absolute right-0 bottom-0 top-0 w-32 overflow-hidden flex items-center justify-end p-2 pointer-events-none">
+            <ProductImage
+              src="/images/banners/pharmacy.jpg"
+              alt="Pharmacy"
+              className="h-28 w-28 object-cover rounded-xl shadow-md"
+            />
           </div>
-        </section>
-      ) : null}
+        </div>
 
-      {/* Staples: Atta, Rice & Dal */}
-      {stapleItems.length > 0 ? (
-        <section>
-          <SectionTitle
-            title="🌾 Atta, Rice & Dal"
-            subtitle="Aashirvaad, Fortune, Tata Salt & pulses"
-            href="/category/staples"
-          />
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {stapleItems.map((v) => (
-              <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
-            ))}
+        {/* Card 2: Pet care */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8cb46] to-[#e5b328] p-5 text-[#1c1c1c] shadow-sm flex flex-col justify-between min-h-[160px]">
+          <div className="pr-28 z-10">
+            <h3 className="text-lg sm:text-xl font-black leading-tight text-[#1c1c1c]">
+              Pet care supplies at your door
+            </h3>
+            <p className="mt-1 text-xs text-neutral-800 font-semibold">
+              Food, treats, toys &amp; more
+            </p>
           </div>
-        </section>
-      ) : null}
+          <div className="mt-4 z-10">
+            <Link
+              href="/category/pet-care"
+              className="inline-block rounded-lg bg-[#1c1c1c] text-white font-black text-xs px-4 py-2 shadow-sm hover:bg-neutral-800 transition active:scale-95"
+            >
+              Order Now
+            </Link>
+          </div>
+          <div className="absolute right-0 bottom-0 top-0 w-32 overflow-hidden flex items-center justify-end p-2 pointer-events-none">
+            <ProductImage
+              src="/images/banners/pet-care.jpg"
+              alt="Pet Care"
+              className="h-28 w-28 object-cover rounded-xl shadow-md"
+            />
+          </div>
+        </div>
 
-      {/* Popular Right Now */}
-      <section>
-        <SectionTitle
-          title="⚡ Trending in Your Area"
-          subtitle="Most ordered items by neighbours this week"
-        />
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {popular.slice(0, 6).map((v) => (
-            <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
+        {/* Card 3: Baby care */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#dce8f8] to-[#c7daf1] p-5 text-[#1c1c1c] shadow-sm flex flex-col justify-between min-h-[160px]">
+          <div className="pr-28 z-10">
+            <h3 className="text-lg sm:text-xl font-black leading-tight text-[#1c1c1c]">
+              No time for a diaper run?
+            </h3>
+            <p className="mt-1 text-xs text-neutral-700 font-semibold">
+              Get baby care essentials
+            </p>
+          </div>
+          <div className="mt-4 z-10">
+            <Link
+              href="/category/baby-care"
+              className="inline-block rounded-lg bg-[#1c1c1c] text-white font-black text-xs px-4 py-2 shadow-sm hover:bg-neutral-800 transition active:scale-95"
+            >
+              Order Now
+            </Link>
+          </div>
+          <div className="absolute right-0 bottom-0 top-0 w-32 overflow-hidden flex items-center justify-end p-2 pointer-events-none">
+            <ProductImage
+              src="/images/banners/baby-care.jpg"
+              alt="Baby Care"
+              className="h-28 w-28 object-cover rounded-xl shadow-md"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Blinkit Signature 2-Row Category Grid */}
+      <section className="space-y-3 pt-2">
+        {/* Row 1 */}
+        <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-2.5">
+          {CATEGORIES_ROW_1.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={cat.href}
+              className="group flex flex-col items-center justify-between rounded-xl bg-[#f2f7fc] hover:bg-[#e8f1fc] p-2 sm:p-2.5 transition duration-150 cursor-pointer"
+            >
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden flex items-center justify-center p-1 group-hover:scale-105 transition-transform duration-200">
+                <ProductImage
+                  src={cat.img}
+                  alt={cat.name}
+                  className="h-full w-full object-contain rounded-lg"
+                />
+              </div>
+              <span className="mt-1.5 text-[11px] sm:text-xs font-bold text-[#1c1c1c] text-center leading-tight whitespace-pre-line group-hover:text-[#0c831f] transition">
+                {cat.name}
+              </span>
+            </Link>
           ))}
         </div>
-      </section>
 
-      {/* Top Brands Pill Row */}
-      <section className="rounded-2xl bg-white p-4 sm:p-6 border border-slate-100 shadow-xs">
-        <h3 className="text-sm font-extrabold text-ink uppercase tracking-wider mb-3">Popular Brands</h3>
-        <div className="flex flex-wrap gap-2">
-          {brands.map((b) => (
+        {/* Row 2 */}
+        <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-2.5">
+          {CATEGORIES_ROW_2.map((cat) => (
             <Link
-              key={b.id}
-              href={`/search?q=${encodeURIComponent(b.name)}`}
-              className="rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-800 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition"
+              key={cat.slug}
+              href={cat.href}
+              className="group flex flex-col items-center justify-between rounded-xl bg-[#f2f7fc] hover:bg-[#e8f1fc] p-2 sm:p-2.5 transition duration-150 cursor-pointer"
             >
-              {b.name}
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden flex items-center justify-center p-1 group-hover:scale-105 transition-transform duration-200">
+                <ProductImage
+                  src={cat.img}
+                  alt={cat.name}
+                  className="h-full w-full object-contain rounded-lg"
+                />
+              </div>
+              <span className="mt-1.5 text-[11px] sm:text-xs font-bold text-[#1c1c1c] text-center leading-tight whitespace-pre-line group-hover:text-[#0c831f] transition">
+                {cat.name}
+              </span>
             </Link>
           ))}
         </div>
       </section>
+
+      {/* 4. Product Carousel Rails */}
+      {/* Rail 1: Dairy, Bread & Eggs */}
+      {dairyItems.length > 0 ? (
+        <ProductCarousel
+          title="Dairy, Bread & Eggs"
+          seeAllHref="/category/dairy-eggs"
+          items={dairyItems as unknown as VariantCardProps[]}
+        />
+      ) : null}
+
+      {/* Rail 2: Snacks & Munchies */}
+      {snackItems.length > 0 ? (
+        <ProductCarousel
+          title="Snacks & Munchies"
+          seeAllHref="/category/snacks"
+          items={snackItems as unknown as VariantCardProps[]}
+        />
+      ) : null}
+
+      {/* Rail 3: Cold Drinks & Juices */}
+      {drinkItems.length > 0 ? (
+        <ProductCarousel
+          title="Cold Drinks & Juices"
+          seeAllHref="/category/cold-drinks"
+          items={drinkItems as unknown as VariantCardProps[]}
+        />
+      ) : null}
+
+      {/* Rail 4: Atta, Rice & Dal */}
+      {stapleItems.length > 0 ? (
+        <ProductCarousel
+          title="Atta, Rice & Dal"
+          seeAllHref="/category/staples"
+          items={stapleItems as unknown as VariantCardProps[]}
+        />
+      ) : null}
+
+      {/* Rail 5: Mega Deals & Savings */}
+      {discountDeals.length > 0 ? (
+        <ProductCarousel
+          title="🔥 Best Offers on Groceries"
+          seeAllHref="/category"
+          items={discountDeals as unknown as VariantCardProps[]}
+        />
+      ) : null}
     </div>
   );
 }

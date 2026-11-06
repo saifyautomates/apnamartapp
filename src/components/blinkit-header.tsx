@@ -3,20 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { formatPaise } from "@/lib/money";
-import { ProductImage } from "@/components/shop";
 
 const SEARCH_PLACEHOLDERS = [
-  "Search 'milk, bread & butter'",
-  "Search 'atta, rice & dal'",
-  "Search 'chips, biscuits & namkeen'",
-  "Search 'cold drinks & juices'",
-  "Search 'Maggi, noodles & pasta'",
-  "Search 'detergent & cleaning'",
-  "Search 'toothpaste & shampoo'",
+  'Search "sugar"',
+  'Search "milk"',
+  'Search "bread"',
+  'Search "atta"',
+  'Search "chips"',
+  'Search "curd"',
+  'Search "ice cream"',
+  'Search "butter"',
+  'Search "chocolate"',
 ];
 
 export interface HeaderProps {
-  storeName: string;
+  storeName?: string;
   initialCount?: number;
   initialTotal?: number;
   customerName?: string | null;
@@ -24,7 +25,6 @@ export interface HeaderProps {
 }
 
 export default function BlinkitHeader({
-  storeName,
   initialCount = 0,
   initialTotal = 0,
   customerName = null,
@@ -34,13 +34,13 @@ export default function BlinkitHeader({
   const [total, setTotal] = useState(initialTotal);
   const [q, setQ] = useState("");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [suggestions, setSuggestions] = useState<Array<{ id: string; name: string; slug: string; brand?: { name: string } | null; imageUrl?: string }>>([]);
+  const [suggestions, setSuggestions] = useState<Array<{ id: string; name: string; slug: string; brand?: { name: string } | null }>>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("Home - B-Block, Sector 62, Noida");
+  const [selectedLocation, setSelectedLocation] = useState("R K Nagar, Police Line, Kota, Raj...");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Rotate search placeholder every 2.5 seconds
+  // Rotate search placeholder every 2.8 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIndex((prev) => (prev + 1) % SEARCH_PLACEHOLDERS.length);
@@ -97,38 +97,31 @@ export default function BlinkitHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-100 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white border-b border-neutral-200/70 shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-3">
           {/* Left: Brand + Location */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <Link href="/" className="flex items-center gap-1.5 shrink-0 group" aria-label="Home">
-              <span className="text-2xl sm:text-3xl font-black tracking-tight text-ink group-hover:opacity-90">
-                blink<span className="text-emerald-700">it</span>
-              </span>
-              <span className="hidden md:inline-block rounded-full bg-amber-400 text-ink px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider">
-                10 mins
+          <div className="flex items-center gap-4 sm:gap-8">
+            {/* Blinkit Exact Logo */}
+            <Link href="/" className="flex items-baseline shrink-0 group select-none" aria-label="Blinkit Home">
+              <span className="text-3xl sm:text-4xl font-black tracking-tight font-sans">
+                <span className="text-[#f8cb46]">blink</span>
+                <span className="text-[#0c831f]">it</span>
               </span>
             </Link>
 
             {/* Location Selector Pill */}
-            <div className="relative">
-              <button
-                onClick={() => setLocationOpen(true)}
-                className="flex flex-col text-left group transition max-w-[160px] sm:max-w-[220px]"
-              >
-                <div className="flex items-center gap-1.5 text-xs font-black text-ink">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
-                  </span>
-                  <span className="leading-none">Delivery in 10 minutes</span>
-                </div>
-                <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium truncate mt-0.5 group-hover:text-emerald-700">
-                  <span className="truncate">{selectedLocation}</span>
-                  <span className="text-[10px]">▼</span>
-                </div>
-              </button>
-            </div>
+            <button
+              onClick={() => setLocationOpen(true)}
+              className="flex flex-col text-left group transition max-w-[170px] sm:max-w-[240px] cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-[#1c1c1c] leading-tight">
+                Delivery in 8 minutes
+              </div>
+              <div className="flex items-center gap-1 text-[11px] sm:text-xs text-neutral-500 font-medium truncate mt-0.5 group-hover:text-[#0c831f]">
+                <span className="truncate">{selectedLocation}</span>
+                <span className="text-[9px]">▾</span>
+              </div>
+            </button>
           </div>
 
           {/* Center: Search Bar (Desktop) */}
@@ -141,7 +134,7 @@ export default function BlinkitHeader({
               }}
             >
               <div className="relative flex items-center">
-                <span className="absolute left-3.5 text-slate-400 text-base">
+                <span className="absolute left-3.5 text-neutral-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
@@ -153,13 +146,13 @@ export default function BlinkitHeader({
                   onFocus={() => suggestions.length > 0 && setSearchOpen(true)}
                   onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
                   placeholder={SEARCH_PLACEHOLDERS[placeholderIndex]}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-9 py-2.5 text-sm text-ink font-medium placeholder-slate-400 focus:bg-white focus:border-emerald-600 focus:shadow-sm transition"
+                  className="w-full rounded-xl border border-neutral-200/80 bg-[#f8f8f8] pl-10 pr-9 py-2.5 text-sm text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition"
                 />
                 {q ? (
                   <button
                     type="button"
                     onClick={() => setQ("")}
-                    className="absolute right-3 text-slate-400 hover:text-slate-600 text-sm font-bold"
+                    className="absolute right-3 text-neutral-400 hover:text-neutral-600 text-sm font-bold"
                   >
                     ✕
                   </button>
@@ -169,21 +162,21 @@ export default function BlinkitHeader({
 
             {/* Autocomplete Dropdown */}
             {searchOpen && suggestions.length > 0 ? (
-              <ul className="absolute left-0 right-0 top-full mt-1.5 rounded-xl border border-slate-100 bg-white py-1.5 shadow-xl z-50 divide-y divide-slate-50">
+              <ul className="absolute left-0 right-0 top-full mt-1.5 rounded-xl border border-neutral-100 bg-white py-1.5 shadow-xl z-50 divide-y divide-neutral-50">
                 {suggestions.map((s) => (
                   <li key={s.id}>
                     <Link
                       href={`/product/${s.slug}`}
-                      className="flex items-center justify-between px-4 py-2 hover:bg-slate-50 text-sm transition"
+                      className="flex items-center justify-between px-4 py-2 hover:bg-neutral-50 text-sm transition"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="text-slate-300">🔍</span>
-                        <span className="font-semibold text-ink">{s.name}</span>
+                        <span className="text-neutral-400">🔍</span>
+                        <span className="font-semibold text-[#1c1c1c]">{s.name}</span>
                         {s.brand?.name ? (
-                          <span className="text-xs text-muted">in {s.brand.name}</span>
+                          <span className="text-xs text-neutral-400">in {s.brand.name}</span>
                         ) : null}
                       </div>
-                      <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                      <span className="text-xs font-bold text-[#0c831f] bg-[#e8f5e9] px-2 py-0.5 rounded">
                         View →
                       </span>
                     </Link>
@@ -194,21 +187,21 @@ export default function BlinkitHeader({
           </div>
 
           {/* Right: Auth & Cart */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-4 sm:gap-6">
             {isLoggedIn ? (
               <Link
                 href="/account"
-                className="hidden sm:flex items-center gap-1.5 text-xs font-extrabold text-ink hover:text-emerald-700 px-2 py-1.5 rounded-lg transition"
+                className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-[#2c2c2c] hover:text-[#0c831f] px-2 py-1.5 rounded-lg transition"
               >
-                <span className="h-7 w-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black">
+                <span className="h-7 w-7 rounded-full bg-[#e8f5e9] text-[#0c831f] flex items-center justify-center font-black text-xs">
                   {customerName ? customerName[0].toUpperCase() : "U"}
                 </span>
-                <span className="max-w-[80px] truncate">{customerName ?? "Account"}</span>
+                <span className="max-w-[90px] truncate">{customerName ?? "Account"}</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="hidden sm:inline-block text-sm font-extrabold text-ink hover:text-emerald-700 px-3 py-1.5 rounded-lg transition"
+                className="hidden sm:inline-block text-base font-semibold text-[#2c2c2c] hover:text-[#0c831f] px-1 py-1 transition cursor-pointer"
               >
                 Login
               </Link>
@@ -217,11 +210,15 @@ export default function BlinkitHeader({
             {/* Blinkit Cart Button (Desktop & Mobile) */}
             <button
               onClick={openCart}
-              className="flex items-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2.5 text-xs sm:text-sm font-extrabold shadow-sm transition active:scale-95"
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-extrabold transition active:scale-95 cursor-pointer ${
+                count > 0
+                  ? "bg-[#0c831f] hover:bg-[#0b721b] text-white shadow-sm"
+                  : "bg-[#f2f4f7] hover:bg-[#e5e7eb] text-[#6b7280]"
+              }`}
               aria-label="Open Cart"
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.3" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               {count > 0 ? (
                 <div className="flex flex-col text-left leading-none">
@@ -229,7 +226,7 @@ export default function BlinkitHeader({
                   <span className="text-xs sm:text-sm font-black">{formatPaise(total)}</span>
                 </div>
               ) : (
-                <span>My Cart</span>
+                <span className="font-bold">My Cart</span>
               )}
             </button>
           </div>
@@ -245,7 +242,7 @@ export default function BlinkitHeader({
             }}
           >
             <div className="relative flex items-center">
-              <span className="absolute left-3 text-slate-400">
+              <span className="absolute left-3 text-neutral-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -255,7 +252,7 @@ export default function BlinkitHeader({
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder={SEARCH_PLACEHOLDERS[placeholderIndex]}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs text-ink placeholder-slate-400 focus:bg-white focus:border-emerald-600 transition"
+                className="w-full rounded-xl border border-neutral-200/80 bg-[#f8f8f8] pl-9 pr-3 py-2 text-xs text-[#1c1c1c] placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition"
               />
             </div>
           </form>
@@ -266,32 +263,32 @@ export default function BlinkitHeader({
       {locationOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-extrabold text-ink text-sm">Select Delivery Location</h3>
-              <button onClick={() => setLocationOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm font-bold">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+              <h3 className="font-extrabold text-[#1c1c1c] text-sm">Select Delivery Location</h3>
+              <button onClick={() => setLocationOpen(false)} className="text-neutral-400 hover:text-neutral-600 text-sm font-bold">
                 ✕
               </button>
             </div>
             <div className="mt-3 space-y-2">
               {[
-                { title: "Home", addr: "B-Block, Sector 62, Noida - 201301", pin: "201301" },
-                { title: "Work / Office", addr: "Tower A, Tech Park, Sector 125, Noida - 201303", pin: "201303" },
-                { title: "Other (Store Pickup)", addr: "Apna Grocery Store, Main Market Road", pin: "Store" },
+                { title: "Kota Address", addr: "R K Nagar, Police Line, Kota, Rajasthan - 324001" },
+                { title: "Home", addr: "B-Block, Sector 62, Noida - 201301" },
+                { title: "Work / Office", addr: "Tower A, Tech Park, Sector 125, Noida - 201303" },
               ].map((loc) => (
                 <button
                   key={loc.title}
                   onClick={() => {
-                    setSelectedLocation(`${loc.title} - ${loc.addr.split(",")[0]}`);
+                    setSelectedLocation(loc.addr);
                     setLocationOpen(false);
                   }}
-                  className="w-full text-left p-3 rounded-xl border border-slate-100 hover:border-emerald-600 hover:bg-emerald-50/50 transition flex items-start gap-3"
+                  className="w-full text-left p-3 rounded-xl border border-neutral-100 hover:border-[#0c831f] hover:bg-[#e8f5e9]/40 transition flex items-start gap-3"
                 >
                   <span className="text-lg">📍</span>
                   <div>
-                    <p className="text-xs font-bold text-ink">{loc.title}</p>
-                    <p className="text-[11px] text-muted mt-0.5">{loc.addr}</p>
-                    <span className="inline-block mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                      ⚡ 10 Mins Delivery
+                    <p className="text-xs font-bold text-[#1c1c1c]">{loc.title}</p>
+                    <p className="text-[11px] text-neutral-500 mt-0.5">{loc.addr}</p>
+                    <span className="inline-block mt-1 text-[10px] font-bold text-[#0c831f] bg-[#e8f5e9] px-1.5 py-0.5 rounded">
+                      ⚡ 8 Mins Delivery
                     </span>
                   </div>
                 </button>
@@ -303,4 +300,3 @@ export default function BlinkitHeader({
     </>
   );
 }
-
