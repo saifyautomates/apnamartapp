@@ -20,3 +20,4 @@ export function createClient() {
 }
 
 export const supabaseClient = typeof window !== "undefined" ? createClient() : null;
+
