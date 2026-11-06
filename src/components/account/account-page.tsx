@@ -262,6 +262,25 @@ export function AccountPageView() {
           </div>
         </section>
 
+        {/* Store Admin Quick Tile */}
+        <div className="lg:col-span-2 rounded-2xl border border-neutral-200 bg-gradient-to-r from-neutral-900 to-neutral-800 p-4 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0c831f] text-white text-lg font-black">
+              ⚙️
+            </span>
+            <div>
+              <h3 className="text-sm font-black text-white">Central Mart Store Administration</h3>
+              <p className="text-xs text-neutral-300">Manage 5,000 FMCG products, stock inventory, live orders &amp; staff</p>
+            </div>
+          </div>
+          <Link
+            href="/admin"
+            className="rounded-xl bg-[#f8cb46] hover:bg-[#e5b328] text-[#1c1c1c] px-4 py-2 text-xs font-black transition active:scale-95 shadow-sm shrink-0"
+          >
+            Open Admin Portal →
+          </Link>
+        </div>
+
         {/* Logout */}
         <div className="lg:col-span-2 pt-2">
           <button

@@ -78,8 +78,18 @@ export function BlinkitHeader({
             <SearchInput />
           </div>
 
-          {/* Right: Auth Link & Cart Header Button */}
-          <div className="flex items-center gap-4 sm:gap-6">
+          {/* Right: Admin Portal Link, Auth Link & Cart Header Button */}
+          <div className="flex items-center gap-2.5 sm:gap-4 md:gap-5">
+            {/* Direct Admin Portal Access */}
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 rounded-xl border border-neutral-200/90 bg-neutral-50 hover:bg-[#0c831f] hover:text-white hover:border-[#0c831f] px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-black text-neutral-800 transition shadow-xs group"
+              title="Central Mart Store Admin Panel"
+            >
+              <span className="text-sm group-hover:rotate-45 transition-transform">⚙️</span>
+              <span className="hidden md:inline font-bold">Admin</span>
+            </Link>
+
             {isLoggedIn ? (
               <Link
                 href="/account"

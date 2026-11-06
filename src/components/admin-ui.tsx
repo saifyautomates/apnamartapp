@@ -446,6 +446,129 @@ export function BulkImportForm() {
   );
 }
 
+export function FmcgScaleTool() {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [status, setStatus] = useState<Record<string, unknown> | null>(null);
+
+  async function triggerSeed(count: number, preview = false) {
+    setBusy(true);
+    setError("");
+    setStatus(null);
+    try {
+      const data = await api<Record<string, unknown>>("/api/admin/bulk/fmcg-seed", {
+        method: "POST",
+        body: JSON.stringify({ count, preview }),
+      });
+      setStatus(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to seed catalogue");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-xs space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#0c831f] text-white text-sm font-bold">
+              ⚡
+            </span>
+            <h2 className="text-base font-black text-[#1c1c1c]">
+              FMCG 5,000 Products Catalogue Engine
+            </h2>
+          </div>
+          <p className="mt-1 text-xs text-neutral-500 max-w-2xl leading-relaxed">
+            Instantly seed or scale your Central Mart grocery inventory up to 5,000 authentic Indian FMCG SKUs.
+            Includes genuine brands (Amul, Britannia, Aashirvaad, Fortune, Tata, Lay&apos;s, Surf Excel, Colgate, etc.)
+            with verified barcodes, MRPs, discount pricing, GST rates, and live stock allocations.
+          </p>
+        </div>
+
+        <span className="shrink-0 rounded-full bg-[#e8f5e9] text-[#0c831f] text-xs font-black px-3 py-1 border border-[#0c831f]/20">
+          Upto 5,000 SKUs
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+        <button
+          type="button"
+          onClick={() => triggerSeed(100, true)}
+          disabled={busy}
+          className="rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 p-3 text-left transition active:scale-95 disabled:opacity-50 cursor-pointer"
+        >
+          <div className="text-xs font-black text-neutral-700">Preview 15 Sample SKUs</div>
+          <div className="text-[11px] text-neutral-400 mt-0.5">Dry-run validation</div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => triggerSeed(500, false)}
+          disabled={busy}
+          className="rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/50 p-3 text-left transition active:scale-95 disabled:opacity-50 cursor-pointer"
+        >
+          <div className="text-xs font-black text-[#0c831f]">🚀 Seed 500 Fast SKUs</div>
+          <div className="text-[11px] text-emerald-600 mt-0.5">Top essential staples</div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => triggerSeed(1000, false)}
+          disabled={busy}
+          className="rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/50 p-3 text-left transition active:scale-95 disabled:opacity-50 cursor-pointer"
+        >
+          <div className="text-xs font-black text-[#0c831f]">🚀 Seed 1,000 SKUs</div>
+          <div className="text-[11px] text-emerald-600 mt-0.5">Full FMCG department</div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => triggerSeed(5000, false)}
+          disabled={busy}
+          className="rounded-xl bg-gradient-to-tr from-[#0c831f] to-[#15803d] text-white p-3 text-left shadow-sm hover:brightness-105 transition active:scale-95 disabled:opacity-50 cursor-pointer"
+        >
+          <div className="text-xs font-black">🔥 Scale to 5,000 SKUs</div>
+          <div className="text-[11px] text-emerald-100 mt-0.5">Mega dark-store catalogue</div>
+        </button>
+      </div>
+
+      {busy ? (
+        <div className="flex items-center gap-3 rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs font-bold text-[#0c831f]">
+          <div className="h-4 w-4 rounded-full border-2 border-[#0c831f] border-t-transparent animate-spin" />
+          <span>Processing FMCG database transaction at scale… Please wait a few seconds.</span>
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-600">
+          {error}
+        </div>
+      ) : null}
+
+      {status ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-[#0c831f]">
+              {String(status.message ?? "Operation completed")}
+            </span>
+            <a
+              href="/admin/products"
+              className="text-xs font-black text-[#0c831f] hover:underline"
+            >
+              View Updated Products Catalogue →
+            </a>
+          </div>
+          <pre className="overflow-x-auto text-[11px] font-mono text-neutral-700 bg-white p-3 rounded-lg border border-emerald-100 max-h-48">
+            {JSON.stringify(status, null, 2)}
+          </pre>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function SyncJobButton() {
   const [error, setError] = useState("");
   const [done, setDone] = useState("");

@@ -5,6 +5,7 @@ import { InstallBanner } from "@/components/pwa";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { MobileBottomNav } from "./mobile-nav";
 import { SiteFooter } from "./footer";
+import { AdminQuickSwitch } from "./admin-quick-switch";
 
 export function SiteChrome({
   header,
@@ -31,6 +32,9 @@ export function SiteChrome({
 
       {/* Mobile Floating Cart & Bottom Nav */}
       <MobileBottomNav />
+
+      {/* Floating 1-Click Admin Access Switcher */}
+      <AdminQuickSwitch />
 
       {/* Modern Blinkit Footer */}
       <SiteFooter />

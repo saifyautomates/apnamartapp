@@ -33,7 +33,7 @@ export function SiteFooter() {
               <li><Link href="/orders" className="hover:text-[#0c831f] transition">My Orders</Link></li>
               <li><Link href="/account" className="hover:text-[#0c831f] transition">My Profile</Link></li>
               <li><Link href="/cart" className="hover:text-[#0c831f] transition">View Cart</Link></li>
-              <li><Link href="/staff-login" className="hover:text-[#0c831f] transition">Staff &amp; Admin Login</Link></li>
+              <li><Link href="/admin" className="font-bold text-[#0c831f] hover:underline flex items-center gap-1"><span>⚡</span> Admin Portal</Link></li>
             </ul>
           </div>
 
