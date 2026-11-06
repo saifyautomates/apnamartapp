@@ -370,3 +370,4 @@ export function CheckoutPageView() {
 }
 
 export default CheckoutPageView;
+

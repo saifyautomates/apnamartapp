@@ -78,3 +78,4 @@ export function CategoryGrid() {
 }
 
 export default CategoryGrid;
+

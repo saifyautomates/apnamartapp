@@ -111,3 +111,4 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
 }
 
 export default BlinkitProductCard;
+

@@ -73,3 +73,4 @@ export function OrderDetailClient({ orderId, status }: OrderDetailProps) {
 }
 
 export default OrderDetailClient;
+

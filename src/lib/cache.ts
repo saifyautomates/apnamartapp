@@ -68,6 +68,12 @@ export function getCache(): Cache {
   return instance;
 }
 
+export const cache = {
+  get: (key: string) => getCache().get(key),
+  set: (key: string, value: string, ttlSeconds: number) => getCache().set(key, value, ttlSeconds),
+  del: (key: string) => getCache().del(key),
+};
+
 export async function cachedJson<T>(key: string, ttlSeconds: number, fn: () => Promise<T>): Promise<T> {
   const cache = getCache();
   const hit = await cache.get(key);

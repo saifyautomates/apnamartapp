@@ -60,3 +60,4 @@ export function useSearch(debounceMs = 200) {
     clear,
   };
 }
+

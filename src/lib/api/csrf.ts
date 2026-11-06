@@ -18,3 +18,4 @@ export async function ensureCsrf(): Promise<string> {
 export function clearCsrf(): void {
   csrfToken = null;
 }
+

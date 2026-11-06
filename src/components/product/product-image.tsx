@@ -30,3 +30,4 @@ export function ProductImage({ src, alt, className = "" }: ProductImageProps) {
     />
   );
 }
+

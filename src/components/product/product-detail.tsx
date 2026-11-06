@@ -194,3 +194,4 @@ export function ProductDetailView({
 }
 
 export default ProductDetailView;
+

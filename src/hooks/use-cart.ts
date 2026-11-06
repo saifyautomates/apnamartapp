@@ -83,3 +83,4 @@ export function useCart() {
 
   return { cart, loading, fetchCart, updateItem };
 }
+

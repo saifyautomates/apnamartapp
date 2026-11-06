@@ -41,12 +41,18 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-grocery_app}:${POSTGRES_PASSWORD:-change-me-in-production}@db:5432/${POSTGRES_DB:-grocery_commerce}
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-change-me-access}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh}
+      JWT_SECRET: ${JWT_SECRET:-change-me-access-secret-32-chars-long}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret-32-chars-long}
       NODE_ENV: production
       NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
     ports:
       - "${APP_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     volumes:
       - uploads:/app/public/uploads
 
