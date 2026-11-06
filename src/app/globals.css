@@ -73,6 +73,79 @@ textarea:focus-visible {
   }
 }
 
+/* Veo3-Inspired Cinematic Motion & Gleam */
+@keyframes cinematic-light {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  40%, 100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes gentle-float-delayed {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.cinematic-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.cinematic-shine::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 35%;
+  height: 140%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  animation: cinematic-light 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+.animate-float {
+  animation: gentle-float 3.5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: gentle-float-delayed 4.2s ease-in-out 1s infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
 .loader-pop {
   animation: loader-pop 0.45s ease-out both;
 }

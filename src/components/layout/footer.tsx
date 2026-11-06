@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { InstallAppLink } from "@/components/pwa";
+import { CentralMartLogo } from "@/components/ui/logo";
 
 export function SiteFooter() {
   return (
@@ -7,17 +8,11 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 pb-8 border-b border-neutral-100">
           <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-2xl font-black tracking-tight font-sans">
-                <span className="text-[#f8cb46]">blink</span>
-                <span className="text-[#0c831f]">it</span>
-              </span>
-              <span className="rounded-full bg-[#f8cb46] text-[#1c1c1c] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
-                8 mins
-              </span>
+            <div className="mb-2">
+              <CentralMartLogo size="sm" showBadge />
             </div>
-            <p className="text-xs text-neutral-500 leading-relaxed">
-              India&apos;s last minute app. Delivering groceries, fresh staples, dairy, snacks, and household essentials in 8 minutes.
+            <p className="text-xs text-neutral-500 leading-relaxed mt-2">
+              Central Mart · India&apos;s last minute app. Delivering groceries, fresh staples, dairy, snacks, and household essentials in 8 minutes.
             </p>
           </div>
 
@@ -65,7 +60,7 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-400">
-          <p>© {new Date().getFullYear()} Blinkit Clone · Powered by Grocery Commerce Platform.</p>
+          <p>© {new Date().getFullYear()} Central Mart · Powered by Grocery Commerce Platform.</p>
           <div className="flex items-center gap-4">
             <span className="font-semibold text-[#1c1c1c]">Accepted Payments:</span>
             <span>UPI · Google Pay · PhonePe · Cards · Cash on Delivery</span>

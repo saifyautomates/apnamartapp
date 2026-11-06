@@ -1,4 +1,4 @@
-import { CartSkeleton } from "@/components/skeletons";
+import { CartSkeleton } from "@/components/ui/skeletons";
 
 export default function Loading() {
   return <CartSkeleton />;

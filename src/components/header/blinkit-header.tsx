@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SearchInput } from "./search-input";
 import { LocationModal } from "./location-modal";
 import { CartHeaderButton } from "./cart-button";
+import { CentralMartLogo } from "@/components/ui/logo";
 
 export interface HeaderProps {
   storeName?: string;
@@ -53,18 +54,9 @@ export function BlinkitHeader({
     <>
       <header className="sticky top-0 z-40 bg-white border-b border-neutral-200/70 shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3.5 py-2.5 sm:px-6 sm:py-3">
-          {/* Left: Exact Blinkit Logo & Location Selector */}
-          <div className="flex items-center gap-4 sm:gap-8">
-            <Link
-              href="/"
-              className="flex items-baseline shrink-0 group select-none"
-              aria-label="Blinkit Home"
-            >
-              <span className="text-3xl sm:text-4xl font-black tracking-tight font-sans">
-                <span className="text-[#f8cb46]">blink</span>
-                <span className="text-[#0c831f]">it</span>
-              </span>
-            </Link>
+          {/* Left: Central Mart Logo & Location Selector */}
+          <div className="flex items-center gap-4 sm:gap-7">
+            <CentralMartLogo showBadge />
 
             {/* Location Selector Pill */}
             <button

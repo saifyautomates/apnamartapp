@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ensureCsrf } from "@/components/shop";
+import { ensureCsrf } from "@/lib/api/client";
 import { Suspense } from "react";
 import Link from "next/link";
 

@@ -1,4 +1,4 @@
-import { CategorySkeleton } from "@/components/skeletons";
+import { CategorySkeleton } from "@/components/ui/skeletons";
 
 export default function Loading() {
   return <CategorySkeleton />;

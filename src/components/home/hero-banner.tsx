@@ -11,37 +11,70 @@ export interface HeroBannerProps {
 
 export function HeroBanner({
   title = "Stock up on daily essentials",
-  subtitle = "Get farm-fresh goodness & a range of exotic fruits, vegetables, eggs & more",
+  subtitle = "Get farm-fresh goodness & a wide range of exotic fruits, vegetables, dairy, eggs & more delivered to your door.",
   buttonText = "Shop Now",
   href = "/category/dairy-eggs",
   imageSrc = "/images/banners/hero-groceries.jpg",
 }: HeroBannerProps) {
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#146b2b] via-[#10782e] to-[#0c831f] text-white shadow-sm">
-      <div className="grid grid-cols-1 md:grid-cols-12 items-center p-5 sm:p-8 md:p-10 gap-6">
-        <div className="md:col-span-7 z-10">
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0c831f] via-[#107d22] to-[#146b2b] text-white shadow-xl cinematic-shine">
+      {/* Background Ambient Glows */}
+      <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-[#f8cb46]/15 blur-3xl pointer-events-none" />
+
+      <div className="relative grid grid-cols-1 md:grid-cols-12 items-center p-6 sm:p-9 md:p-11 gap-6 z-10">
+        {/* Left Column: Headline, Brand Tag, CTA */}
+        <div className="md:col-span-7 space-y-4">
+          {/* Animated Flash Pill */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-black/25 backdrop-blur-md px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#f8cb46] border border-white/10 animate-pulse-subtle">
+            <span className="text-sm">⚡</span>
+            <span>Central Mart Express · 8 Mins Delivery</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.1] text-white drop-shadow-xs">
             {title}
           </h1>
-          <p className="mt-3 text-sm sm:text-base lg:text-lg font-medium text-emerald-100 max-w-xl">
+
+          <p className="text-sm sm:text-base lg:text-lg font-medium text-emerald-100 max-w-xl leading-relaxed">
             {subtitle}
           </p>
-          <div className="mt-5 sm:mt-6">
+
+          <div className="pt-2 flex flex-wrap items-center gap-4">
             <Link
               href={href}
-              className="inline-flex items-center justify-center rounded-lg bg-white text-[#1c1c1c] font-black text-sm sm:text-base px-6 py-2.5 sm:py-3 shadow-md hover:bg-neutral-100 transition active:scale-95 cursor-pointer"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-white text-[#1c1c1c] font-black text-sm sm:text-base px-7 py-3.5 shadow-lg hover:bg-neutral-100 hover:shadow-xl transition-all duration-200 active:scale-95 cursor-pointer"
             >
-              {buttonText}
+              <span>{buttonText}</span>
+              <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
             </Link>
+
+            <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-white/90 bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-white/10">
+              <span className="text-base">🛡️</span>
+              <span>100% Genuine Branded Items</span>
+            </div>
           </div>
         </div>
+
+        {/* Right Column: Visual with Floating 3D Badges */}
         <div className="md:col-span-5 relative flex justify-center md:justify-end">
-          <div className="relative h-44 sm:h-56 md:h-64 w-full max-w-md rounded-2xl overflow-hidden shadow-lg">
+          <div className="relative h-52 sm:h-60 md:h-72 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/20 group">
             <ProductImage
               src={imageSrc}
               alt={title}
-              className="h-full w-full object-cover rounded-2xl"
+              className="h-full w-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
             />
+
+            {/* Floating Glassmorphism Badge 1 (Top Left) */}
+            <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-black px-3 py-1.5 rounded-xl border border-white/20 shadow-lg animate-float flex items-center gap-1.5">
+              <span>⏱️</span>
+              <span>8 MINS AT DOORSTEP</span>
+            </div>
+
+            {/* Floating Glassmorphism Badge 2 (Bottom Right) */}
+            <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md text-[#0c831f] text-[11px] font-black px-3 py-1.5 rounded-xl border border-white/40 shadow-lg animate-float-delayed flex items-center gap-1.5">
+              <span>🌱</span>
+              <span>FARM FRESH TODAY</span>
+            </div>
           </div>
         </div>
       </div>
@@ -50,4 +83,3 @@ export function HeroBanner({
 }
 
 export default HeroBanner;
-

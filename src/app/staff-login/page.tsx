@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ensureCsrf } from "@/components/shop";
+import { ensureCsrf } from "@/lib/api/client";
 import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/components/shop";
+import { api } from "@/lib/api/client";
 import { useRouter } from "next/navigation";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

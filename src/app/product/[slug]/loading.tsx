@@ -1,4 +1,4 @@
-import { ProductDetailSkeleton } from "@/components/skeletons";
+import { ProductDetailSkeleton } from "@/components/ui/skeletons";
 
 export default function Loading() {
   return <ProductDetailSkeleton />;

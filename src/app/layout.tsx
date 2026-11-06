@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import Header from "@/components/header";
+import Header from "@/components/header/header-server";
 import LaunchLoader from "@/components/loader";
 import { PwaRegister } from "@/components/pwa";
-import SiteChrome from "@/components/site-chrome";
+import SiteChrome from "@/components/layout/site-chrome";
 import { getAllSettings } from "@/lib/settings";
 import "./globals.css";
 
@@ -11,13 +11,13 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Blinkit — 10 Minute Grocery Delivery",
-  description: "India's last minute app. Order fresh groceries, milk, staples, snacks, cold drinks and daily essentials online with 10-minute instant delivery.",
+  title: "Central Mart — 8 Minute Grocery Delivery",
+  description: "India's last minute app. Order fresh groceries, milk, staples, snacks, cold drinks and daily essentials online with Central Mart 8-minute instant delivery.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"),
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Blinkit",
+    title: "Central Mart",
     statusBarStyle: "default",
   },
   icons: {
@@ -25,8 +25,8 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Blinkit — 10 Minute Grocery Delivery",
-    description: "India's last minute app. Order groceries delivered in 10 minutes.",
+    title: "Central Mart — 8 Minute Grocery Delivery",
+    description: "India's last minute app. Order fresh groceries delivered in 8 minutes with Central Mart.",
     type: "website",
   },
 };

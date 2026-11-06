@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { api } from "@/components/shop";
+import { api } from "@/lib/api/client";
 import { Suspense } from "react";
 
 function MockPayInner() {

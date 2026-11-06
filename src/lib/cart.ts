@@ -26,13 +26,27 @@ export async function resolveCart(req: NextRequest) {
   const session = await getSession(req);
   if (session?.kind === "CUSTOMER") {
     let cart = await prisma.cart.findFirst({ where: { userId: session.userId, status: "ACTIVE" } });
-    if (!cart) cart = await prisma.cart.create({ data: { userId: session.userId, status: "ACTIVE" } });
+    if (!cart) {
+      try {
+        cart = await prisma.cart.create({ data: { userId: session.userId, status: "ACTIVE" } });
+      } catch {
+        cart = await prisma.cart.findFirst({ where: { userId: session.userId, status: "ACTIVE" } });
+        if (!cart) throw new Error("Failed to initialize customer cart");
+      }
+    }
     return { cart, userId: session.userId, guestToken: null as string | null };
   }
   let token = getGuestToken(req);
   if (!token) token = crypto.randomUUID();
   let cart = await prisma.cart.findFirst({ where: { sessionToken: token, status: "ACTIVE" } });
-  if (!cart) cart = await prisma.cart.create({ data: { sessionToken: token, status: "ACTIVE" } });
+  if (!cart) {
+    try {
+      cart = await prisma.cart.create({ data: { sessionToken: token, status: "ACTIVE" } });
+    } catch {
+      cart = await prisma.cart.findFirst({ where: { sessionToken: token, status: "ACTIVE" } });
+      if (!cart) throw new Error("Failed to initialize guest cart");
+    }
+  }
   return { cart, userId: null as string | null, guestToken: token };
 }
 

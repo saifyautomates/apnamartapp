@@ -2,8 +2,8 @@ import { prisma } from "./prisma";
 
 export const DEFAULT_SETTINGS: Record<string, unknown> = {
   store: {
-    name: "Apna Grocery Store",
-    tagline: "Fresh groceries, delivered fast",
+    name: "Central Mart",
+    tagline: "India's 8-minute grocery app",
     phone: "",
     email: "",
     address: "",
