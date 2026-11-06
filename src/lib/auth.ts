@@ -202,12 +202,52 @@ export const consoleOtpProvider: OtpProvider = {
   },
 };
 
+/**
+ * MSG91 OTP Provider for real SMS delivery in India (+91)
+ */
+export class Msg91OtpProvider implements OtpProvider {
+  constructor(
+    private authKey: string,
+    private templateId: string,
+    private senderId?: string,
+  ) {}
+
+  async send(phone: string, code: string): Promise<void> {
+    const mobile = `91${phone}`;
+    const url = new URL("https://control.msg91.com/api/v5/otp");
+    url.searchParams.set("template_id", this.templateId);
+    url.searchParams.set("mobile", mobile);
+    url.searchParams.set("authkey", this.authKey);
+    url.searchParams.set("otp", code);
+    if (this.senderId) url.searchParams.set("sender", this.senderId);
+
+    const res = await fetch(url.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    const json = (await res.json().catch(() => ({}))) as { type?: string; message?: string };
+    if (!res.ok || json?.type === "error") {
+      throw new Error(`MSG91 OTP delivery failed: ${json?.message || res.statusText}`);
+    }
+  }
+}
+
 export async function requestOtp(phone: string, provider: OtpProvider = consoleOtpProvider) {
   const normalized = phone.replace(/\s/g, "");
   if (!/^[6-9]\d{9}$/.test(normalized) && !/^\+91[6-9]\d{9}$/.test(normalized)) {
     throw badRequest("Enter a valid 10-digit Indian mobile number");
   }
   const digits = normalized.replace(/^\+91/, "");
+
+  // Wire MSG91 if configured in environment
+  let activeProvider = provider;
+  const msg91Key = process.env.MSG91_AUTH_KEY;
+  const msg91Template = process.env.MSG91_OTP_TEMPLATE_ID;
+  const msg91Sender = process.env.MSG91_SENDER_ID;
+  if (provider === consoleOtpProvider && msg91Key && msg91Template) {
+    activeProvider = new Msg91OtpProvider(msg91Key, msg91Template, msg91Sender);
+  }
+
   // Rate limit: max 5 OTPs per hour per phone.
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
   const recent = await prisma.otpCode.count({ where: { phone: digits, createdAt: { gte: oneHourAgo } } });
@@ -217,7 +257,7 @@ export async function requestOtp(phone: string, provider: OtpProvider = consoleO
   await prisma.otpCode.create({
     data: { phone: digits, codeHash, purpose: "LOGIN", expiresAt: new Date(Date.now() + OTP_TTL_MS) },
   });
-  await provider.send(digits, code);
+  await activeProvider.send(digits, code);
   // Dev/test hook: enabled only when ALLOW_DEV_OTP is explicitly "true"
   const devOtp = process.env.ALLOW_DEV_OTP === "true" ? code : undefined;
   return { phone: digits, devOtp };

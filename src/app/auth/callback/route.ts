@@ -67,6 +67,32 @@ export async function GET(request: NextRequest) {
       const refresh = signRefresh({ userId: user.id });
       await storeRefreshToken({ userId: user.id }, refresh);
       setSessionCookies(access, refresh);
+
+      // Check if this authenticated email is an AdminUser (e.g., jackxparrowww@gmail.com)
+      if (email) {
+        const admin = await prisma.adminUser.findFirst({
+          where: { email: { equals: email, mode: "insensitive" }, isActive: true },
+        });
+        if (admin) {
+          const { getAdminPermissions } = await import("@/lib/rbac");
+          const permissions = await getAdminPermissions(admin.id);
+          const roles = (
+            await prisma.adminUserRole.findMany({
+              where: { adminUserId: admin.id },
+              include: { role: true },
+            })
+          ).map((r) => r.role.name);
+
+          const adminAccess = signAccess({ kind: "ADMIN", adminId: admin.id, roles, permissions });
+          const adminRefresh = signRefresh({ adminId: admin.id });
+          await storeRefreshToken({ adminId: admin.id }, adminRefresh);
+          setSessionCookies(adminAccess, adminRefresh);
+
+          // If standard root redirect was requested, navigate directly to Admin Dashboard
+          const adminNext = next === "/" ? "/admin" : next;
+          return NextResponse.redirect(new URL(adminNext, requestUrl.origin));
+        }
+      }
     }
   }
 

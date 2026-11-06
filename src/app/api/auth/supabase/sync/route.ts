@@ -76,6 +76,31 @@ export const POST = handler(async (req: NextRequest) => {
   await storeRefreshToken({ userId: user.id }, refresh);
   setSessionCookies(access, refresh);
 
+  let isAdmin = false;
+  let adminRedirect: string | null = null;
+  if (email) {
+    const admin = await prisma.adminUser.findFirst({
+      where: { email: { equals: email, mode: "insensitive" }, isActive: true },
+    });
+    if (admin) {
+      const { getAdminPermissions } = await import("@/lib/rbac");
+      const permissions = await getAdminPermissions(admin.id);
+      const roles = (
+        await prisma.adminUserRole.findMany({
+          where: { adminUserId: admin.id },
+          include: { role: true },
+        })
+      ).map((r) => r.role.name);
+
+      const adminAccess = signAccess({ kind: "ADMIN", adminId: admin.id, roles, permissions });
+      const adminRefresh = signRefresh({ adminId: admin.id });
+      await storeRefreshToken({ adminId: admin.id }, adminRefresh);
+      setSessionCookies(adminAccess, adminRefresh);
+      isAdmin = true;
+      adminRedirect = "/admin";
+    }
+  }
+
   return ok({
     user: {
       id: user.id,
@@ -83,6 +108,8 @@ export const POST = handler(async (req: NextRequest) => {
       phone: user.phone,
       email: user.email,
       name: user.name,
+      isAdmin,
+      redirect: adminRedirect,
     },
   });
 });

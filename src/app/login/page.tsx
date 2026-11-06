@@ -151,12 +151,13 @@ function LoginInner() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ accessToken }),
     });
+    const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
       throw new Error(json?.error?.message ?? "Session sync failed");
     }
+    const target = json?.data?.user?.isAdmin && next === "/" ? "/admin" : next;
     window.dispatchEvent(new Event("cart-updated"));
-    router.push(next);
+    router.push(target);
     router.refresh();
   }
 

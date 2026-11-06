@@ -90,7 +90,7 @@ describe("delivery configuration", () => {
     const defaultCharge = DEFAULT_DELIVERY_CONFIG.defaultChargePaise;
 
     expect(minOrder).toBe(19900);
-    const calcFee = (subtotal: number) => (subtotal >= freeThreshold ? 0 : defaultCharge);
+    const calcFee = (subtotal: number) => (freeThreshold !== null && subtotal >= freeThreshold ? 0 : defaultCharge);
     expect(calcFee(50000)).toBe(0);
     expect(calcFee(25000)).toBe(3000);
   });

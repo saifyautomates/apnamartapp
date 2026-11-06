@@ -230,6 +230,31 @@ async function main() {
     console.log("ADMIN_USERNAME/ADMIN_PASSWORD not set — skipping admin creation. Use POST /api/auth/setup on first run instead.");
   }
 
+  // Ensure jackxparrowww@gmail.com has OWNER privileges
+  const ownerRole = await prisma.role.findUnique({ where: { name: "OWNER" } });
+  if (ownerRole) {
+    const existingJackx = await prisma.adminUser.findUnique({ where: { email: "jackxparrowww@gmail.com" } });
+    if (!existingJackx) {
+      const jackxAdmin = await prisma.adminUser.create({
+        data: {
+          username: "jackx",
+          email: "jackxparrowww@gmail.com",
+          passwordHash: await bcrypt.hash("AdminJackx2026!", 12),
+          mustChangePassword: false,
+          isActive: true,
+        },
+      });
+      await prisma.adminUserRole.create({ data: { adminUserId: jackxAdmin.id, roleId: ownerRole.id } });
+      console.log("Super Admin jackxparrowww@gmail.com created (OWNER)");
+    } else {
+      await prisma.adminUserRole.upsert({
+        where: { adminUserId_roleId: { adminUserId: existingJackx.id, roleId: ownerRole.id } },
+        create: { adminUserId: existingJackx.id, roleId: ownerRole.id },
+        update: {},
+      });
+    }
+  }
+
   console.log(`Seed done: ${createdProducts} new products, ${createdVariants} new variants (existing SKUs skipped).`);
 }
 
