@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { cachedJson } from "@/lib/cache";
+import { getStoreBanners } from "@/lib/banners";
 import { HeroBanner, PromoCards, CategoryGrid } from "@/components/home";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
 
 export default async function HomePage() {
-  const [dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals] = await cachedJson(
+  const [dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals, storeBanners] = await cachedJson(
     "home_rails_fmcg_v1",
     30,
     async () => {
@@ -105,6 +106,9 @@ export default async function HomePage() {
           },
           take: 30,
         }),
+
+        // Store Banners
+        getStoreBanners(),
       ]);
     }
   );
@@ -112,11 +116,11 @@ export default async function HomePage() {
   const discountDeals = deals.filter((v) => v.sellingPaise < v.mrpPaise).slice(0, 10);
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-10">
-      {/* 1. Hero Big Banner */}
-      <HeroBanner />
+    <div className="space-y-4 sm:space-y-6 pb-10">
+      {/* 1. Sleek, Compact Customer Hero Banner Carousel (Admin Managed) */}
+      <HeroBanner banners={storeBanners} />
 
-      {/* 2. Three Promotional Cards Row */}
+      {/* 2. Three Promotional Cards Row (Horizontal Swipe on Mobile) */}
       <PromoCards />
 
       {/* 3. Blinkit Signature 2-Row FMCG Category Rail (20 Packaged Categories) */}
