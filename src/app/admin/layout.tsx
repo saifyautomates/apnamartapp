@@ -44,7 +44,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     }
   }
   if (!ok) redirect("/staff-login");
-  let storeName = "Apna Grocery Store";
+  let storeName = "Central Mart";
   try {
     const settings = await getAllSettings();
     const store = settings.store as { name?: string } | undefined;
