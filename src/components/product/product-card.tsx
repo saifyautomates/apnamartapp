@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { effectivePrice, discountPercent } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
@@ -25,6 +26,7 @@ export interface VariantCardProps {
 }
 
 export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
+  const [wishlisted, setWishlisted] = useState(false);
   const { deliveryBadgeText } = useDelivery();
   const product = v.product;
   const price = effectivePrice(v as never);
@@ -33,43 +35,60 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   const sellable = v.inventory ? v.inventory.availableQty - v.inventory.reservedQty : 0;
   const inStock = sellable > 0;
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (!e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      openProductSheet({
+        slug: product.slug,
+        initialName: product.name,
+        initialPrice: price,
+        initialMrp: v.mrpPaise,
+        initialImage: image,
+      });
+    }
+  };
+
   return (
-    <article className="group relative flex flex-col justify-between rounded-2xl border border-neutral-200/70 bg-white p-3 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 h-full">
-      {/* Top Media Container */}
+    <article className="group relative flex flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-3 shadow-xs hover:shadow-md transition-all duration-200 h-full">
+      {/* Top Media & Actions Row */}
       <div className="relative">
-        {/* Top Badges Row */}
         <div className="flex items-center justify-between gap-1 w-full z-10">
-          {/* Delivery Promise Badge */}
-          <span className="inline-flex items-center gap-1 rounded bg-[#f4f6fb] px-1.5 py-0.5 text-[10px] font-extrabold text-[#333333]">
-            <span className="text-[11px] text-[#0c831f]">⚡</span> {deliveryBadgeText ? deliveryBadgeText.replace(/^⚡\s*/, "") : "SAME DAY"}
+          {/* Bestseller Badge (Matches Mockup Screen 1) */}
+          <span className="inline-flex items-center rounded-full bg-[#0c831f] text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-tight shadow-xs">
+            Bestseller
           </span>
 
-          {/* Discount Badge: e.g. 6% OFF in Blue */}
-          {pct > 0 ? (
-            <span className="inline-flex items-center rounded-sm bg-[#256fe8] px-1.5 py-0.5 text-[10px] font-black text-white shadow-xs uppercase tracking-tight">
-              {pct}% OFF
-            </span>
-          ) : (
-            <span />
-          )}
+          {/* Wishlist Heart Icon (Matches Mockup Screen 1) */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setWishlisted(!wishlisted);
+            }}
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-50 hover:bg-red-50 text-neutral-400 hover:text-red-500 transition cursor-pointer active:scale-90"
+            aria-label="Add to wishlist"
+          >
+            <svg
+              className={`w-4 h-4 ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-400"}`}
+              fill={wishlisted ? "currentColor" : "none"}
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+          </button>
         </div>
 
-        {/* Product Image - Opens Product Sheet In-App on Same Page */}
+        {/* Product Image */}
         <a
           href={`/product/${product.slug}`}
-          onClick={(e) => {
-            if (!e.metaKey && !e.ctrlKey) {
-              e.preventDefault();
-              openProductSheet({
-                slug: product.slug,
-                initialName: product.name,
-                initialPrice: price,
-                initialMrp: v.mrpPaise,
-                initialImage: image,
-              });
-            }
-          }}
-          className="block h-28 sm:h-32 w-full overflow-hidden bg-white p-1 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+          onClick={handleCardClick}
+          className="block h-28 sm:h-36 w-full overflow-hidden bg-white p-1 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
           aria-label={product.name}
         >
           <ProductImage
@@ -85,35 +104,24 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
         <div>
           <a
             href={`/product/${product.slug}`}
-            onClick={(e) => {
-              if (!e.metaKey && !e.ctrlKey) {
-                e.preventDefault();
-                openProductSheet({
-                  slug: product.slug,
-                  initialName: product.name,
-                  initialPrice: price,
-                  initialMrp: v.mrpPaise,
-                  initialImage: image,
-                });
-              }
-            }}
-            className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] leading-snug hover:text-[#0c831f] transition min-h-[2.4rem] cursor-pointer"
+            onClick={handleCardClick}
+            className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] leading-snug hover:text-[#0c831f] transition min-h-[2.2rem] cursor-pointer"
           >
             {product.name}
           </a>
-          <p className="mt-1 text-xs text-neutral-500 font-medium">
-            {v.packSize ?? v.name ?? "Standard"}
+          <p className="mt-0.5 text-[11px] text-neutral-400 font-medium">
+            {v.packSize ?? v.name ?? "~ 1 kg"}
           </p>
         </div>
 
-        {/* Pricing & Add Button Row */}
-        <div className="mt-3 flex items-center justify-between gap-2 pt-1 border-t border-neutral-100/60">
+        {/* Pricing & Add Button Row (Matches Mockup Screen 1) */}
+        <div className="mt-2.5 flex items-center justify-between gap-2 pt-1 border-t border-neutral-100">
           <div className="flex flex-col leading-tight">
-            <span className="text-xs sm:text-sm font-black text-[#1c1c1c]">
+            <span className="text-sm sm:text-base font-black text-[#1c1c1c]">
               {formatPaise(price)}
             </span>
             {v.mrpPaise > price ? (
-              <span className="text-[11px] text-neutral-400 line-through font-normal">
+              <span className="text-[10px] text-neutral-400 line-through font-normal">
                 {formatPaise(v.mrpPaise)}
               </span>
             ) : null}
@@ -125,7 +133,7 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
             ) : (
               <button
                 disabled
-                className="w-full rounded-lg bg-neutral-100 py-1.5 text-center text-[10px] font-bold text-neutral-400 cursor-not-allowed uppercase"
+                className="w-full rounded-xl bg-neutral-100 py-1.5 text-center text-[10px] font-bold text-neutral-400 cursor-not-allowed uppercase"
               >
                 Sold Out
               </button>
@@ -138,4 +146,3 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
 }
 
 export default BlinkitProductCard;
-

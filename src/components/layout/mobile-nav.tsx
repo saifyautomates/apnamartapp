@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { formatPaise } from "@/lib/money";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
+import { openLoginModal } from "@/components/auth/login-modal";
 
 export function MobileBottomNav() {
   const pathname = usePathname() ?? "";
@@ -37,6 +38,7 @@ export function MobileBottomNav() {
     window.dispatchEvent(new Event("open-cart"));
   };
 
+  // 5 Tabs Matching User Mockup (Home, Categories, Cart, Orders, Profile)
   const navItems = [
     {
       label: "Home",
@@ -57,11 +59,12 @@ export function MobileBottomNav() {
       ),
     },
     {
-      label: "Search",
-      href: "/search",
+      label: "Cart",
+      href: "/cart",
+      isCart: true,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
     },
@@ -75,7 +78,7 @@ export function MobileBottomNav() {
       ),
     },
     {
-      label: "Account",
+      label: "Profile",
       href: "/account",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +90,7 @@ export function MobileBottomNav() {
 
   return (
     <div className="sm:hidden">
-      {/* Blinkit/Zepto Floating Cart Pill (pops up above bottom nav when items > 0) */}
+      {/* Floating Cart Quick Banner (Pops above nav when 1+ items in cart) */}
       {count > 0 && !pathname.startsWith("/checkout") ? (
         <div className="fixed bottom-[calc(3.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-250">
           <button
@@ -116,7 +119,7 @@ export function MobileBottomNav() {
         </div>
       ) : null}
 
-      {/* World-Class Native App Bottom Navigation Dock */}
+      {/* World-Class 5-Tab Mobile Navigation Dock (Matches Mockup) */}
       <nav
         aria-label="Mobile Navigation"
         className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] shadow-xl flex justify-around items-center select-none"
@@ -127,9 +130,9 @@ export function MobileBottomNav() {
             if (item.label === "Categories") {
               e.preventDefault();
               openCategoriesModal();
-            } else if (item.label === "Search") {
+            } else if (item.label === "Cart") {
               e.preventDefault();
-              openSearchModal();
+              openCart();
             } else if (item.label === "Home" && pathname === "/") {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: "smooth" });
@@ -147,9 +150,11 @@ export function MobileBottomNav() {
             >
               <div className="relative mb-0.5">
                 {item.icon}
-                {item.label === "Account" && count > 0 ? (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#0c831f] ring-2 ring-white" />
-                ) : null}
+                {item.isCart && count > 0 && (
+                  <span className="absolute -top-1.5 -right-2 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white">
+                    {count}
+                  </span>
+                )}
               </div>
               <span className={`text-[10px] leading-tight ${isActive ? "font-black" : "font-semibold"}`}>
                 {item.label}
@@ -168,4 +173,3 @@ export function MobileBottomNav() {
 }
 
 export default MobileBottomNav;
-

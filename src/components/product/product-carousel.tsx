@@ -45,15 +45,16 @@ export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselPro
 
   return (
     <section className="relative my-6 sm:my-8">
-      {/* Header: Title and "see all" */}
-      <div className="flex items-baseline justify-between mb-3 px-1">
-        <h2 className="text-xl sm:text-2xl font-black text-[#1c1c1c] tracking-tight">{title}</h2>
+      {/* Header: Title and "View All ->" (Matches Mockup Screen 1) */}
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h2 className="text-base sm:text-xl font-black text-[#1c1c1c] tracking-tight">{title}</h2>
         {seeAllHref ? (
           <Link
             href={seeAllHref}
-            className="text-sm sm:text-base font-bold text-[#0c831f] hover:underline cursor-pointer"
+            className="text-xs sm:text-sm font-bold text-[#0c831f] hover:text-[#0a701a] flex items-center gap-0.5 active:scale-95 transition cursor-pointer"
           >
-            see all
+            <span>View All</span>
+            <span className="text-xs">→</span>
           </Link>
         ) : null}
       </div>

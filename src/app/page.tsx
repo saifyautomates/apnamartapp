@@ -8,19 +8,36 @@ export default async function HomePage() {
 
   const discountDeals = deals.filter((v) => v.sellingPaise < v.mrpPaise).slice(0, 10);
 
+  // Combine top popular items for the "Popular Products" Rail (Matching Screen 1 Mockup)
+  const popularItems = [
+    ...dairyItems.slice(0, 4),
+    ...snackItems.slice(0, 4),
+    ...drinkItems.slice(0, 3),
+    ...stapleItems.slice(0, 3),
+  ];
+
   return (
-    <div className="space-y-4 sm:space-y-6 pb-10">
-      {/* 1. Sleek, Compact Customer Hero Banner Carousel (Admin Managed) */}
+    <div className="space-y-4 sm:space-y-6 pb-12">
+      {/* 1. Hero Banner Carousel with "Fresh Groceries at Best Prices" (Matches Screen 1 Mockup) */}
       <HeroBanner banners={storeBanners} />
 
-      {/* 2. Three Promotional Cards Row (Horizontal Swipe on Mobile) */}
-      <PromoCards />
-
-      {/* 3. Blinkit Signature 2-Row FMCG Category Rail (20 Packaged Categories) */}
+      {/* 2. Shop by Category Section with "View All ->" (Matches Screen 1 Mockup) */}
       <CategoryGrid />
 
-      {/* 4. Product Rails */}
-      {/* Rail 1: Dairy, Bread & Eggs */}
+      {/* 3. Popular Products Grid / Carousel with Bestseller & Heart Wishlist (Matches Screen 1 Mockup) */}
+      {popularItems.length > 0 ? (
+        <ProductCarousel
+          title="Popular Products"
+          seeAllHref="/category"
+          items={popularItems as unknown as VariantCardProps[]}
+        />
+      ) : null}
+
+      {/* 4. Three Promotional Cards Row (Savings & Flash Deals) */}
+      <PromoCards />
+
+      {/* 5. Category Product Rails */}
+      {/* Rail: Dairy, Bread & Eggs */}
       {dairyItems.length > 0 ? (
         <ProductCarousel
           title="Dairy, Bread & Eggs"
@@ -29,7 +46,7 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* Rail 2: Snacks & Munchies */}
+      {/* Rail: Snacks & Munchies */}
       {snackItems.length > 0 ? (
         <ProductCarousel
           title="Snacks & Munchies"
@@ -38,7 +55,7 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* Rail 3: Cold Drinks & Juices */}
+      {/* Rail: Cold Drinks & Juices */}
       {drinkItems.length > 0 ? (
         <ProductCarousel
           title="Cold Drinks & Juices"
@@ -47,7 +64,7 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* Rail 4: Atta, Rice & Dal */}
+      {/* Rail: Atta, Rice & Dal */}
       {stapleItems.length > 0 ? (
         <ProductCarousel
           title="Atta, Rice & Dal"
@@ -56,23 +73,68 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* Rail 5: Personal Care & Cleaning Essentials */}
+      {/* Rail: Personal Care & Household */}
       {personalCareItems.length > 0 ? (
         <ProductCarousel
-          title="Personal Care & Cleaning Essentials"
+          title="Personal Care & Household"
           seeAllHref="/category/personal-care"
           items={personalCareItems as unknown as VariantCardProps[]}
         />
       ) : null}
 
-      {/* Rail 6: Best Offers & Savings */}
+      {/* Rail: Best Offers */}
       {discountDeals.length > 0 ? (
         <ProductCarousel
-          title="🔥 Best Offers on FMCG Essentials"
+          title="🔥 Best Offers & Deals"
           seeAllHref="/category"
           items={discountDeals as unknown as VariantCardProps[]}
         />
       ) : null}
+
+      {/* 6. Four Central Mart Trust Badges (Matches Bottom of Poster Mockup) */}
+      <section className="pt-4 pb-2 border-t border-neutral-100">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
+              🌱
+            </span>
+            <div className="leading-tight">
+              <p className="text-xs font-black text-[#1c1c1c]">Farm Fresh</p>
+              <p className="text-[10px] text-neutral-400 font-medium">100% Quality Produce</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
+              🛡️
+            </span>
+            <div className="leading-tight">
+              <p className="text-xs font-black text-[#1c1c1c]">100% Quality</p>
+              <p className="text-[10px] text-neutral-400 font-medium">Carefully Assured</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
+              🚚
+            </span>
+            <div className="leading-tight">
+              <p className="text-xs font-black text-[#1c1c1c]">Fast Delivery</p>
+              <p className="text-[10px] text-neutral-400 font-medium">12-15 Mins in Kota</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
+              🏷️
+            </span>
+            <div className="leading-tight">
+              <p className="text-xs font-black text-[#1c1c1c]">Best Offers</p>
+              <p className="text-[10px] text-neutral-400 font-medium">Exciting Daily Deals</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

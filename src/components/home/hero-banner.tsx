@@ -4,26 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { StoreBanner } from "@/lib/banners";
+import { openSearchModal } from "@/components/search/search-modal";
 
 export interface HeroBannerProps {
   banners?: StoreBanner[];
-  title?: string;
-  subtitle?: string;
-  buttonText?: string;
-  href?: string;
-  imageSrc?: string;
-  promiseBadge?: string;
 }
 
-export function HeroBanner({
-  banners: initialBanners,
-  title: fallbackTitle = "Mega FMCG Grocery Sale",
-  subtitle: fallbackSubtitle = "Up to 35% OFF on Dairy, Atta, Oil & Snacks",
-  buttonText: fallbackBtn = "Shop Deals",
-  href: fallbackHref = "/category/dairy-eggs",
-  imageSrc: fallbackImg = "/images/banners/central-mart-fmcg-hero.jpg",
-  promiseBadge: fallbackBadge = "⚡ SAME DAY DOORSTEP DELIVERY",
-}: HeroBannerProps) {
+export function HeroBanner({ banners: initialBanners }: HeroBannerProps) {
   const [activeIdx, setActiveIdx] = useState(0);
 
   const bannerList: StoreBanner[] =
@@ -31,21 +18,47 @@ export function HeroBanner({
       ? initialBanners
       : [
           {
-            id: "default-1",
-            title: fallbackTitle,
-            subtitle: fallbackSubtitle,
-            badgeText: fallbackBadge,
-            buttonText: fallbackBtn,
-            href: fallbackHref,
-            imageUrl: fallbackImg,
-            bgGradient: "from-[#0c831f] via-[#107d22] to-[#146b2b]",
+            id: "banner-1",
+            title: "Fresh Groceries",
+            subtitle: "Fruits, Vegetables, Dairy & More – Delivered Fast!",
+            badgeText: "at Best Prices",
+            buttonText: "Shop Now",
+            href: "/category",
+            imageUrl: "/images/banners/central-mart-fmcg-hero.jpg",
+            bgGradient: "from-[#0c831f] via-[#107d22] to-[#156b2b]",
             isActive: true,
             displayOrder: 1,
             createdAt: new Date().toISOString(),
           },
+          {
+            id: "banner-2",
+            title: "Kota Superfast FMCG",
+            subtitle: "Atta, Dal, Edible Oil & Snacks delivered in 12-15 Mins",
+            badgeText: "Up to 35% OFF",
+            buttonText: "Order Now",
+            href: "/category/staples",
+            imageUrl: "/images/banners/central-mart-fmcg-hero.jpg",
+            bgGradient: "from-[#0a6c1a] via-[#0c831f] to-[#166534]",
+            isActive: true,
+            displayOrder: 2,
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: "banner-3",
+            title: "Everyday Essentials",
+            subtitle: "Cleaners, Soaps, Shampoos & Household Needs",
+            badgeText: "Super Savings",
+            buttonText: "Explore",
+            href: "/category/cleaning-essentials",
+            imageUrl: "/images/banners/central-mart-fmcg-hero.jpg",
+            bgGradient: "from-[#0d7820] via-[#0c831f] to-[#085a14]",
+            isActive: true,
+            displayOrder: 3,
+            createdAt: new Date().toISOString(),
+          },
         ];
 
-  // Auto-slide every 5 seconds if multiple banners
+  // Auto-slide every 5 seconds
   useEffect(() => {
     if (bannerList.length <= 1) return;
     const timer = setInterval(() => {
@@ -57,79 +70,68 @@ export function HeroBanner({
   const current = bannerList[activeIdx] || bannerList[0];
 
   return (
-    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-md transition-all duration-300">
-      {/* Sleek, Compact Container (145px on mobile, 220px on tablet, 250px on desktop) */}
-      <div
-        className={`relative overflow-hidden bg-gradient-to-r ${current.bgGradient} text-white px-4 py-3.5 sm:px-8 sm:py-6 flex items-center justify-between min-h-[145px] sm:min-h-[190px] md:min-h-[220px] lg:min-h-[245px]`}
-      >
-        {/* Background Ambient Glows */}
-        <div className="absolute -top-20 -left-20 w-60 h-60 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-[#f8cb46]/15 blur-3xl pointer-events-none" />
+    <div className="space-y-2">
+      <section className="relative overflow-hidden rounded-3xl shadow-md transition-all duration-300">
+        {/* Card with Fresh Green Gradient (Matches Screen 1 Mockup) */}
+        <div
+          className={`relative overflow-hidden bg-gradient-to-r ${current.bgGradient} text-white px-4 py-4 sm:px-8 sm:py-6 flex items-center justify-between min-h-[155px] sm:min-h-[195px] md:min-h-[220px]`}
+        >
+          {/* Subtle Ambient Glow */}
+          <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-emerald-400/20 blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-[#facc15]/15 blur-2xl pointer-events-none" />
 
-        {/* Left Column: Compact Headline, Offer Badge, CTA */}
-        <div className="max-w-[65%] sm:max-w-[60%] space-y-1.5 sm:space-y-2.5 z-10">
-          {/* Animated Compact Flash Pill */}
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-black/25 backdrop-blur-md px-2.5 py-0.5 text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-[#f8cb46] border border-white/10">
-            <span>⚡</span>
-            <span className="truncate">{current.badgeText}</span>
+          {/* Left Column: Headline, Yellow Highlight, Subtitle & Yellow Button */}
+          <div className="max-w-[62%] sm:max-w-[60%] space-y-1.5 sm:space-y-2 z-10">
+            <h2 className="text-base sm:text-2xl md:text-3xl font-black tracking-tight leading-tight text-white drop-shadow-xs">
+              Fresh Groceries <br />
+              <span className="text-[#facc15]">at Best Prices</span>
+            </h2>
+
+            <p className="text-[11px] sm:text-xs md:text-sm font-medium text-emerald-100/90 line-clamp-2">
+              {current.subtitle}
+            </p>
+
+            <div className="pt-1">
+              <button
+                onClick={() => openSearchModal()}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#facc15] hover:bg-[#fde047] text-[#1c1c1c] font-black text-xs sm:text-sm px-4 py-1.5 sm:px-6 sm:py-2.5 shadow-md active:scale-95 transition cursor-pointer"
+              >
+                <span>Shop Now</span>
+                <span className="text-xs">→</span>
+              </button>
+            </div>
           </div>
 
-          <h2 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight text-white line-clamp-2 drop-shadow-xs">
-            {current.title}
-          </h2>
-
-          <p className="text-[11px] sm:text-xs md:text-sm font-medium text-emerald-100/90 line-clamp-1 sm:line-clamp-2">
-            {current.subtitle}
-          </p>
-
-          <div className="pt-1 sm:pt-2">
-            <Link
-              href={current.href}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white text-[#1c1c1c] font-black text-[11px] sm:text-xs md:text-sm px-4 py-1.5 sm:px-6 sm:py-2.5 shadow-md hover:bg-neutral-100 hover:shadow-lg transition active:scale-95 cursor-pointer"
-            >
-              <span>{current.buttonText}</span>
-              <span className="text-xs sm:text-sm">→</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Right Column: Visual Artwork (Compact, Responsive) */}
-        <div className="relative h-28 w-28 sm:h-40 sm:w-40 md:h-48 md:w-56 shrink-0 z-10 flex items-center justify-end">
-          <div className="relative h-full w-full rounded-2xl overflow-hidden shadow-lg border border-white/20 group">
-            <Image
-              src={current.imageUrl}
-              alt={current.title}
-              fill
-              priority
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 640px) 112px, (max-width: 768px) 160px, 224px"
-            />
-            {/* 100% Genuine Badge */}
-            <div className="absolute bottom-1.5 right-1.5 bg-black/60 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-lg border border-white/20 hidden sm:flex items-center gap-1">
-              <span>🏷️</span>
-              <span>100% GENUINE</span>
+          {/* Right Column: Fresh Grocery Basket Artwork */}
+          <div className="relative h-28 w-28 sm:h-36 sm:w-36 md:h-44 md:w-52 shrink-0 z-10 flex items-center justify-end">
+            <div className="relative h-full w-full rounded-2xl overflow-hidden shadow-lg border border-white/20">
+              <Image
+                src={current.imageUrl}
+                alt={current.title}
+                fill
+                priority
+                sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 208px"
+                className="object-cover"
+              />
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Multi-banner Pagination Dots */}
-      {bannerList.length > 1 ? (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
-          {bannerList.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setActiveIdx(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                activeIdx === i ? "w-6 bg-white shadow-xs" : "w-1.5 bg-white/40 hover:bg-white/70"
-              }`}
-              aria-label={`Go to slide ${i + 1}`}
-            />
-          ))}
-        </div>
-      ) : null}
-    </section>
+      {/* Carousel Dots Below (Matching Screen 1 Mockup) */}
+      <div className="flex items-center justify-center gap-1.5 py-1">
+        {bannerList.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setActiveIdx(i)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === activeIdx ? "w-6 bg-[#0c831f]" : "w-1.5 bg-neutral-300 hover:bg-neutral-400"
+            }`}
+            aria-label={`Go to slide ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
