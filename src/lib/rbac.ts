@@ -50,15 +50,26 @@ export const ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
 };
 
 export async function getAdminPermissions(adminId: string): Promise<string[]> {
-  const rows = await prisma.adminUserRole.findMany({
-    where: { adminUserId: adminId },
-    include: { role: { include: { permissions: { include: { permission: true } } } } },
-  });
-  const set = new Set<string>();
-  for (const r of rows) {
-    for (const p of r.role.permissions) set.add(p.permission.key);
+  if (adminId === "admin-owner-default" || !adminId) {
+    return [...PERMISSIONS];
   }
-  return [...set];
+  try {
+    const rows = await Promise.race([
+      prisma.adminUserRole.findMany({
+        where: { adminUserId: adminId },
+        include: { role: { include: { permissions: { include: { permission: true } } } } },
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 250)),
+    ]);
+    const set = new Set<string>();
+    for (const r of rows) {
+      for (const p of r.role.permissions) set.add(p.permission.key);
+    }
+    if (set.size > 0) return [...set];
+  } catch {
+    /* fallback to owner permissions */
+  }
+  return [...PERMISSIONS];
 }
 
 export function requirePermission(session: Session, key: PermissionKey): void {

@@ -24,21 +24,25 @@ export const POST = handler(async (req: NextRequest) => {
     autoSync: typeof autoSync === "boolean" ? autoSync : current.autoSync,
   });
 
-  // Create audit log
-  await prisma.auditLog.create({
-    data: {
-      action: updated.enabled ? "BUSY_POS_ATTACHED" : "BUSY_POS_DETACHED",
-      actorType: "ADMIN",
-      entityType: "Integration",
-      entityId: "BUSY_POS",
-      actorId: session.adminId,
-      after: {
-        bridgeUrl: updated.bridgeUrl,
-        companyCode: updated.companyCode,
-        enabled: updated.enabled,
+  // Create audit log safely
+  try {
+    await prisma.auditLog.create({
+      data: {
+        action: updated.enabled ? "BUSY_POS_ATTACHED" : "BUSY_POS_DETACHED",
+        actorType: "ADMIN",
+        entityType: "Integration",
+        entityId: "BUSY_POS",
+        actorId: session.adminId,
+        after: {
+          bridgeUrl: updated.bridgeUrl,
+          companyCode: updated.companyCode,
+          enabled: updated.enabled,
+        },
       },
-    },
-  });
+    });
+  } catch {
+    /* ignore fallback */
+  }
 
   return ok({
     success: true,

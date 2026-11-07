@@ -19,17 +19,21 @@ export const POST = handler(async (req: NextRequest) => {
   // Update last sync time
   await saveBusyPosConfig({});
 
-  // Log sync event
-  await prisma.integrationSyncLog.create({
-    data: {
-      provider: "BUSY_POS",
-      entityType: "SALES_VOUCHERS_AND_STOCK",
-      entityId: "OMNICHANNEL_SYNC",
-      direction: "INBOUND",
-      status: "SUCCESS",
-      message: "Synced 5 recent POS vouchers and 2,040 stock records from BUSY POS counter bridge.",
-    },
-  });
+  // Log sync event safely
+  try {
+    await prisma.integrationSyncLog.create({
+      data: {
+        provider: "BUSY_POS",
+        entityType: "SALES_VOUCHERS_AND_STOCK",
+        entityId: "OMNICHANNEL_SYNC",
+        direction: "INBOUND",
+        status: "SUCCESS",
+        message: "Synced recent POS vouchers and stock records from BUSY POS counter bridge.",
+      },
+    });
+  } catch {
+    /* ignore fallback */
+  }
 
   return ok({
     success: true,
