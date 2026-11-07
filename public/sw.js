@@ -21,6 +21,7 @@ const SHELL = [
   "/icons/icon-512.png",
   "/icons/maskable-512.png",
   "/placeholder.svg",
+  "/images/placeholder-product.svg",
 ];
 
 self.addEventListener("install", (event) => {
@@ -61,6 +62,7 @@ function isImage(request, url) {
   return (
     request.destination === "image" ||
     url.pathname.startsWith("/uploads/") ||
+    url.pathname.startsWith("/images/") ||
     url.pathname === "/placeholder.svg" ||
     url.pathname.startsWith("/icons/")
   );

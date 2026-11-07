@@ -19,18 +19,21 @@ export function ProductImage({ src, alt, className = "", priority = false }: Pro
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={imgSrc || "/placeholder.svg"}
+      src={imgSrc || "/images/placeholder-product.svg"}
       alt={alt}
+      width="180"
+      height="180"
       loading={priority ? "eager" : "lazy"}
       decoding="async"
-      fetchPriority={priority ? "high" : "auto"}
+      fetchPriority={priority ? "high" : "low"}
       className={`transition-transform duration-200 group-hover:scale-105 ${className}`}
       onError={() => {
-        if (imgSrc !== "/placeholder.svg") {
-          setImgSrc("/placeholder.svg");
+        if (imgSrc !== "/images/placeholder-product.svg") {
+          setImgSrc("/images/placeholder-product.svg");
         }
       }}
     />
   );
 }
 
+export default ProductImage;

@@ -94,43 +94,43 @@ export default async function HomePage() {
       {/* 6. Four Central Mart Trust Badges (Matches Bottom of Poster Mockup) */}
       <section className="pt-4 pb-2 border-t border-neutral-100">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
-              🌱
+              🍃
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">Farm Fresh</p>
-              <p className="text-[10px] text-neutral-400 font-medium">100% Quality Produce</p>
+              <p className="text-xs font-black text-[#1c1c1c]">Farm Fresh Produce</p>
+              <p className="text-[10px] text-neutral-400 font-medium">Naturally Sourced</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
               🛡️
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">100% Quality</p>
-              <p className="text-[10px] text-neutral-400 font-medium">Carefully Assured</p>
+              <p className="text-xs font-black text-[#1c1c1c]">100% Quality Assured</p>
+              <p className="text-[10px] text-neutral-400 font-medium">Carefully Inspected</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
-              🚚
+              🛵
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">Fast Delivery</p>
-              <p className="text-[10px] text-neutral-400 font-medium">12-15 Mins in Kota</p>
+              <p className="text-xs font-black text-[#1c1c1c]">Same Day Delivery*</p>
+              <p className="text-[10px] text-[#0c831f] font-bold">⚡ 12-15 Mins in Kota</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
               🏷️
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">Best Offers</p>
-              <p className="text-[10px] text-neutral-400 font-medium">Exciting Daily Deals</p>
+              <p className="text-xs font-black text-[#1c1c1c]">Exciting Offers & Deals</p>
+              <p className="text-[10px] text-neutral-400 font-medium">Best Prices Guaranteed</p>
             </div>
           </div>
         </div>

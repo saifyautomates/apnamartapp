@@ -15,6 +15,7 @@ html {
 
 * {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 button, a, input, select, textarea, [role="button"] {
@@ -39,6 +40,7 @@ body {
 
 .scroll-touch {
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 a {
@@ -62,13 +64,38 @@ textarea:focus-visible {
   scrollbar-width: none;
 }
 
+/* Low-spec / Budget Smartphone Performance Optimizations */
+article {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 240px;
+}
+
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 180px;
+}
+
+/* Hardware accelerated layer promotion for 60fps scrolling */
+.gpu-accel {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Safe fallback for expensive blur filters on entry-level Android chipsets */
+@supports not (backdrop-filter: blur(1px)) {
+  .backdrop-blur-md,
+  .backdrop-blur-xs {
+    background-color: #ffffff !important;
+  }
+}
+
 /* Branded launch loader animations */
 @keyframes loader-pop {
   from {
     opacity: 0;
     transform: scale(0.85);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
@@ -80,7 +107,6 @@ textarea:focus-visible {
     opacity: 0;
     transform: translateY(6px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -91,7 +117,6 @@ textarea:focus-visible {
   from {
     transform: translateX(-100%);
   }
-
   to {
     transform: translateX(300%);
   }
@@ -196,7 +221,6 @@ textarea:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .loader-pop,
   .loader-fade,
   .loader-shimmer {

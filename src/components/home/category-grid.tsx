@@ -9,16 +9,16 @@ import { openCategoriesModal } from "@/components/category/category-drawer";
  * 20 Signature FMCG Grocery Categories.
  */
 export const FMCG_CATEGORIES_ROW_1 = [
-  { slug: "dairy-eggs", name: "Dairy &\nEggs", img: "/images/categories/dairy-bread.jpg", href: "/category/dairy-eggs", query: "milk dairy eggs" },
+  { slug: "fruits", name: "Fruits", img: "/images/categories/fruits-vegetables.jpg", href: "/category/fruits-vegetables", query: "apple banana fruits fresh" },
+  { slug: "vegetables", name: "Vegetables", img: "/images/categories/fruits-vegetables.jpg", href: "/category/fruits-vegetables", query: "tomato onion potato vegetables" },
+  { slug: "dairy", name: "Dairy", img: "/images/categories/dairy-bread.jpg", href: "/category/dairy-eggs", query: "milk dairy butter curd" },
+  { slug: "snacks", name: "Snacks", img: "/images/categories/snacks-munchies.jpg", href: "/category/snacks", query: "snacks chips biscuit namkeen" },
+  { slug: "household", name: "Household", img: "/images/categories/cleaning-essentials.jpg", href: "/category/cleaning-essentials", query: "surf detergent clean household" },
   { slug: "staples", name: "Atta, Rice\n& Dal", img: "/images/categories/atta-rice-dal.jpg", href: "/category/staples", query: "atta rice dal" },
-  { slug: "snacks", name: "Snacks &\nMunchies", img: "/images/categories/snacks-munchies.jpg", href: "/category/snacks", query: "snacks chips biscuit" },
   { slug: "cold-drinks", name: "Drinks &\nJuices", img: "/images/categories/cold-drinks.jpg", href: "/category/cold-drinks", query: "cold drink juice pepsi" },
-  { slug: "cleaning-essentials", name: "Cleaning &\nHousehold", img: "/images/categories/cleaning-essentials.jpg", href: "/category/cleaning-essentials", query: "surf detergent clean" },
   { slug: "masala-oil", name: "Edible Oils\n& Ghee", img: "/images/categories/masala-oil.jpg", href: "/category/masala-oil", query: "oil ghee" },
-  { slug: "breakfast", name: "Breakfast &\nInstant Food", img: "/images/categories/breakfast-instant.jpg", href: "/category/breakfast", query: "maggi breakfast oats" },
-  { slug: "sweet-tooth", name: "Sweet\nTooth", img: "/images/categories/sweet-tooth.jpg", href: "/category/sweet-tooth", query: "chocolate sweet sugar" },
+  { slug: "breakfast", name: "Breakfast &\nInstant", img: "/images/categories/breakfast-instant.jpg", href: "/category/breakfast", query: "maggi breakfast oats" },
   { slug: "bakery-biscuits", name: "Bakery &\nBiscuits", img: "/images/categories/bakery-biscuits.jpg", href: "/category/bakery-biscuits", query: "biscuit cookie rusk" },
-  { slug: "tea-coffee", name: "Tea, Coffee &\nDrinks", img: "/images/categories/tea-coffee.jpg", href: "/category/tea-coffee", query: "tea coffee boost" },
 ];
 
 export const FMCG_CATEGORIES_ROW_2 = [

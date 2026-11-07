@@ -310,7 +310,7 @@ export function ProductDetailModal() {
             </div>
             <div className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 text-center">
               <span className="text-lg mb-1">🌾</span>
-              <span className="text-[10px] font-bold text-[#1c1c1c] leading-tight">Rich in Nutrients</span>
+              <span className="text-[10px] font-bold text-[#1c1c1c] leading-tight">Rich in Vitamins</span>
             </div>
           </div>
         </div>
