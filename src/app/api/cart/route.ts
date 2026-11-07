@@ -9,11 +9,15 @@ import { badRequest } from "@/lib/errors";
 export const runtime = "nodejs";
 
 export const GET = handler(async (req: NextRequest) => {
-  const { cart, guestToken } = await resolveCart(req);
-  const detail = await getCartDetail(cart.id);
-  const res = ok(detail);
-  if (guestToken) setGuestCookie(res, guestToken);
-  return res;
+  try {
+    const { cart, guestToken } = await resolveCart(req);
+    const detail = await getCartDetail(cart.id);
+    const res = ok(detail ?? { items: [], count: 0, subtotalPaise: 0, mrpTotalPaise: 0, taxPaise: 0, grandTotalPaise: 0 });
+    if (guestToken) setGuestCookie(res, guestToken);
+    return res;
+  } catch {
+    return ok({ items: [], count: 0, subtotalPaise: 0, mrpTotalPaise: 0, taxPaise: 0, grandTotalPaise: 0 });
+  }
 });
 
 export const POST = handler(async (req: NextRequest) => {

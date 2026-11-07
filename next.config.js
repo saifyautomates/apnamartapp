@@ -1,3 +1,9 @@
+// Ensure DATABASE_URL is never undefined in serverless builds or cloud runtimes
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL =
+    "postgresql://postgres:postgres@localhost:5432/grocery_commerce?schema=public";
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
