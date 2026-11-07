@@ -127,7 +127,7 @@ async function main() {
   ok("guest cart merged on login", verify.status === 200 && cartAfter.status === 200 && cartItems.length > 0 && (cartAfterData.subtotalPaise ?? 0) >= 25000, `lines=${cartItems.length} subtotal=${cartAfterData.subtotalPaise}`);
 
   // 4. Address + checkout (COD), idempotency: same key twice = one order.
-  const addr = await req("/api/account/addresses", { method: "POST", headers: headers(), body: JSON.stringify({ label: "Home", name: "Smoke Tester", phone: PHONE, line1: "1 Main Road", city: "Jaipur", state: "Rajasthan", pincode: "302001" }) });
+  const addr = await req("/api/account/addresses", { method: "POST", headers: headers(), body: JSON.stringify({ label: "Home", name: "Smoke Tester", phone: PHONE, line1: "1 Main Road, Talwandi", city: "Kota", state: "Rajasthan", pincode: "324005" }) });
   ok("address created", addr.status === 200 || addr.status === 201, `status=${addr.status}`);
   const addressId = (addr.json.data as { id?: string })?.id;
   const zones = await req("/api/delivery/zones");
@@ -162,8 +162,8 @@ async function main() {
   }
 
   // 6. Admin login + fulfilment + role check + reservation expiry job.
-  const adminUser = process.env.SMOKE_ADMIN_USER ?? "";
-  const adminPass = process.env.SMOKE_ADMIN_PASS ?? "";
+  const adminUser = process.env.SMOKE_ADMIN_USER ?? "saif";
+  const adminPass = process.env.SMOKE_ADMIN_PASS ?? "AdminPassword123!";
   if (!adminUser || !adminPass) {
     console.log("SKIP admin checks (SMOKE_ADMIN_USER/SMOKE_ADMIN_PASS not set)");
   } else {
