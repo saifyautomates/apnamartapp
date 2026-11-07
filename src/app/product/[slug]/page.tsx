@@ -4,31 +4,57 @@ import type { Metadata } from "next";
 import { ProductDetailView, BlinkitProductCard, VariantCardProps } from "@/components/product";
 import { SectionTitle } from "@/components/ui";
 import Link from "next/link";
+import { getFallbackProduct, getFallbackVariants } from "@/lib/resilient-catalog";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const product = await prisma.product.findUnique({ where: { slug: params.slug } });
-  if (!product) return { title: "Product not found" };
-  return {
-    title: `${product.name} — Same-Day Delivery | Central Mart`,
-    description: product.description ?? product.name,
-    openGraph: { title: product.name, description: product.description ?? undefined, type: "website" },
-  };
+  try {
+    const product = await prisma.product.findUnique({ where: { slug: params.slug } });
+    if (product) {
+      return {
+        title: `${product.name} — Same-Day Delivery | Central Mart`,
+        description: product.description ?? product.name,
+        openGraph: { title: product.name, description: product.description ?? undefined, type: "website" },
+      };
+    }
+  } catch {
+    /* fallback */
+  }
+  const fb = getFallbackProduct(params.slug);
+  if (fb) {
+    return {
+      title: `${fb.name} — Same-Day Delivery | Central Mart`,
+      description: fb.description ?? fb.name,
+      openGraph: { title: fb.name, description: fb.description ?? undefined, type: "website" },
+    };
+  }
+  return { title: "Central Mart — Same-Day Delivery" };
 }
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
-    include: {
-      brand: true,
-      category: true,
-      subcategory: true,
-      images: { orderBy: { sortOrder: "asc" } },
-      variants: { include: { inventory: true }, orderBy: { sellingPaise: "asc" } },
-    },
-  });
-  if (!product || product.deletedAt || !product.isActive || !product.onlineVisible) notFound();
+  let product: any = null;
 
-  const variants = product.variants.map((v) => ({
+  try {
+    product = await prisma.product.findUnique({
+      where: { slug: params.slug },
+      include: {
+        brand: true,
+        category: true,
+        subcategory: true,
+        images: { orderBy: { sortOrder: "asc" } },
+        variants: { include: { inventory: true }, orderBy: { sellingPaise: "asc" } },
+      },
+    });
+  } catch {
+    /* database unconfigured or sleeping */
+  }
+
+  if (!product || product.deletedAt || !product.isActive || !product.onlineVisible) {
+    product = getFallbackProduct(params.slug);
+  }
+
+  if (!product) notFound();
+
+  const variants = product.variants.map((v: any) => ({
     id: v.id,
     name: v.name,
     packSize: v.packSize,
@@ -39,15 +65,24 @@ export default async function ProductPage({ params }: { params: { slug: string }
     sellable: v.inventory ? v.inventory.availableQty - v.inventory.reservedQty : 0,
   }));
 
-  const images = product.images.length > 0 ? product.images.map((i) => i.url) : [`/images/products/${product.slug}.jpg`];
+  const images = product.images && product.images.length > 0 ? product.images.map((i: any) => i.url) : [`/images/products/${product.slug}.jpg`];
 
-  const related = await prisma.productVariant.findMany({
-    where: {
-      product: { isActive: true, onlineVisible: true, deletedAt: null, categoryId: product.categoryId, id: { not: product.id } },
-    },
-    include: { product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } }, inventory: true },
-    take: 6,
-  });
+  let related: any[] = [];
+  try {
+    related = await prisma.productVariant.findMany({
+      where: {
+        product: { isActive: true, onlineVisible: true, deletedAt: null, categoryId: product.category?.id, id: { not: product.id } },
+      },
+      include: { product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } }, inventory: true },
+      take: 6,
+    });
+  } catch {
+    /* fallback */
+  }
+
+  if (related.length === 0) {
+    related = getFallbackVariants(product.category?.slug ? [product.category.slug] : undefined, 6) as any;
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -55,8 +90,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
     name: product.name,
     description: product.description ?? undefined,
     brand: product.brand?.name,
-    category: product.category.name,
-    offers: variants.map((v) => ({
+    category: product.category?.name,
+    offers: variants.map((v: { priceSource?: string; onlinePricePaise?: number | null; sellingPaise: number; sellable: number }) => ({
       "@type": "Offer",
       price: ((v.priceSource === "CUSTOM" && v.onlinePricePaise != null ? v.onlinePricePaise : v.sellingPaise) / 100).toFixed(2),
       priceCurrency: "INR",

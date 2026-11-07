@@ -1,13 +1,30 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { ProductImage } from "@/components/product";
+import { getFallbackCategories } from "@/lib/resilient-catalog";
 
 export default async function CategoriesPage() {
-  const categories = await prisma.category.findMany({
-    where: { isVisible: true },
-    include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
-    orderBy: { sortOrder: "asc" },
-  });
+  let categories: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    subcategories: Array<{ id: string; name: string; slug: string }>;
+  }> = [];
+
+  try {
+    categories = await prisma.category.findMany({
+      where: { isVisible: true },
+      include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
+      orderBy: { sortOrder: "asc" },
+    });
+  } catch {
+    /* fallback to resilient catalog */
+  }
+
+  if (!categories || categories.length === 0) {
+    categories = getFallbackCategories();
+  }
 
   return (
     <div className="space-y-6">

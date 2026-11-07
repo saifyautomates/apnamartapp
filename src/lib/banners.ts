@@ -59,19 +59,23 @@ export const DEFAULT_STORE_BANNERS: StoreBanner[] = [
 
 /** Fetch active store banners for customer storefront (cached) */
 export async function getStoreBanners(): Promise<StoreBanner[]> {
-  return cachedJson("home_store_banners_v2", 30, async () => {
-    try {
-      const row = await prisma.setting.findUnique({ where: { key: "store_banners" } });
-      if (row?.value && Array.isArray(row.value) && row.value.length > 0) {
-        return (row.value as unknown as StoreBanner[])
-          .filter((b) => b.isActive)
-          .sort((a, b) => a.displayOrder - b.displayOrder);
+  try {
+    return await cachedJson("home_store_banners_v2", 30, async () => {
+      try {
+        const row = await prisma.setting.findUnique({ where: { key: "store_banners" } });
+        if (row?.value && Array.isArray(row.value) && row.value.length > 0) {
+          return (row.value as unknown as StoreBanner[])
+            .filter((b) => b.isActive)
+            .sort((a, b) => a.displayOrder - b.displayOrder);
+        }
+      } catch {
+        // fallback
       }
-    } catch {
-      // fallback
-    }
+      return DEFAULT_STORE_BANNERS;
+    });
+  } catch {
     return DEFAULT_STORE_BANNERS;
-  });
+  }
 }
 
 /** Fetch all banners for Admin panel management */

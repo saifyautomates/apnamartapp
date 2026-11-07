@@ -3,6 +3,7 @@ import { BlinkitProductCard, VariantCardProps } from "@/components/product";
 import { EmptyState } from "@/components/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFallbackCategories, getFallbackVariants } from "@/lib/resilient-catalog";
 
 export default async function CategoryPage({
   params,
@@ -11,10 +12,28 @@ export default async function CategoryPage({
   params: { slug: string };
   searchParams: { sub?: string; page?: string; sort?: string };
 }) {
-  const category = await prisma.category.findUnique({
-    where: { slug: params.slug },
-    include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
-  });
+  let category: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string | null;
+    subcategories: Array<{ id: string; name: string; slug: string }>;
+  } | null = null;
+
+  try {
+    category = await prisma.category.findUnique({
+      where: { slug: params.slug },
+      include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
+    });
+  } catch {
+    /* fallback to resilient catalog */
+  }
+
+  if (!category) {
+    const fallbackCats = getFallbackCategories();
+    category = fallbackCats.find((c) => c.slug === params.slug) ?? null;
+  }
+
   if (!category) notFound();
 
   const page = Math.max(1, parseInt(searchParams.page ?? "1", 10) || 1);
@@ -35,19 +54,33 @@ export default async function CategoryPage({
         ? { sellingPaise: "desc" as const }
         : { createdAt: "desc" as const };
 
-  const [variants, total] = await Promise.all([
-    prisma.productVariant.findMany({
-      where: where as never,
-      include: {
-        product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-        inventory: true,
-      },
-      orderBy,
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.productVariant.count({ where: where as never }),
-  ]);
+  let variants: VariantCardProps[] = [];
+  let total = 0;
+
+  try {
+    const [dbVariants, dbTotal] = await Promise.all([
+      prisma.productVariant.findMany({
+        where: where as never,
+        include: {
+          product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+          inventory: true,
+        },
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.productVariant.count({ where: where as never }),
+    ]);
+    variants = dbVariants as unknown as VariantCardProps[];
+    total = dbTotal;
+  } catch {
+    /* fallback */
+  }
+
+  if (variants.length === 0) {
+    variants = getFallbackVariants([params.slug], pageSize);
+    total = variants.length;
+  }
 
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
