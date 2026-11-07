@@ -169,10 +169,10 @@ function LoginInner() {
           <CentralMartLogo size="md" showBadge />
         </div>
         <h1 className="text-xl font-black text-[#1c1c1c] tracking-tight">
-          India&apos;s Fastest FMCG App
+          Kota&apos;s Dedicated Online Supermarket
         </h1>
         <p className="mt-1 text-xs text-neutral-500 font-medium">
-          Log in or sign up to get 100% genuine FMCG essentials with reliable Same-Day Delivery
+          Log in or sign up for 100% genuine FMCG essentials delivered across Kota with reliable Same-Day Delivery
         </p>
 
         {/* Auth Mode Toggle Tabs (Phone vs Supabase Email) */}

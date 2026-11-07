@@ -12,8 +12,8 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Central Mart — Same-Day FMCG Grocery Delivery",
-  description: "Order 100% genuine packaged groceries, dairy, staples, snacks, cold drinks, cleaning & personal care essentials online with Central Mart reliable Same-Day Doorstep Delivery.",
+  title: "Central Mart — Kota's Online FMCG Supermarket",
+  description: "Order 100% genuine packaged groceries, dairy, staples, snacks, cold drinks, cleaning & personal care essentials online in Kota, Rajasthan with Central Mart reliable Same-Day Doorstep Delivery.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"),
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Central Mart — Same-Day FMCG Grocery Delivery",
-    description: "Order 100% genuine packaged groceries delivered right to your doorstep with Central Mart Same-Day Delivery.",
+    title: "Central Mart — Kota's Online FMCG Supermarket",
+    description: "Order 100% genuine packaged groceries delivered right to your doorstep in Kota with Central Mart Same-Day Delivery.",
     type: "website",
   },
 };

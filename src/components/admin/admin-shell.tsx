@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { CentralMartLogo } from "@/components/ui/logo";
 
 export type AdminNavItem = { href: string; label: string; badge?: string | number };
 
@@ -244,17 +245,14 @@ export default function AdminShell({
       {/* 1. Desktop Dark Forest Green Sidebar */}
       <aside className="sticky top-0 hidden h-screen w-68 shrink-0 flex-col bg-gradient-to-b from-[#052b14] via-[#063319] to-[#04200f] text-white shadow-2xl lg:flex z-40 border-r border-emerald-950/40">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-[#22c55e] to-[#16a34a] flex items-center justify-center text-white shadow-md ring-2 ring-emerald-400/30">
-            <span className="text-xl">🛒</span>
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-base font-black tracking-tight text-white flex items-center gap-1.5">
-              Central Mart
-              <span className="h-2 w-2 rounded-full bg-[#22c55e] animate-ping" />
-            </span>
-            <span className="text-[11px] font-semibold text-[#86efac]">Online Grocery Store</span>
-          </div>
+        <div className="px-5 py-4.5 border-b border-white/10">
+          <CentralMartLogo
+            theme="dark"
+            size="sm"
+            subtitle="Online Grocery Store · Kota"
+            href="/admin"
+            showKotaBadge={false}
+          />
         </div>
 
         {/* Navigation Items List */}
@@ -623,7 +621,13 @@ export default function AdminShell({
           />
           <div className="fixed inset-y-0 left-0 w-72 bg-gradient-to-b from-[#052b14] to-[#04200f] text-white p-4 flex flex-col shadow-2xl">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <span className="text-base font-black text-white">Central Mart Admin</span>
+              <CentralMartLogo
+                theme="dark"
+                size="xs"
+                subtitle="Online Grocery Store · Kota"
+                href="/admin"
+                showKotaBadge={false}
+              />
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}

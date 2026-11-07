@@ -12,7 +12,7 @@ export function SiteFooter() {
               <CentralMartLogo size="sm" showBadge />
             </div>
             <p className="text-xs text-neutral-500 leading-relaxed mt-2">
-              Central Mart · India&apos;s Same-Day FMCG Grocery Store. Delivering 100% genuine packaged staples, dairy, snacks, beverages, cleaning &amp; personal care with reliable doorstep delivery.
+              Central Mart · Kota&apos;s Trusted Same-Day FMCG Grocery Supermarket. Delivering 100% genuine packaged staples, dairy, snacks, beverages, cleaning &amp; personal care across Kota with reliable doorstep delivery.
             </p>
           </div>
 
