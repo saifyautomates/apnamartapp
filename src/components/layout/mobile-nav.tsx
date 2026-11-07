@@ -85,36 +85,39 @@ export function MobileBottomNav() {
 
   return (
     <div className="sm:hidden">
-      {/* Blinkit Floating Cart Pill (pops up above bottom nav when items > 0) */}
+      {/* Blinkit/Zepto Floating Cart Pill (pops up above bottom nav when items > 0) */}
       {count > 0 && !pathname.startsWith("/checkout") ? (
-        <div className="fixed bottom-16 left-3 right-3 z-40 animate-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-[calc(3.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-250">
           <button
             onClick={openCart}
-            className="w-full flex items-center justify-between bg-[#0c831f] hover:bg-[#0a701a] text-white px-4 py-2.5 rounded-2xl shadow-xl border border-[#0c831f] transition active:scale-[0.99] cursor-pointer"
+            className="w-full flex items-center justify-between bg-gradient-to-r from-[#0c831f] via-[#0d8e23] to-[#0a701a] text-white px-4 py-3 rounded-2xl shadow-2xl shadow-emerald-950/25 border border-emerald-400/30 transition active:scale-[0.98] cursor-pointer"
           >
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 text-sm">
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-base shadow-inner">
                 🛒
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#f8cb46] text-[#1c1c1c] text-[10px] font-black shadow-xs">
+                  {count}
+                </span>
               </span>
               <div className="text-left leading-tight">
-                <p className="text-[11px] font-bold opacity-90">
-                  {count} {count === 1 ? "item" : "items"}
+                <p className="text-[11px] font-bold text-emerald-100 uppercase tracking-wide">
+                  {count} {count === 1 ? "item" : "items"} in cart
                 </p>
-                <p className="text-sm font-black">{formatPaise(total)}</p>
+                <p className="text-base font-black tracking-tight">{formatPaise(total)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-white/20 px-3 py-1.5 rounded-xl">
+            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-white/20 hover:bg-white/30 px-3.5 py-2 rounded-xl transition">
               <span>View Cart</span>
-              <span>→</span>
+              <span className="text-sm font-bold">→</span>
             </div>
           </button>
         </div>
       ) : null}
 
-      {/* Bottom Navigation Bar */}
+      {/* World-Class Native App Bottom Navigation Dock */}
       <nav
         aria-label="Mobile Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-neutral-200/80 px-2 py-1 shadow-lg flex justify-around items-center"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] shadow-xl flex justify-around items-center select-none"
       >
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -122,12 +125,24 @@ export function MobileBottomNav() {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-lg text-center transition ${
-                isActive ? "text-[#0c831f] font-black" : "text-neutral-500 font-medium hover:text-neutral-800"
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all duration-150 active:scale-90 ${
+                isActive ? "text-[#0c831f]" : "text-neutral-500 hover:text-neutral-800"
               }`}
             >
-              <div className="mb-0.5">{item.icon}</div>
-              <span className="text-[10px] leading-tight font-bold">{item.label}</span>
+              <div className="relative mb-0.5">
+                {item.icon}
+                {item.label === "Account" && count > 0 ? (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-[#0c831f] ring-2 ring-white" />
+                ) : null}
+              </div>
+              <span className={`text-[10px] leading-tight ${isActive ? "font-black" : "font-semibold"}`}>
+                {item.label}
+              </span>
+              {isActive ? (
+                <span className="h-1 w-1 rounded-full bg-[#0c831f] mt-0.5" />
+              ) : (
+                <span className="h-1 w-1 rounded-full bg-transparent mt-0.5" />
+              )}
             </Link>
           );
         })}

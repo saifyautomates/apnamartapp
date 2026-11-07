@@ -110,16 +110,21 @@ export function CartDrawer() {
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
         onClick={() => setOpen(false)}
       />
 
-      {/* Drawer Container */}
+      {/* Drawer Container: Responsive Bottom Sheet on Mobile, Slide-over on Desktop */}
       <aside
-        className="absolute inset-y-0 right-0 flex max-w-full pl-10 sm:w-[420px] w-full"
+        className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[420px] w-full max-h-[92vh] sm:max-h-full flex flex-col rounded-t-3xl sm:rounded-none bg-white shadow-2xl z-50 animate-in slide-in-from-bottom sm:slide-in-from-right duration-300 overflow-hidden"
         aria-label="Shopping Cart"
       >
-        <div className="flex w-full flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-300">
+        {/* Mobile Drag Indicator Bar */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center bg-white cursor-grab">
+          <div className="h-1.5 w-12 rounded-full bg-neutral-300" />
+        </div>
+
+        <div className="flex w-full flex-1 flex-col overflow-hidden bg-white">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3.5 bg-white sticky top-0 z-10">
             <div className="flex items-center gap-2">
@@ -221,18 +226,18 @@ export function CartDrawer() {
                 </div>
 
                 {/* Blinkit Green Stepper */}
-                <div className="flex items-center rounded-lg bg-[#0c831f] text-white shadow-xs">
+                <div className="flex items-center rounded-xl bg-[#0c831f] text-white shadow-xs">
                   <button
                     onClick={() => updateQty(line.variantId, line.qty - 1)}
-                    className="px-2 py-1 text-xs font-extrabold hover:bg-[#0a701a] rounded-l-md transition cursor-pointer"
+                    className="h-8 w-8 flex items-center justify-center text-sm font-black hover:bg-[#0a701a] rounded-l-xl transition active:scale-90 cursor-pointer"
                     aria-label="Decrease quantity"
                   >
                     −
                   </button>
-                  <span className="px-2 text-xs font-black min-w-5 text-center">{line.qty}</span>
+                  <span className="px-1 text-xs font-black min-w-6 text-center select-none">{line.qty}</span>
                   <button
                     onClick={() => updateQty(line.variantId, line.qty + 1)}
-                    className="px-2 py-1 text-xs font-extrabold hover:bg-[#0a701a] rounded-r-md transition cursor-pointer"
+                    className="h-8 w-8 flex items-center justify-center text-sm font-black hover:bg-[#0a701a] rounded-r-xl transition active:scale-90 cursor-pointer"
                     aria-label="Increase quantity"
                   >
                     +
@@ -314,7 +319,7 @@ export function CartDrawer() {
 
           {/* Sticky Checkout Footer */}
           {cart && cart.lines.length > 0 ? (
-            <div className="border-t border-neutral-200 bg-white p-4 sticky bottom-0 z-10 shadow-lg">
+            <div className="border-t border-neutral-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sticky bottom-0 z-10 shadow-lg">
               <div className="flex items-center justify-between mb-2 text-xs">
                 <div>
                   <p className="font-medium text-neutral-400">Delivery Location</p>

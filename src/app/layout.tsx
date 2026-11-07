@@ -36,11 +36,14 @@ export const viewport: Viewport = {
   themeColor: "#0c831f",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 function monogramFor(name: string): string {
   const words = name.split(/\s+/).filter(Boolean);
-  if (words.length === 0) return "AG";
+  if (words.length === 0) return "CM";
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[1][0]).toUpperCase();
 }

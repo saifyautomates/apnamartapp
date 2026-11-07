@@ -111,7 +111,7 @@ export interface HomeRailsData {
   storeBanners: StoreBanner[];
 }
 
-async function withFastTimeout<T>(promise: Promise<T>, timeoutMs = 200): Promise<T> {
+async function withFastTimeout<T>(promise: Promise<T>, timeoutMs = 1500): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -129,7 +129,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
   try {
     const data = await cachedJson(
       "home_rails_fmcg_v2",
-      30,
+      300,
       async () => {
         // Query live Prisma database in parallel with fast timeouts
         const [
@@ -157,7 +157,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
               },
               take: 12,
             }),
-            200
+            1500
           ).catch(() => []),
 
           withFastTimeout(
@@ -176,7 +176,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
               },
               take: 12,
             }),
-            200
+            1500
           ).catch(() => []),
 
           withFastTimeout(
@@ -195,7 +195,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
               },
               take: 12,
             }),
-            200
+            1500
           ).catch(() => []),
 
           withFastTimeout(
@@ -214,7 +214,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
               },
               take: 12,
             }),
-            200
+            1500
           ).catch(() => []),
 
           withFastTimeout(
@@ -233,7 +233,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
               },
               take: 12,
             }),
-            200
+            1500
           ).catch(() => []),
 
           withFastTimeout(
@@ -247,7 +247,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
               },
               take: 30,
             }),
-            200
+            1500
           ).catch(() => []),
 
           getStoreBanners().catch(() => []),

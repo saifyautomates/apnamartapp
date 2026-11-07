@@ -54,7 +54,7 @@ export function ActiveOrderPill() {
   const isRiderOut = activeOrder.status === "OUT_FOR_DELIVERY";
 
   return (
-    <div className="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 z-50 animate-bounce-subtle">
+    <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-6 right-3 sm:right-6 z-40 animate-bounce-subtle">
       <Link
         href={`/orders/${activeOrder.id}`}
         className="group flex items-center gap-3 rounded-2xl bg-[#1c1c1c] text-white pl-3.5 pr-4 py-2.5 shadow-2xl border-2 border-[#0c831f] hover:scale-105 transition-all duration-200 cursor-pointer"

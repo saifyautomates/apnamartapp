@@ -137,20 +137,31 @@ export function InstallBanner() {
   if (!visible || pathname?.startsWith("/admin")) return null;
 
   return (
-    <div className="bg-brand-700 text-white" role="region" aria-label="Download the app">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 py-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-xs font-extrabold text-brand-700 shadow-sm">
-          CM
-        </span>
-        <p className="flex-1 text-sm font-medium">
-          <strong>Download App</strong> — install Central Mart on your phone for lightning-fast Kota grocery delivery.
-        </p>
-        <button onClick={install} className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-brand-800">
-          {ios ? "How to install" : canInstall ? "Install App" : "Download App"}
-        </button>
-        <button onClick={dismiss} className="px-2 py-2 text-sm text-brand-100" aria-label="Dismiss download banner">
-          ✕
-        </button>
+    <div className="bg-[#096918] text-white border-b border-emerald-600/30 text-xs" role="region" aria-label="Download the app">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 sm:px-4 sm:py-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white text-[10px] font-black text-[#0c831f] shadow-xs">
+            CM
+          </span>
+          <p className="truncate text-[11px] sm:text-xs font-semibold">
+            <span className="hidden sm:inline font-bold">Install Central Mart App — </span>Fastest grocery delivery in Kota
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={install}
+            className="rounded-full bg-white px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-black text-[#0c831f] hover:bg-neutral-100 transition shadow-xs cursor-pointer"
+          >
+            {ios ? "Install" : canInstall ? "Install App" : "Get App"}
+          </button>
+          <button
+            onClick={dismiss}
+            className="p-1 text-white/80 hover:text-white text-xs cursor-pointer leading-none"
+            aria-label="Dismiss download banner"
+          >
+            ✕
+          </button>
+        </div>
       </div>
       {showIosSteps ? (
         <div className="border-t border-white/20 bg-brand-800">

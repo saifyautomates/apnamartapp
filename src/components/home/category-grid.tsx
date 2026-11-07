@@ -35,21 +35,21 @@ export function CategoryGrid() {
   return (
     <section className="space-y-4 pt-2">
       {/* Row 1 (FMCG Food & Staples) */}
-      <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-3">
         {FMCG_CATEGORIES_ROW_1.map((cat) => (
           <Link
             key={cat.slug}
             href={cat.href}
-            className="group flex flex-col items-center text-center cursor-pointer"
+            className="group flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform"
           >
-            <div className="h-18 w-18 sm:h-22 sm:w-22 rounded-2xl bg-[#f4f6fb] group-hover:bg-[#e9f0fa] transition-all duration-200 flex items-center justify-center p-2 shadow-xs group-hover:shadow-sm group-hover:scale-105">
+            <div className="h-16 w-16 sm:h-22 sm:w-22 rounded-2xl bg-[#f4f6fb] group-hover:bg-[#e9f0fa] transition-all duration-200 flex items-center justify-center p-2 shadow-xs group-hover:shadow-sm group-hover:scale-105">
               <ProductImage
                 src={cat.img}
                 alt={cat.name}
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="mt-2 text-[11px] sm:text-xs font-semibold text-[#1c1c1c] leading-tight whitespace-pre-line group-hover:text-[#0c831f] transition min-h-[2rem]">
+            <span className="mt-1.5 text-[10px] sm:text-xs font-bold text-[#1c1c1c] leading-tight whitespace-pre-line group-hover:text-[#0c831f] transition min-h-[1.8rem]">
               {cat.name}
             </span>
           </Link>
@@ -57,21 +57,21 @@ export function CategoryGrid() {
       </div>
 
       {/* Row 2 (FMCG Personal, Home & Baby Care) */}
-      <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-3">
         {FMCG_CATEGORIES_ROW_2.map((cat) => (
           <Link
             key={cat.slug}
             href={cat.href}
-            className="group flex flex-col items-center text-center cursor-pointer"
+            className="group flex flex-col items-center text-center cursor-pointer active:scale-95 transition-transform"
           >
-            <div className="h-18 w-18 sm:h-22 sm:w-22 rounded-2xl bg-[#f4f6fb] group-hover:bg-[#e9f0fa] transition-all duration-200 flex items-center justify-center p-2 shadow-xs group-hover:shadow-sm group-hover:scale-105">
+            <div className="h-16 w-16 sm:h-22 sm:w-22 rounded-2xl bg-[#f4f6fb] group-hover:bg-[#e9f0fa] transition-all duration-200 flex items-center justify-center p-2 shadow-xs group-hover:shadow-sm group-hover:scale-105">
               <ProductImage
                 src={cat.img}
                 alt={cat.name}
                 className="h-full w-full object-contain"
               />
             </div>
-            <span className="mt-2 text-[11px] sm:text-xs font-semibold text-[#1c1c1c] leading-tight whitespace-pre-line group-hover:text-[#0c831f] transition min-h-[2rem]">
+            <span className="mt-1.5 text-[10px] sm:text-xs font-bold text-[#1c1c1c] leading-tight whitespace-pre-line group-hover:text-[#0c831f] transition min-h-[1.8rem]">
               {cat.name}
             </span>
           </Link>

@@ -73,13 +73,13 @@ export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselPro
           </button>
         ) : null}
 
-        {/* Scrollable Track */}
+        {/* Scrollable Track with Native Touch Momentum and Snap */}
         <div
           ref={scrollRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1"
+          className="flex gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 snap-x snap-mandatory scroll-touch"
         >
           {items.map((item) => (
-            <div key={item.id} className="w-[172px] sm:w-[195px] shrink-0">
+            <div key={item.id} className="w-[155px] sm:w-[195px] shrink-0 snap-start">
               <BlinkitProductCard v={item} />
             </div>
           ))}

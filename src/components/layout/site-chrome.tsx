@@ -24,7 +24,7 @@ export function SiteChrome({
       {header}
 
       {/* Main Content Area */}
-      <main className="mx-auto w-full max-w-7xl flex-1 px-3 sm:px-6 py-4 pb-28 sm:pb-12">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-3 sm:px-6 py-2.5 sm:py-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-12">
         {children}
       </main>
 
