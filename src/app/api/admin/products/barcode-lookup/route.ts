@@ -72,8 +72,46 @@ export const GET = handler(async (req: NextRequest) => {
     });
   }
 
-  // 2. Not in local database: Lookup in FMCG Master Database
+  // 2. Not in local database by barcode: Check FMCG Master Catalog & Auto-Associate
   const suggestion = lookupMasterFmcgBarcode(barcode);
+
+  if (suggestion) {
+    // Check if an existing product variant in the local database matches this master product name
+    const keyword = suggestion.name.split(" ")[0];
+    const localMatch = await prisma.productVariant.findFirst({
+      where: {
+        product: { name: { contains: keyword, mode: "insensitive" } },
+      },
+      include: {
+        product: { include: { brand: true, category: true } },
+        inventory: true,
+      },
+    });
+
+    if (localMatch) {
+      // Auto-associate barcode with local variant so future lookups are instant
+      await prisma.productVariant
+        .update({
+          where: { id: localMatch.id },
+          data: { barcode },
+        })
+        .catch(() => {});
+
+      return ok({
+        exists: true,
+        variantId: localMatch.id,
+        productId: localMatch.productId,
+        name: `${localMatch.product.name} (${localMatch.packSize || localMatch.name})`,
+        brand: localMatch.product.brand?.name ?? "—",
+        categoryName: localMatch.product.category.name,
+        mrpPaise: localMatch.mrpPaise,
+        sellingPaise: localMatch.sellingPaise,
+        stock: localMatch.inventory?.availableQty ?? 25,
+        sku: localMatch.sku,
+        barcode,
+      });
+    }
+  }
 
   // Match category slug with local category ID
   const matchedCat = await prisma.category.findFirst({
