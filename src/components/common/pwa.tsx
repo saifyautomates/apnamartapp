@@ -139,11 +139,11 @@ export function InstallBanner() {
   return (
     <div className="bg-brand-700 text-white" role="region" aria-label="Download the app">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 py-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-xs font-extrabold text-brand-700">
-          AG
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-xs font-extrabold text-brand-700 shadow-sm">
+          CM
         </span>
         <p className="flex-1 text-sm font-medium">
-          <strong>Download App</strong> — install Apna Grocery Store on your phone and shop like Blinkit, no browser needed.
+          <strong>Download App</strong> — install Central Mart on your phone for lightning-fast Kota grocery delivery.
         </p>
         <button onClick={install} className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-brand-800">
           {ios ? "How to install" : canInstall ? "Install App" : "Download App"}

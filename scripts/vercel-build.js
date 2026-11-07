@@ -1,7 +1,7 @@
 const { execSync } = require("child_process");
 
 const SUPABASE_DB_URL =
-  "postgresql://postgres.ezwkjxhdkhgvyahypsjn:Hufsasaifquazi@aws-0-ap-south-1.pooler.supabase.com:5432/postgres";
+  "postgresql://postgres.ezwkjxhdkhgvyahypsjn:Hufsasaifquazi@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=3";
 
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = SUPABASE_DB_URL;
