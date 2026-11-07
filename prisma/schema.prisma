@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum RoleName {
@@ -376,6 +377,7 @@ model ProductVariant {
   mrpPaise         Int
   sellingPaise     Int
   onlinePricePaise Int?
+  costPricePaise   Int         @default(0)
   priceSource      PriceSource @default(SOURCE)
   unit             String      @default("pack")
   weightGrams      Int?
@@ -394,6 +396,7 @@ model ProductVariant {
   reservations StockReservation[]
   movements    InventoryMovement[]
   wishlist     WishlistItem[]
+  purchaseItems PurchaseItem[]
 
   @@index([productId])
   @@index([sku])
@@ -420,6 +423,7 @@ model Price {
   mrpPaise         Int
   sellingPaise     Int
   onlinePricePaise Int?
+  costPricePaise   Int         @default(0)
   priceSource      PriceSource @default(SOURCE)
   effectiveFrom    DateTime    @default(now())
   createdAt        DateTime    @default(now())
@@ -580,6 +584,7 @@ model OrderItem {
   qty            Int
   mrpPaise       Int
   unitPricePaise Int
+  costPricePaise Int            @default(0)
   taxPaise       Int            @default(0)
   totalPaise     Int
 
@@ -990,4 +995,89 @@ model WishlistItem {
   createdAt DateTime       @default(now())
 
   @@unique([userId, variantId])
+}
+
+// ---------------- FMCG Purchasing & Procurement ----------------
+
+model Supplier {
+  id            String            @id @default(uuid())
+  name          String
+  code          String?           @unique
+  contactPerson String?
+  phone         String?
+  email         String?
+  gstin         String?
+  address       String?
+  city          String?
+  state         String?
+  pincode       String?
+  balancePaise  Int               @default(0)
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  invoices      PurchaseInvoice[]
+
+  @@index([name])
+  @@index([phone])
+}
+
+model PurchaseInvoice {
+  id            String         @id @default(uuid())
+  invoiceNumber String         @unique
+  supplierId    String
+  supplier      Supplier       @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  invoiceDate   DateTime       @default(now())
+  receivedDate  DateTime?
+  status        String         @default("RECEIVED") // DRAFT, RECEIVED, PAID, CANCELLED
+  paymentStatus String         @default("UNPAID")   // UNPAID, PARTIAL, PAID
+  totalPaise    Int            @default(0)
+  taxPaise      Int            @default(0)
+  paidPaise     Int            @default(0)
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  items         PurchaseItem[]
+
+  @@index([supplierId])
+  @@index([invoiceDate])
+}
+
+model PurchaseItem {
+  id                String          @id @default(uuid())
+  purchaseInvoiceId String
+  purchaseInvoice   PurchaseInvoice @relation(fields: [purchaseInvoiceId], references: [id], onDelete: Cascade)
+  variantId         String
+  variant           ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  batchNumber       String?
+  expiryDate        DateTime?
+  mfgDate           DateTime?
+  qty               Int
+  unitCostPaise     Int
+  taxPaise          Int             @default(0)
+  totalCostPaise    Int
+  createdAt         DateTime        @default(now())
+
+  @@index([purchaseInvoiceId])
+  @@index([variantId])
+}
+
+// ---------------- FMCG Operating Expenses ----------------
+
+model Expense {
+  id           String   @id @default(uuid())
+  category     String   // RENT, SALARIES, ELECTRICITY, PACKAGING, TRANSPORT, MAINTENANCE, MISCELLANEOUS
+  title        String
+  description  String?
+  amountPaise  Int
+  expenseDate  DateTime @default(now())
+  paymentMode  String   @default("CASH") // CASH, UPI, BANK_TRANSFER, CHEQUE
+  referenceNo  String?
+  recordedById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([expenseDate])
 }

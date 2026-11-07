@@ -333,7 +333,7 @@ export default function AdminShell({
       {/* 2. Main Workspace */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-neutral-200/80 bg-white/95 px-4 sm:px-6 lg:px-8 py-3.5 backdrop-blur-md shadow-xs">
+        <header className={`sticky top-0 z-30 ${pathname.startsWith("/admin/pos") ? "hidden lg:flex" : "flex"} items-center justify-between gap-4 border-b border-neutral-200/80 bg-white/95 px-4 sm:px-6 lg:px-8 py-3.5 backdrop-blur-md shadow-xs`}>
           {/* Left Greeting */}
           <div className="flex items-center gap-3">
             <button
@@ -540,9 +540,79 @@ export default function AdminShell({
         </header>
 
         {/* Page Main Content Area: Gracefully fluid without cramped centering */}
-        <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1920px] mx-auto">
+        <main className={`flex-1 w-full max-w-[1920px] mx-auto pb-24 lg:pb-6 ${pathname.startsWith("/admin/pos") ? "p-0 lg:px-8 lg:py-6" : "px-4 sm:px-6 lg:px-8 py-6"}`}>
           {children}
         </main>
+
+        {/* Mobile Bottom Navigation Bar matching Central Mart World-Class Mobile Spec */}
+        <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] lg:hidden">
+          <Link
+            href="/admin"
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
+              pathname === "/admin"
+                ? "text-[#0c831f] font-black"
+                : "text-neutral-500 font-semibold hover:text-neutral-900"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={pathname === "/admin" ? "2.5" : "2"} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span className="text-[10px]">Dashboard</span>
+          </Link>
+
+          <Link
+            href="/admin/pos"
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
+              pathname.startsWith("/admin/pos")
+                ? "text-[#0c831f] font-black"
+                : "text-neutral-500 font-semibold hover:text-neutral-900"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={pathname.startsWith("/admin/pos") ? "2.5" : "2"} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span className="text-[10px]">POS</span>
+          </Link>
+
+          <Link
+            href="/admin/orders"
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
+              pathname.startsWith("/admin/orders")
+                ? "text-[#0c831f] font-black"
+                : "text-neutral-500 font-semibold hover:text-neutral-900"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={pathname.startsWith("/admin/orders") ? "2.5" : "2"} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <span className="text-[10px]">Orders</span>
+          </Link>
+
+          <Link
+            href="/admin/products"
+            className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
+              pathname.startsWith("/admin/products")
+                ? "text-[#0c831f] font-black"
+                : "text-neutral-500 font-semibold hover:text-neutral-900"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={pathname.startsWith("/admin/products") ? "2.5" : "2"} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span className="text-[10px]">Products</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl text-neutral-500 font-semibold hover:text-neutral-900 cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+            </svg>
+            <span className="text-[10px]">More</span>
+          </button>
+        </nav>
       </div>
 
       {/* Global Command Palette (Ctrl+K Modal) */}

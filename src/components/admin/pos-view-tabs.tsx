@@ -16,8 +16,8 @@ export function PosViewTabs({
 
   return (
     <div className="space-y-6">
-      {/* Tab Switcher Pills */}
-      <div className="flex items-center gap-3 border-b border-neutral-200 pb-4">
+      {/* Tab Switcher Pills (Desktop only to keep mobile POS 100% focused) */}
+      <div className="hidden lg:flex items-center gap-3 border-b border-neutral-200 pb-4">
         <button
           type="button"
           onClick={() => setActiveTab("BILLING")}
