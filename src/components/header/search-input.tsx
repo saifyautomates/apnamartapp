@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearch } from "@/hooks/use-search";
+import { openSearchModal } from "@/components/search/search-modal";
+import { openProductSheet } from "@/components/product/product-detail-modal";
 
 const DEFAULT_PLACEHOLDERS = [
   'Search "sugar"',
@@ -41,15 +43,14 @@ export function SearchInput({
     return () => clearInterval(interval);
   }, [placeholders]);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    openSearchModal(query);
+  };
+
   return (
     <div className={`relative w-full ${className}`}>
-      <form
-        action="/search"
-        method="get"
-        onSubmit={(e) => {
-          if (!query.trim()) e.preventDefault();
-        }}
-      >
+      <form onSubmit={handleSearchSubmit}>
         <div className="relative flex items-center">
           <span className="absolute left-3.5 text-neutral-400">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,11 +61,21 @@ export function SearchInput({
             name="q"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => suggestions.length > 0 && setIsOpen(true)}
+            onClick={() => {
+              // On mobile and desktop, trigger modal search overlay
+              openSearchModal(query);
+            }}
+            onFocus={() => {
+              if (window.innerWidth < 640) {
+                openSearchModal(query);
+              } else if (suggestions.length > 0) {
+                setIsOpen(true);
+              }
+            }}
             onBlur={() => setTimeout(() => setIsOpen(false), 200)}
             placeholder={placeholders[placeholderIndex]}
             aria-label="Search products"
-            className="w-full rounded-xl border border-neutral-200/80 bg-[#f8f8f8] pl-10 pr-9 py-2.5 text-sm text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition"
+            className="w-full rounded-xl border border-neutral-200/80 bg-[#f8f8f8] pl-10 pr-9 py-2.5 text-sm text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition cursor-pointer"
           />
           {query ? (
             <button
@@ -85,6 +96,15 @@ export function SearchInput({
             <li key={s.id}>
               <Link
                 href={`/product/${s.slug}`}
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                  e.preventDefault();
+                  setIsOpen(false);
+                  openProductSheet({
+                    slug: s.slug,
+                    initialName: s.name,
+                  });
+                }}
                 className="flex items-center justify-between px-4 py-2.5 hover:bg-neutral-50 text-sm transition"
               >
                 <div className="flex items-center gap-2.5">
@@ -107,4 +127,3 @@ export function SearchInput({
 }
 
 export default SearchInput;
-

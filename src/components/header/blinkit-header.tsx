@@ -7,6 +7,8 @@ import { LocationModal } from "./location-modal";
 import { CartHeaderButton } from "./cart-button";
 import { CentralMartLogo } from "@/components/ui/logo";
 import { useDelivery } from "@/lib/delivery-context";
+import { openLoginModal } from "@/components/auth/login-modal";
+import { openSearchModal } from "@/components/search/search-modal";
 
 export interface HeaderProps {
   storeName?: string;
@@ -97,12 +99,12 @@ export function BlinkitHeader({
                 {customerName ? customerName[0].toUpperCase() : "U"}
               </Link>
             ) : (
-              <Link
-                href="/login"
-                className="flex h-8 px-2.5 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xs font-black text-[#1c1c1c] hover:border-[#0c831f]"
+              <button
+                onClick={openLoginModal}
+                className="flex h-8 px-2.5 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xs font-black text-[#1c1c1c] hover:border-[#0c831f] transition cursor-pointer active:scale-95"
               >
                 Login
-              </Link>
+              </button>
             )}
 
             <button
@@ -162,12 +164,12 @@ export function BlinkitHeader({
                 <span className="max-w-[90px] truncate">{customerName ?? "Account"}</span>
               </Link>
             ) : (
-              <Link
-                href="/login"
-                className="inline-block text-base font-semibold text-[#2c2c2c] hover:text-[#0c831f] px-1 py-1 transition cursor-pointer"
+              <button
+                onClick={openLoginModal}
+                className="inline-block text-base font-semibold text-[#2c2c2c] hover:text-[#0c831f] px-2 py-1 rounded-lg hover:bg-neutral-50 transition cursor-pointer active:scale-95"
               >
                 Login
-              </Link>
+              </button>
             )}
 
             <CartHeaderButton count={count} total={total} onClick={openCart} />
@@ -181,22 +183,23 @@ export function BlinkitHeader({
           {/* Horizontal Quick-Access Category Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 scroll-touch">
             {[
-              { label: "🔥 Deals", href: "/category" },
-              { label: "🥛 Dairy", href: "/category/dairy-eggs" },
-              { label: "🍞 Bread", href: "/category/dairy-eggs" },
-              { label: "🍪 Snacks", href: "/category/snacks" },
-              { label: "🥤 Drinks", href: "/category/cold-drinks" },
-              { label: "🌾 Atta & Dal", href: "/category/staples" },
-              { label: "🧼 Cleaning", href: "/category/cleaning-essentials" },
-              { label: "🧴 Personal Care", href: "/category/personal-care" },
+              { label: "🔥 Deals", query: "deals" },
+              { label: "🥛 Dairy", query: "milk dairy" },
+              { label: "🍞 Bread", query: "bread pav" },
+              { label: "🍪 Snacks", query: "snacks chips" },
+              { label: "🥤 Drinks", query: "drinks juice cold drink" },
+              { label: "🌾 Atta & Dal", query: "atta dal rice" },
+              { label: "🧼 Cleaning", query: "surf detergent cleaning" },
+              { label: "🧴 Personal Care", query: "soap shampoo toothpaste" },
             ].map((chip) => (
-              <Link
+              <button
                 key={chip.label}
-                href={chip.href}
-                className="shrink-0 px-2.5 py-1 rounded-full bg-neutral-100 hover:bg-[#e8f5e9] hover:text-[#0c831f] text-neutral-700 text-[11px] font-bold border border-neutral-200/60 active:scale-95 transition"
+                type="button"
+                onClick={() => openSearchModal(chip.query)}
+                className="shrink-0 px-2.5 py-1 rounded-full bg-neutral-100 hover:bg-[#e8f5e9] hover:text-[#0c831f] text-neutral-700 text-[11px] font-bold border border-neutral-200/60 active:scale-95 transition cursor-pointer"
               >
                 {chip.label}
-              </Link>
+              </button>
             ))}
           </div>
         </div>

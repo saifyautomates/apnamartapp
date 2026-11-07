@@ -6,6 +6,7 @@ import { formatPaise } from "@/lib/money";
 import { ProductImage } from "./product-image";
 import { AddButton } from "./add-button";
 import { useDelivery } from "@/lib/delivery-context";
+import { openProductSheet } from "./product-detail-modal";
 
 export interface VariantCardProps {
   id: string;
@@ -53,10 +54,22 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
           )}
         </div>
 
-        {/* Product Image */}
-        <Link
+        {/* Product Image - Opens Product Sheet In-App on Same Page */}
+        <a
           href={`/product/${product.slug}`}
-          className="block h-28 sm:h-32 w-full overflow-hidden bg-white p-1 my-1 flex items-center justify-center"
+          onClick={(e) => {
+            if (!e.metaKey && !e.ctrlKey) {
+              e.preventDefault();
+              openProductSheet({
+                slug: product.slug,
+                initialName: product.name,
+                initialPrice: price,
+                initialMrp: v.mrpPaise,
+                initialImage: image,
+              });
+            }
+          }}
+          className="block h-28 sm:h-32 w-full overflow-hidden bg-white p-1 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
           aria-label={product.name}
         >
           <ProductImage
@@ -64,18 +77,30 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
             alt={product.name}
             className="h-full w-full object-contain"
           />
-        </Link>
+        </a>
       </div>
 
       {/* Product Details */}
       <div className="mt-1 flex-1 flex flex-col justify-between">
         <div>
-          <Link
+          <a
             href={`/product/${product.slug}`}
-            className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] leading-snug hover:text-[#0c831f] transition min-h-[2.4rem]"
+            onClick={(e) => {
+              if (!e.metaKey && !e.ctrlKey) {
+                e.preventDefault();
+                openProductSheet({
+                  slug: product.slug,
+                  initialName: product.name,
+                  initialPrice: price,
+                  initialMrp: v.mrpPaise,
+                  initialImage: image,
+                });
+              }
+            }}
+            className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] leading-snug hover:text-[#0c831f] transition min-h-[2.4rem] cursor-pointer"
           >
             {product.name}
-          </Link>
+          </a>
           <p className="mt-1 text-xs text-neutral-500 font-medium">
             {v.packSize ?? v.name ?? "Standard"}
           </p>

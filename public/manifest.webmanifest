@@ -8,7 +8,11 @@
   "orientation": "portrait-primary",
   "background_color": "#052b14",
   "theme_color": "#0c831f",
-  "categories": ["shopping", "food", "lifestyle"],
+  "categories": [
+    "shopping",
+    "food",
+    "lifestyle"
+  ],
   "id": "/",
   "icons": [
     {

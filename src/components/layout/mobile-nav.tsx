@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { formatPaise } from "@/lib/money";
+import { openCategoriesModal } from "@/components/category/category-drawer";
+import { openSearchModal } from "@/components/search/search-modal";
 
 export function MobileBottomNav() {
   const pathname = usePathname() ?? "";
@@ -121,11 +123,25 @@ export function MobileBottomNav() {
       >
         {navItems.map((item) => {
           const isActive = pathname === item.href;
+          const handleClick = (e: React.MouseEvent) => {
+            if (item.label === "Categories") {
+              e.preventDefault();
+              openCategoriesModal();
+            } else if (item.label === "Search") {
+              e.preventDefault();
+              openSearchModal();
+            } else if (item.label === "Home" && pathname === "/") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          };
+
           return (
             <Link
               key={item.label}
               href={item.href}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all duration-150 active:scale-90 ${
+              onClick={handleClick}
+              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all duration-150 active:scale-90 cursor-pointer ${
                 isActive ? "text-[#0c831f]" : "text-neutral-500 hover:text-neutral-800"
               }`}
             >

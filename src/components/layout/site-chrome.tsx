@@ -3,6 +3,10 @@
 import { usePathname } from "next/navigation";
 import { InstallBanner } from "@/components/pwa";
 import { CartDrawer } from "@/components/cart/cart-drawer";
+import { ProductDetailModal } from "@/components/product/product-detail-modal";
+import { SearchModal } from "@/components/search/search-modal";
+import { LoginModal } from "@/components/auth/login-modal";
+import { CategoryDrawer } from "@/components/category/category-drawer";
 import { MobileBottomNav } from "./mobile-nav";
 import { SiteFooter } from "./footer";
 import { AdminQuickSwitch } from "./admin-quick-switch";
@@ -28,8 +32,12 @@ export function SiteChrome({
         {children}
       </main>
 
-      {/* Slide-over Cart Drawer (accessible globally from header & cards) */}
+      {/* In-App Native App Modals (Everything opens on the SAME page) */}
       <CartDrawer />
+      <ProductDetailModal />
+      <SearchModal />
+      <LoginModal />
+      <CategoryDrawer />
 
       {/* Floating Active Delivery Live Tracking Pill */}
       <ActiveOrderPill />
