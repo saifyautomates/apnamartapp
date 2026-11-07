@@ -1,16 +1,25 @@
 import { PrismaClient } from "@prisma/client";
 
+const DEFAULT_SUPABASE_DB_URL =
+  "postgresql://postgres.ezwkjxhdkhgvyahypsjn:Hufsasaifquazi@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+
 // Ensure DATABASE_URL is initialized before PrismaClient evaluates env("DATABASE_URL")
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL =
-    "postgresql://postgres:postgres@localhost:5432/grocery_commerce?schema=public";
+  process.env.DATABASE_URL = DEFAULT_SUPABASE_DB_URL;
 }
+
+const activeDbUrl = process.env.DATABASE_URL || DEFAULT_SUPABASE_DB_URL;
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
+    datasources: {
+      db: {
+        url: activeDbUrl,
+      },
+    },
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 
