@@ -228,10 +228,10 @@ async function runAudit() {
       label: "Home",
       name: "Audit Tester",
       phone: PHONE,
-      line1: "Flat 402, Central Heights",
-      city: "Jaipur",
+      line1: "Flat 402, Talwandi Coaching Hub",
+      city: "Kota",
       state: "Rajasthan",
-      pincode: "302001",
+      pincode: "324005",
     }),
   });
   const addressId = (addressRes.json.data as { id?: string })?.id;

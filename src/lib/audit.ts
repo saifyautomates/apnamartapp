@@ -15,18 +15,26 @@ export async function auditLog(
     userAgent?: string | null;
   },
 ) {
-  const client = tx as Prisma.TransactionClient;
-  await client.auditLog.create({
-    data: {
-      actorType: entry.actorType,
-      actorId: entry.actorId ?? null,
-      action: entry.action,
-      entityType: entry.entityType,
-      entityId: entry.entityId ?? null,
-      before: entry.before === undefined ? null : JSON.parse(JSON.stringify(entry.before)),
-      after: entry.after === undefined ? null : JSON.parse(JSON.stringify(entry.after)),
-      ip: entry.ip ?? null,
-      userAgent: entry.userAgent ?? null,
-    },
-  });
+  try {
+    let safeActorId: string | null = entry.actorId ?? null;
+    if (safeActorId && safeActorId.startsWith("admin-owner-default")) {
+      safeActorId = null;
+    }
+    const client = tx as Prisma.TransactionClient;
+    await client.auditLog.create({
+      data: {
+        actorType: entry.actorType,
+        actorId: safeActorId,
+        action: entry.action,
+        entityType: entry.entityType,
+        entityId: entry.entityId ?? null,
+        before: entry.before === undefined ? null : JSON.parse(JSON.stringify(entry.before)),
+        after: entry.after === undefined ? null : JSON.parse(JSON.stringify(entry.after)),
+        ip: entry.ip ?? null,
+        userAgent: entry.userAgent ?? null,
+      },
+    });
+  } catch (err) {
+    console.warn("Non-fatal: Failed to write auditLog entry:", err);
+  }
 }

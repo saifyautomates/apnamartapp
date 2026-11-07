@@ -59,7 +59,7 @@ export const GET = handler(async (req: NextRequest) => {
         include: { slots: { where: { isActive: true }, orderBy: { label: "asc" } } },
         orderBy: { name: "asc" },
       }),
-      250
+      2500
     );
   } catch {
     /* fallback to Kota default zones */
@@ -67,6 +67,12 @@ export const GET = handler(async (req: NextRequest) => {
 
   if (zones.length === 0) {
     zones = KOTA_FALLBACK_ZONES;
+  }
+
+  const url = new URL(req.url);
+  const pincode = url.searchParams.get("pincode")?.trim();
+  if (pincode) {
+    zones = zones.filter((z) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode));
   }
 
   return ok(zones);

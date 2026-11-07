@@ -125,22 +125,34 @@ export const POST = handler(async (req: NextRequest) => {
   // 4. Invalidate metrics cache so dashboard updates
   await cache.del("admin:dashboard:metrics:v2");
 
-  // 5. Audit Log
-  await prisma.auditLog.create({
-    data: {
-      action: "FAST_BARCODE_PRODUCT_LIST",
-      actorType: "ADMIN",
-      entityType: "Product",
-      entityId: created.product.id,
-      actorId: session.adminId,
-      after: {
-        barcode,
-        name,
-        sellingPaise: parsedSelling,
-        initialStock: parsedStock,
+  // 5. Audit Log (safely resolve actorId to prevent foreign key violation)
+  try {
+    let validAdminId: string | null = null;
+    if (session.adminId && session.adminId !== "admin-owner-default") {
+      const exists = await prisma.adminUser.findUnique({
+        where: { id: session.adminId },
+        select: { id: true },
+      });
+      if (exists) validAdminId = exists.id;
+    }
+    await prisma.auditLog.create({
+      data: {
+        action: "FAST_BARCODE_PRODUCT_LIST",
+        actorType: "ADMIN",
+        entityType: "Product",
+        entityId: created.product.id,
+        actorId: validAdminId,
+        after: {
+          barcode,
+          name,
+          sellingPaise: parsedSelling,
+          initialStock: parsedStock,
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    console.warn("Non-fatal: Quick Add audit log skipped:", err);
+  }
 
   return ok({
     success: true,
