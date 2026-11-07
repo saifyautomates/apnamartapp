@@ -38,8 +38,16 @@ export function MobileBottomNav() {
     window.dispatchEvent(new Event("open-cart"));
   };
 
-  // 5 Tabs Matching User Mockup (Home, Categories, Cart, Orders, Profile)
-  const navItems = [
+  interface NavItem {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    isDeals?: boolean;
+    isCart?: boolean;
+  }
+
+  // 5 Tabs Matching User Mockup (Home, Categories, Deals, Orders, Account)
+  const navItems: NavItem[] = [
     {
       label: "Home",
       href: "/",
@@ -59,12 +67,12 @@ export function MobileBottomNav() {
       ),
     },
     {
-      label: "Cart",
-      href: "/cart",
-      isCart: true,
+      label: "Deals",
+      href: "#deals",
+      isDeals: true,
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
         </svg>
       ),
     },
@@ -78,7 +86,7 @@ export function MobileBottomNav() {
       ),
     },
     {
-      label: "Profile",
+      label: "Account",
       href: "/account",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,9 +138,14 @@ export function MobileBottomNav() {
             if (item.label === "Categories") {
               e.preventDefault();
               openCategoriesModal();
-            } else if (item.label === "Cart") {
+            } else if (item.label === "Deals") {
               e.preventDefault();
-              openCart();
+              const dealsEl = document.getElementById("deals");
+              if (dealsEl) {
+                dealsEl.scrollIntoView({ behavior: "smooth" });
+              } else {
+                openSearchModal("deals");
+              }
             } else if (item.label === "Home" && pathname === "/") {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: "smooth" });

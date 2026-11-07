@@ -1,5 +1,5 @@
 import { getHomeRailsSafe } from "@/lib/resilient-catalog";
-import { HeroBanner, PromoCards, CategoryGrid } from "@/components/home";
+import { HeroBanner, PromoCards, CategoryGrid, QuickFeatures, DealsRail } from "@/components/home";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
 
 export default async function HomePage() {
@@ -18,13 +18,19 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-12">
-      {/* 1. Hero Banner Carousel with "Fresh Groceries at Best Prices" (Matches Screen 1 Mockup) */}
+      {/* 1. Hero Banner Carousel with "Daily Essentials at Best Prices" (Matches Phone 1 Mockup) */}
       <HeroBanner banners={storeBanners} />
 
-      {/* 2. Shop by Category Section with "View All ->" (Matches Screen 1 Mockup) */}
+      {/* 2. 4 Quick Value Badges: Fast Delivery, 100% Original, Best Prices, Easy Returns (Matches Phone 1 Mockup) */}
+      <QuickFeatures />
+
+      {/* 3. Shop by Category Section with 8 Tiles (Matches Phone 1 Mockup) */}
       <CategoryGrid />
 
-      {/* 3. Popular Products Grid / Carousel with Bestseller & Heart Wishlist (Matches Screen 1 Mockup) */}
+      {/* 4. Today's Best Deals with Countdown Timer (Matches Phone 1 Mockup) */}
+      <DealsRail items={discountDeals.length > 0 ? (discountDeals as unknown as VariantCardProps[]) : (popularItems as unknown as VariantCardProps[])} />
+
+      {/* 5. Popular Products Grid / Carousel with Bestseller & Heart Wishlist (Matches Screen 1 Mockup) */}
       {popularItems.length > 0 ? (
         <ProductCarousel
           title="Popular Products"

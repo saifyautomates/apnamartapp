@@ -51,9 +51,9 @@ export function SearchInput({
               }
             }}
             onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-            placeholder="Search for groceries, staples, brands..."
-            aria-label="Search for groceries, staples, brands"
-            className="w-full rounded-2xl border border-neutral-200/90 bg-[#f8faf8] pl-10 pr-10 py-2.5 text-xs sm:text-sm text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition cursor-pointer shadow-xs"
+            placeholder="Search for groceries, snacks, personal care..."
+            aria-label="Search for groceries, snacks, personal care"
+            className="w-full rounded-2xl border border-neutral-200/90 bg-white pl-10 pr-10 py-2.5 text-xs sm:text-sm text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition cursor-pointer shadow-xs"
           />
 
           {/* Barcode Scanner Icon (Matching Screen 1 Mockup) */}

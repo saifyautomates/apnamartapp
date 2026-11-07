@@ -57,103 +57,81 @@ export function BlinkitHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-xs">
-        {/* Mobile Header Top Row (< sm) - Matches Screen 1 Mockup */}
-        <div className="flex sm:hidden items-center justify-between px-3.5 pt-2.5 pb-1">
+      <header className="sticky top-0 z-40 bg-[#0a6833] sm:bg-white/95 sm:backdrop-blur-md sm:border-b sm:border-neutral-200/80 shadow-md sm:shadow-xs transition-colors">
+        {/* Mobile Header Top Row (< sm) - Matches Phone 1 Mockup */}
+        <div className="flex sm:hidden items-center justify-between px-3.5 pt-3 pb-2 text-white">
           {/* Hamburger Menu on Left */}
           <button
             onClick={openCategoriesModal}
-            className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#f8faf8] border border-neutral-200/80 text-neutral-800 hover:bg-[#e8f5e9] transition cursor-pointer active:scale-90"
+            className="flex h-9 w-9 items-center justify-center rounded-2xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
             aria-label="Open categories menu"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
 
           {/* Central Mart Logo */}
-          <CentralMartLogo size="sm" />
+          <CentralMartLogo theme="greenHeader" />
 
-          {/* Right Action: Notifications & Account */}
-          <div className="flex items-center gap-1.5">
-            {isLoggedIn ? (
-              <Link
-                href="/account"
-                className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#e8f5e9] text-[#0c831f] font-black text-xs border border-[#0c831f]/20 active:scale-95 transition"
-              >
-                {customerName ? customerName[0].toUpperCase() : "U"}
-              </Link>
-            ) : (
-              <button
-                onClick={openLoginModal}
-                className="relative flex h-9 w-9 items-center justify-center rounded-2xl bg-[#f8faf8] border border-neutral-200/80 text-neutral-700 hover:text-[#0c831f] transition cursor-pointer active:scale-90"
-                aria-label="Account Login & Notifications"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-              </button>
-            )}
+          {/* Right Action: Notifications Bell & Cart */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={openLoginModal}
+              className="relative flex h-9 w-9 items-center justify-center rounded-2xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
+              aria-label="Notifications"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#0a6833]" />
+            </button>
 
             <button
               onClick={openCart}
-              className="relative flex h-9 px-2.5 items-center gap-1.5 rounded-2xl bg-[#0c831f] text-white font-black text-xs shadow-xs active:scale-90 transition cursor-pointer"
+              className="relative flex h-9 w-9 items-center justify-center rounded-2xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
+              aria-label="Open Cart"
             >
-              <span>🛒</span>
-              <span>{count}</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {count > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-black ring-2 ring-[#0a6833]">
+                  {count}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Deliver to Home Location Bar (< sm) - Matches Screen 1 Mockup */}
-        <div className="flex sm:hidden items-center justify-between px-3.5 py-1">
+        {/* Deliver to Home Location Bar Card (< sm) - Matches Phone 1 Mockup */}
+        <div className="flex sm:hidden px-3.5 py-1">
           <button
             onClick={() => setLocationOpen(true)}
-            className="flex items-center gap-1.5 text-left group transition min-w-0 flex-1 cursor-pointer"
+            className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-white shadow-sm border border-neutral-100 text-left group transition cursor-pointer active:scale-[0.99]"
           >
-            <span className="text-sm text-[#0c831f] shrink-0">📍</span>
-            <div className="min-w-0 leading-tight">
-              <div className="flex items-center gap-1 text-xs font-black text-[#1c1c1c]">
-                <span>Deliver to Home</span>
-                <span className="text-[10px] text-neutral-400">▾</span>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <span className="text-base text-[#0c831f] shrink-0">📍</span>
+              <div className="min-w-0 leading-tight">
+                <div className="flex items-center gap-1 text-xs font-black text-[#1c1c1c]">
+                  <span>Deliver to Home</span>
+                  <span className="text-[10px] text-neutral-400">▾</span>
+                </div>
+                <p className="text-[11px] text-neutral-500 font-semibold truncate max-w-[200px]">
+                  {activeLocation.address || activeLocation.zoneName || "Kota Central, Nayapura - 324001"}
+                </p>
               </div>
-              <p className="text-[11px] text-neutral-500 font-semibold truncate max-w-[220px]">
-                {activeLocation.address || activeLocation.zoneName || "Kota Central, Nayapura - 324001"}
-              </p>
             </div>
+            <span className="text-[10px] font-black text-amber-900 bg-[#fef08a] px-2.5 py-1 rounded-xl shadow-xs shrink-0 flex items-center gap-1">
+              <span>⚡</span>
+              <span>Get in {deliveryPromiseText || "12-15 min"}</span>
+            </span>
           </button>
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#0c831f] bg-[#e8f5e9] px-2 py-0.5 rounded-full border border-[#0c831f]/20 shrink-0">
-            ⚡ {deliveryPromiseText || "12-15 MINS"}
-          </span>
         </div>
 
-        {/* Mobile Search Bar (< sm) */}
-        <div className="sm:hidden px-3.5 pb-2.5 pt-0.5 space-y-1.5">
+        {/* Mobile Search Bar (< sm) - Matches Phone 1 Mockup */}
+        <div className="sm:hidden px-3.5 pb-3 pt-1">
           <SearchInput />
-
-          {/* Horizontal Quick-Access Category Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 scroll-touch">
-            {[
-              { label: "🔥 Deals", query: "deals" },
-              { label: "🥛 Dairy", query: "milk dairy" },
-              { label: "🍞 Bread", query: "bread pav" },
-              { label: "🍪 Snacks", query: "snacks chips" },
-              { label: "🥤 Drinks", query: "drinks juice cold drink" },
-              { label: "🌾 Atta & Dal", query: "atta dal rice" },
-              { label: "🧼 Cleaning", query: "surf detergent cleaning" },
-              { label: "🧴 Personal Care", query: "soap shampoo toothpaste" },
-            ].map((chip) => (
-              <button
-                key={chip.label}
-                type="button"
-                onClick={() => openSearchModal(chip.query)}
-                className="shrink-0 px-2.5 py-1 rounded-full bg-neutral-100 hover:bg-[#e8f5e9] hover:text-[#0c831f] text-neutral-700 text-[11px] font-bold border border-neutral-200/60 active:scale-95 transition cursor-pointer"
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Desktop Header Row (>= sm) */}

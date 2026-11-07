@@ -8,7 +8,7 @@ export interface LogoProps {
   showBadge?: boolean;
   showKotaBadge?: boolean;
   subtitle?: string;
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "greenHeader";
   href?: string;
 }
 
@@ -21,101 +21,119 @@ export function CentralMartLogo({
   theme = "light",
   href = "/",
 }: LogoProps) {
+  const isGreenHeader = theme === "greenHeader";
   const isDark = theme === "dark";
 
   return (
     <Link
       href={href}
       className={`group inline-flex items-center gap-2 select-none relative focus:outline-hidden transition-transform active:scale-95 ${className}`}
-      aria-label="Central Mart - Your Everyday Grocery Partner"
+      aria-label="Central Mart - Daily Essentials • Best Prices • Fast Delivery"
     >
-      {/* Signature Shopping Bag with Leaf Emblem */}
+      {/* Signature Shopping Cart / Bag Emblem */}
       <div className="relative flex items-center justify-center shrink-0">
-        <svg
-          className={
-            size === "xs"
-              ? "w-6 h-6"
-              : size === "sm"
-              ? "w-7 h-7"
-              : size === "lg"
-              ? "w-10 h-10"
-              : "w-8 h-8"
-          }
-          viewBox="0 0 40 44"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Bag Handle */}
-          <path
-            d="M13 14C13 10.134 16.134 7 20 7C23.866 7 27 10.134 27 14"
-            stroke="#0c831f"
-            strokeWidth="3.2"
-            strokeLinecap="round"
-          />
-          {/* Bag Body with rounded corners */}
-          <rect
-            x="6"
-            y="12"
-            width="28"
-            height="26"
-            rx="6"
-            fill="#0c831f"
-          />
-          {/* Stylized White Leaf cut-out inside bag */}
-          <path
-            d="M20 18C16 18 13 21 13 25C13 29 17 31 21 30C25 29 27 25 27 21C27 19 23 18 20 18Z"
-            fill="white"
-          />
-          {/* Leaf Midrib Line */}
-          <path
-            d="M14.5 28.5C18 26 21 23 25 19.5"
-            stroke="#0c831f"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-        </svg>
+        {isGreenHeader ? (
+          <div className="h-7 w-7 rounded-xl bg-lime-400/20 flex items-center justify-center text-base shadow-xs border border-lime-300/30">
+            <svg className="w-5 h-5 text-lime-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+        ) : (
+          <svg
+            className={
+              size === "xs"
+                ? "w-6 h-6"
+                : size === "sm"
+                ? "w-7 h-7"
+                : size === "lg"
+                ? "w-10 h-10"
+                : "w-8 h-8"
+            }
+            viewBox="0 0 40 44"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Bag Handle */}
+            <path
+              d="M13 14C13 10.134 16.134 7 20 7C23.866 7 27 10.134 27 14"
+              stroke="#0c831f"
+              strokeWidth="3.2"
+              strokeLinecap="round"
+            />
+            {/* Bag Body with rounded corners */}
+            <rect
+              x="6"
+              y="12"
+              width="28"
+              height="26"
+              rx="6"
+              fill="#0c831f"
+            />
+            {/* Stylized White Leaf cut-out inside bag */}
+            <path
+              d="M20 18C16 18 13 21 13 25C13 29 17 31 21 30C25 29 27 25 27 21C27 19 23 18 20 18Z"
+              fill="white"
+            />
+            {/* Leaf Midrib Line */}
+            <path
+              d="M14.5 28.5C18 26 21 23 25 19.5"
+              stroke="#0c831f"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
       </div>
 
-      {/* Brand Wordmark & Smile Curve */}
+      {/* Brand Wordmark & Tagline */}
       <div className="flex flex-col leading-none">
         <div className="flex items-center">
           <span
-            className={`font-black tracking-tight text-[#166534] ${
-              size === "xs"
-                ? "text-base"
+            className={`font-black tracking-tight ${
+              isGreenHeader
+                ? "text-white text-lg sm:text-xl"
+                : isDark
+                ? "text-white text-lg"
+                : size === "xs"
+                ? "text-base text-[#166534]"
                 : size === "sm"
-                ? "text-lg"
+                ? "text-lg text-[#166534]"
                 : size === "lg"
-                ? "text-2xl"
-                : "text-xl sm:text-2xl"
+                ? "text-2xl text-[#166534]"
+                : "text-xl sm:text-2xl text-[#166534]"
             }`}
           >
             Central{" "}
-            <span className="relative text-[#0c831f]">
+            <span className={isGreenHeader ? "text-lime-300" : "relative text-[#0c831f]"}>
               Mart
-              {/* Green Smile Curve Underneath "Mart" */}
-              <svg
-                className="absolute -bottom-1 left-0 w-full h-1.5"
-                viewBox="0 0 48 8"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2 2C14 6.5 34 6.5 46 2"
-                  stroke="#22c55e"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              </svg>
+              {!isGreenHeader && (
+                <svg
+                  className="absolute -bottom-1 left-0 w-full h-1.5"
+                  viewBox="0 0 48 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2 2C14 6.5 34 6.5 46 2"
+                    stroke="#22c55e"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
             </span>
           </span>
         </div>
 
-        {subtitle && (
+        {isGreenHeader ? (
+          <span className="text-[9px] text-emerald-100 font-semibold tracking-tight mt-0.5">
+            Daily Essentials • Best Prices • Fast Delivery
+          </span>
+        ) : subtitle ? (
           <span className="text-[10px] text-neutral-400 font-semibold tracking-wide mt-0.5">
             {subtitle}
           </span>
-        )}
+        ) : null}
       </div>
     </Link>
   );

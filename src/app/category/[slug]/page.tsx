@@ -1,9 +1,10 @@
 import { prisma, withDbTimeout } from "@/lib/prisma";
-import { BlinkitProductCard, VariantCardProps } from "@/components/product";
+import { BlinkitProductCard, ProductListItem, VariantCardProps } from "@/components/product";
 import { EmptyState } from "@/components/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFallbackCategories, getFallbackVariants } from "@/lib/resilient-catalog";
+import { openSearchModal } from "@/components/search/search-modal";
 
 export default async function CategoryPage({
   params,
@@ -90,99 +91,132 @@ export default async function CategoryPage({
 
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
+  // Category Subcategory Pills
+  const subcategoryPills = [
+    { label: "All", slug: "", icon: "🌾" },
+    ...(category.subcategories.length > 0
+      ? category.subcategories.map((s) => ({ label: s.name, slug: s.slug, icon: "🥣" }))
+      : [
+          { label: "Atta & Flours", slug: "atta-flours", icon: "🍚" },
+          { label: "Rice", slug: "rice", icon: "🍚" },
+          { label: "Pulses & Beans", slug: "pulses-beans", icon: "🫘" },
+          { label: "Sugar & Salt", slug: "sugar-salt", icon: "🧂" },
+          { label: "Grains & More", slug: "grains", icon: "🌾" },
+        ]),
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Category Banner */}
-      <div className="rounded-2xl bg-white p-4 sm:p-6 border border-neutral-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-black text-[#1c1c1c]">{category.name}</h1>
-            <span className="text-xs font-bold text-neutral-500 bg-[#f4f6fb] px-2.5 py-0.5 rounded-full">
-              {total} items
-            </span>
-          </div>
-          {category.description ? (
-            <p className="mt-1 text-xs text-neutral-400 font-medium">{category.description}</p>
-          ) : (
-            <p className="mt-1 text-xs text-neutral-400 font-medium">Delivered to your doorstep with Same-Day Delivery</p>
-          )}
+    <div className="space-y-4 pb-12">
+      {/* Mobile Sticky Green Category Header (Matches Phone 2 Mockup) */}
+      <div className="sm:hidden -mx-4 -mt-4 bg-[#0a6833] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition"
+          >
+            ←
+          </Link>
+          <h1 className="text-base font-black text-white leading-tight">{category.name}</h1>
         </div>
+
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-black">
-            ⚡ Same Day Delivery
-          </span>
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("open-search-modal"));
+              }
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition"
+          >
+            🔍
+          </button>
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new Event("open-cart"));
+              }
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition relative"
+          >
+            🛒
+          </button>
         </div>
       </div>
 
-      {/* Subcategories Filter Chips */}
-      <div className="flex items-center justify-between flex-wrap gap-2.5">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-          <Link
-            href={`/category/${category.slug}`}
-            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition shrink-0 ${
-              !searchParams.sub
-                ? "bg-[#0c831f] text-white shadow-xs"
-                : "bg-white text-neutral-700 border border-neutral-200 hover:border-[#0c831f]"
-            }`}
-          >
-            All
-          </Link>
-          {category.subcategories.map((s) => {
-            const isSelected = searchParams.sub === s.slug;
-            return (
-              <Link
-                key={s.id}
-                href={`/category/${category.slug}?sub=${s.slug}`}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition shrink-0 ${
-                  isSelected
-                    ? "bg-[#0c831f] text-white shadow-xs"
-                    : "bg-white text-neutral-700 border border-neutral-200 hover:border-[#0c831f]"
-                }`}
-              >
-                {s.name}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Sort Chips */}
-        <div className="flex items-center gap-1.5 text-xs font-bold">
-          <span className="text-neutral-400 font-semibold hidden sm:inline">Sort:</span>
-          <Link
-            href={`/category/${category.slug}${searchParams.sub ? `?sub=${searchParams.sub}&` : "?"}sort=price_asc`}
-            className={`rounded-xl px-3 py-1.5 border transition ${
-              searchParams.sort === "price_asc"
-                ? "bg-[#e8f5e9] text-[#0c831f] border-[#0c831f]"
-                : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-300"
-            }`}
-          >
-            Price: Low to High
-          </Link>
-          <Link
-            href={`/category/${category.slug}${searchParams.sub ? `?sub=${searchParams.sub}&` : "?"}sort=price_desc`}
-            className={`rounded-xl px-3 py-1.5 border transition ${
-              searchParams.sort === "price_desc"
-                ? "bg-[#e8f5e9] text-[#0c831f] border-[#0c831f]"
-                : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-300"
-            }`}
-          >
-            Price: High to Low
-          </Link>
-        </div>
+      {/* Subcategories Horizontal Icon Rail (Matches Phone 2 Mockup) */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-touch">
+        {subcategoryPills.map((sub) => {
+          const isSelected = !searchParams.sub ? sub.slug === "" : searchParams.sub === sub.slug;
+          return (
+            <Link
+              key={sub.label}
+              href={sub.slug ? `/category/${category.slug}?sub=${sub.slug}` : `/category/${category.slug}`}
+              className={`flex flex-col items-center justify-center min-w-[70px] sm:min-w-[80px] p-2 rounded-2xl border transition active:scale-95 ${
+                isSelected
+                  ? "bg-[#e8f5e9] border-[#0c831f] text-[#0c831f] font-black shadow-xs"
+                  : "bg-white border-neutral-200 text-neutral-700 hover:border-neutral-300 font-semibold"
+              }`}
+            >
+              <span className="text-xl sm:text-2xl mb-1">{sub.icon}</span>
+              <span className="text-[10px] sm:text-xs leading-tight text-center">{sub.label}</span>
+            </Link>
+          );
+        })}
       </div>
 
-      {/* Products Grid */}
+      {/* Filter & Sort Chips Row (Matches Phone 2 Mockup) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs font-bold scroll-touch">
+        <Link
+          href={`/category/${category.slug}${searchParams.sub ? `?sub=${searchParams.sub}&` : "?"}sort=popular`}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 shrink-0"
+        >
+          <span>⇅ Sort: Popular</span>
+          <span className="text-[10px] text-neutral-400">▾</span>
+        </Link>
+
+        <button className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 shrink-0">
+          <span>🏷️ Brand</span>
+          <span className="text-[10px] text-neutral-400">▾</span>
+        </button>
+
+        <Link
+          href={`/category/${category.slug}${searchParams.sub ? `?sub=${searchParams.sub}&` : "?"}sort=price_asc`}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 shrink-0"
+        >
+          <span>₹ Price</span>
+          <span className="text-[10px] text-neutral-400">▾</span>
+        </Link>
+
+        <Link
+          href={`/category/${category.slug}${searchParams.sub ? `?sub=${searchParams.sub}&` : "?"}sort=offers`}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 shrink-0"
+        >
+          <span>✓ Offers</span>
+        </Link>
+      </div>
+
+      {/* Products Listing: List View on Mobile (Matches Phone 2 Mockup) & Grid on Desktop */}
       {variants.length === 0 ? (
         <EmptyState
           title="No products found in this category"
           body="Try selecting another subcategory or check back soon."
         />
       ) : (
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {variants.map((v) => (
-            <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
-          ))}
-        </div>
+        <>
+          {/* Mobile Phone 2 List View */}
+          <div className="flex sm:hidden flex-col gap-2.5">
+            {variants.map((v) => (
+              <ProductListItem key={v.id} v={v as unknown as VariantCardProps} />
+            ))}
+          </div>
+
+          {/* Desktop Grid View */}
+          <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            {variants.map((v) => (
+              <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Pagination */}
