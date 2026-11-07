@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { formatPaise } from "@/lib/money";
+import { useSupabaseRealtime } from "@/hooks";
 
 export interface DashboardClientProps {
   displaySalesPaise: number;
@@ -114,18 +115,70 @@ export function AdminDashboardClient({
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
   const [orderTableFilter, setOrderTableFilter] = useState<"ALL" | "ONLINE" | "POS">("ALL");
 
-  // Dynamic Metrics: Strictly based on actual database totals (No fabricated fallbacks)
-  const salesPaise = initialSalesPaise;
-  const ordersCount = initialOrders;
-  const profitPaise = initialProfitPaise;
-  const posPaise = initialPosPaise;
-  const omniPaise = initialOmniPaise;
-  const codPaise = initialCodPaise;
-  const codOrders = initialCodOrders;
-  const aovPaise = initialAovPaise;
+  // Dynamic Metrics: Strictly based on actual database totals with Supabase Realtime CDC Sync
+  const [salesPaise, setSalesPaise] = useState(initialSalesPaise);
+  const [ordersCount, setOrdersCount] = useState(initialOrders);
+  const [profitPaise, setProfitPaise] = useState(initialProfitPaise);
+  const [posPaise, setPosPaise] = useState(initialPosPaise);
+  const [omniPaise, setOmniPaise] = useState(initialOmniPaise);
+  const [codPaise, setCodPaise] = useState(initialCodPaise);
+  const [codOrders, setCodOrders] = useState(initialCodOrders);
+  const [aovPaise, setAovPaise] = useState(initialAovPaise);
+  const [recentOrdersList, setRecentOrdersList] = useState(recentOrders);
+  const [isLiveSyncing, setIsLiveSyncing] = useState(false);
+
   const marginPct = salesPaise > 0 && profitPaise > 0 ? ((profitPaise / salesPaise) * 100).toFixed(1) : "0.0";
   const salesGrowth = salesPaise > 0 ? "+12.4%" : "0.0%";
   const ordersGrowth = ordersCount > 0 ? "+8.5%" : "0.0%";
+
+  // Live Supabase sync function
+  const refreshLiveMetrics = useCallback(async (isSilent = true) => {
+    try {
+      if (!isSilent) setIsLiveSyncing(true);
+      const res = await fetch("/api/admin/dashboard");
+      if (res.ok) {
+        const json = await res.json();
+        const data = json.data;
+        if (data) {
+          if (typeof data.todaySalesPaise === "number") setSalesPaise(data.todaySalesPaise);
+          if (typeof data.todayOrders === "number") setOrdersCount(data.todayOrders);
+          if (typeof data.averageOrderValuePaise === "number") setAovPaise(data.averageOrderValuePaise);
+          if (Array.isArray(data.recentOrders)) setRecentOrdersList(data.recentOrders);
+        }
+      }
+    } catch {
+      // background sync fallback
+    } finally {
+      if (!isSilent) setTimeout(() => setIsLiveSyncing(false), 800);
+    }
+  }, []);
+
+  // Supabase Realtime CDC: Subscribes directly to PostgreSQL Order changes
+  useSupabaseRealtime({
+    table: "Order",
+    onPayload: (payload) => {
+      const orderNo = (payload.new as any)?.orderNumber || "";
+      const status = (payload.new as any)?.status || "";
+      showToast(`⚡ Supabase Realtime: Order #${orderNo} ${status.toLowerCase()}`);
+      refreshLiveMetrics(false);
+    },
+  });
+
+  // Supabase Realtime CDC: Subscribes to Payment updates
+  useSupabaseRealtime({
+    table: "Payment",
+    onPayload: () => {
+      refreshLiveMetrics(false);
+    },
+  });
+
+  // Background auto-refresh interval (every 20 seconds fallback)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      refreshLiveMetrics(true);
+    }, 20000);
+    return () => clearInterval(timer);
+  }, [refreshLiveMetrics]);
 
   // Close modals on ESC
   useEffect(() => {
@@ -181,12 +234,12 @@ export function AdminDashboardClient({
     }
   };
 
-  // Filtered orders list
+  // Filtered orders list (Dynamically synced via Supabase Realtime)
   const combinedRecentList = [
-    ...recentOrders.map((o) => ({
+    ...recentOrdersList.map((o) => ({
       id: o.id,
       number: `#${o.orderNumber}`,
-      customer: o.user?.name || o.user?.phone || "Customer",
+      customer: (o as any).user?.name || (o as any).user?.phone || "Customer",
       totalPaise: o.grandTotalPaise,
       payMode: o.paymentMethod === "COD" ? "COD" : "Paid (UPI)",
       status: o.status,
@@ -229,10 +282,15 @@ export function AdminDashboardClient({
             <h2 className="text-2xl sm:text-3xl font-black text-[#1c1c1c] tracking-tight">
               Store Performance Overview
             </h2>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] px-3 py-1 text-xs font-black border border-[#0c831f]/20 shadow-xs">
-              <span className="h-2 w-2 rounded-full bg-[#0c831f] animate-pulse" />
-              Live Omnichannel Sync
-            </span>
+            <button
+              type="button"
+              onClick={() => refreshLiveMetrics(false)}
+              title="Realtime Supabase CDC connection active. Click to trigger instant sync."
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] hover:bg-[#d4edda] text-[#0c831f] px-3 py-1 text-xs font-black border border-[#0c831f]/20 shadow-xs transition active:scale-95 cursor-pointer"
+            >
+              <span className={`h-2 w-2 rounded-full ${isLiveSyncing ? "bg-amber-500 animate-ping" : "bg-[#0c831f] animate-pulse"}`} />
+              {isLiveSyncing ? "Syncing Supabase..." : "Live Supabase Sync"}
+            </button>
           </div>
           <p className="mt-1 text-xs sm:text-sm text-neutral-500 font-semibold">
             Real-time analytics across Central Mart Online Store and BUSY Counter POS · Click any card for details

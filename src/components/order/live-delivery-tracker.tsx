@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { Price } from "@/components/ui";
 import Link from "next/link";
 import OrderDetailClient from "./order-detail";
+import { useSupabaseRealtime } from "@/hooks";
 
 export interface LiveOrder {
   id: string;
@@ -103,7 +104,26 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
     return () => clearInterval(interval);
   }, [isDelivered, isCancelled]);
 
-  // Real-time Poller
+  // Supabase Realtime CDC: Sub-second live WebSocket order status updates
+  useSupabaseRealtime({
+    table: "Order",
+    filter: `id=eq.${order.id}`,
+    enabled: !isDelivered && !isCancelled,
+    onPayload: (payload) => {
+      const next = payload.new as any;
+      if (next?.status && next.status !== prevStatusRef.current) {
+        prevStatusRef.current = next.status;
+        playChime();
+        setOrder((prev) => ({
+          ...prev,
+          status: next.status,
+          delivery: prev.delivery ? { ...prev.delivery, status: next.status } : null,
+        }));
+      }
+    },
+  });
+
+  // Real-time Poller (Fallback if WebSocket disconnects)
   useEffect(() => {
     if (isDelivered || isCancelled) return;
 
