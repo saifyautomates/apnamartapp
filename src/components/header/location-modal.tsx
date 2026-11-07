@@ -36,15 +36,15 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
         estimatedTime: customEta,
       };
       setActiveLocation(newLoc);
-      setPincodeStatus(`✓ Serviceable! ${customEta}`);
+      setPincodeStatus(`✓ Serviceable in Kota! ${customEta}`);
       setTimeout(() => onClose(), 600);
     } else {
-      setPincodeStatus(`Pin ${cleanPin} is outside our direct same-day delivery zones. Try 302001, 302002 or pick a zone below.`);
+      setPincodeStatus(`❌ Abhi delivery sirf Kota me available hai (PIN: 324001 - 324010). PIN ${cleanPin} serviceable nahi hai.`);
     }
   };
 
   const selectZone = (zone: (typeof zones)[0]) => {
-    const defaultPin = zone.pincodes[0] || "302001";
+    const defaultPin = zone.pincodes[0] || "324001";
     const rule = zoneRules[zone.id];
     const customEta = rule?.estimatedTime || deliveryConfig.promiseText || "Same Day Delivery";
     const newLoc: ActiveDeliveryLocation = {
@@ -66,9 +66,7 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
           <div>
             <h3 className="font-black text-[#1c1c1c] text-base">Select Delivery Location</h3>
             <p className="text-xs text-neutral-500 mt-0.5">
-              {deliveryConfig.mode === "SAME_DAY"
-                ? "⚡ Same-Day Delivery available in active zones"
-                : "📍 Delivery speed based on your location"}
+              📍 Delivering exclusively across Kota, Rajasthan
             </p>
           </div>
           <button
@@ -83,7 +81,7 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
         {/* Pincode Search Box */}
         <div className="mt-4 p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200">
           <label className="block text-[11px] font-black uppercase tracking-wider text-neutral-600 mb-1.5">
-            Check Your PIN Code
+            Check Kota PIN Code (324xxx)
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -94,7 +92,7 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
                 setPincodeStatus(null);
               }}
               onKeyDown={(e) => e.key === "Enter" && handlePincodeCheck()}
-              placeholder="Enter 6-digit PIN (e.g. 302001)"
+              placeholder="Enter Kota PIN (e.g. 324001)"
               maxLength={6}
               className="flex-1 rounded-xl border border-neutral-300 bg-white px-3.5 py-2 text-sm font-bold text-[#1c1c1c] outline-hidden focus:border-[#0c831f] focus:ring-2 focus:ring-[#0c831f]/20"
             />
@@ -121,9 +119,9 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
-              Active Store Delivery Zones ({zones.length})
+              Kota Delivery Zones ({zones.length})
             </span>
-            <span className="text-[11px] text-[#0c831f] font-bold">Admin Managed</span>
+            <span className="text-[11px] text-[#0c831f] font-bold">Kota Only</span>
           </div>
 
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -167,7 +165,7 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
 
             {zones.length === 0 ? (
               <div className="p-4 rounded-xl border border-dashed border-neutral-300 text-center text-xs text-neutral-500">
-                All India Pincodes covered under default Same-Day Delivery.
+                Delivering across Kota, Rajasthan (PIN: 324001, 324002, 324004, 324005, 324007, 324010).
               </div>
             ) : null}
           </div>

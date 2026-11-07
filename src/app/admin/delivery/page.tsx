@@ -8,23 +8,35 @@ export const dynamic = "force-dynamic";
 const DEFAULT_FALLBACK_ZONES = [
   {
     id: "00000000-0000-0000-0000-000000000001",
-    name: "Central Kota Zone 1",
-    pincodes: ["324001", "324002", "324005", "324007"],
+    name: "Kota Central & North (Nayapura, Station, Gumanpura, Borkhera)",
+    pincodes: ["324001", "324002", "324003", "324009", "324010"],
     isActive: true,
     slots: [
-      { id: "slot-1", startTime: "08:00", endTime: "12:00", maxOrders: 50, isActive: true },
-      { id: "slot-2", startTime: "12:00", endTime: "16:00", maxOrders: 50, isActive: true },
-      { id: "slot-3", startTime: "16:00", endTime: "20:00", maxOrders: 50, isActive: true },
+      { id: "slot-1", startTime: "08:00", endTime: "11:30", maxOrders: 100, isActive: true },
+      { id: "slot-2", startTime: "12:00", endTime: "15:30", maxOrders: 100, isActive: true },
+      { id: "slot-3", startTime: "16:30", endTime: "20:30", maxOrders: 150, isActive: true },
     ],
   },
   {
     id: "00000000-0000-0000-0000-000000000002",
-    name: "South Delhi Hub",
-    pincodes: ["110017", "110019", "110024", "110048"],
+    name: "Kota South & Coaching Hub (Talwandi, Vigyan Nagar, Dadabari, Mahaveer Nagar)",
+    pincodes: ["324004", "324005", "324006"],
     isActive: true,
     slots: [
-      { id: "slot-4", startTime: "09:00", endTime: "14:00", maxOrders: 40, isActive: true },
-      { id: "slot-5", startTime: "14:00", endTime: "20:00", maxOrders: 40, isActive: true },
+      { id: "slot-4", startTime: "08:00", endTime: "11:30", maxOrders: 100, isActive: true },
+      { id: "slot-5", startTime: "12:00", endTime: "15:30", maxOrders: 100, isActive: true },
+      { id: "slot-6", startTime: "16:30", endTime: "20:30", maxOrders: 150, isActive: true },
+    ],
+  },
+  {
+    id: "00000000-0000-0000-0000-000000000003",
+    name: "Kota Kunhari & Outer (Kunhari, Landmark City, Sakatpura, Anantpura)",
+    pincodes: ["324007", "324008"],
+    isActive: true,
+    slots: [
+      { id: "slot-7", startTime: "08:00", endTime: "11:30", maxOrders: 80, isActive: true },
+      { id: "slot-8", startTime: "12:00", endTime: "15:30", maxOrders: 80, isActive: true },
+      { id: "slot-9", startTime: "16:30", endTime: "20:30", maxOrders: 100, isActive: true },
     ],
   },
 ];

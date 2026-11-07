@@ -44,13 +44,13 @@ interface DeliveryContextValue {
 
 const DEFAULT_CONFIG: DeliveryConfig = {
   mode: "SAME_DAY",
-  promiseText: "Same Day Delivery",
-  badgeText: "⚡ Same Day Delivery",
+  promiseText: "Same Day Delivery in Kota",
+  badgeText: "⚡ Same Day (Kota Only)",
   defaultEta: "Today by 8:00 PM",
   cutoffTime: "19:00",
-  cutoffNotice: "Orders placed before 7:00 PM are delivered today. Later orders arrive tomorrow morning.",
-  minOrderPaise: 19900,
-  defaultChargePaise: 3000,
+  cutoffNotice: "Kota orders placed before 7:00 PM are delivered today. Later orders arrive tomorrow morning.",
+  minOrderPaise: 14900,
+  defaultChargePaise: 2500,
   freeThresholdPaise: 49900,
   expressAvailable: true,
   expressChargePaise: 4900,
@@ -59,9 +59,9 @@ const DEFAULT_CONFIG: DeliveryConfig = {
 };
 
 const DEFAULT_LOCATION: ActiveDeliveryLocation = {
-  pincode: "302001",
-  zoneName: "City Centre",
-  address: "R K Nagar, Police Line, Kota, Rajasthan - 324001",
+  pincode: "324001",
+  zoneName: "Central Kota",
+  address: "Nayapura / Rampura, Kota, Rajasthan - 324001",
   estimatedTime: "Today by 8:00 PM",
 };
 

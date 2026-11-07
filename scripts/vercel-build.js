@@ -39,3 +39,4 @@ execSync("npx prisma generate", { stdio: "inherit", env: process.env });
 
 console.log("[Vercel-Build] Running next build...");
 execSync("npx next build", { stdio: "inherit", env: process.env });
+

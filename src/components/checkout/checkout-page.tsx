@@ -241,6 +241,18 @@ export function CheckoutPageView() {
                   ))}
                 </div>
               )}
+
+              {mode === "DELIVERY" && pincode && !matchedZone ? (
+                <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
+                  <span className="text-base shrink-0">📍</span>
+                  <div>
+                    <p className="font-black text-amber-950">Kota Delivery Only (PIN: 324xxx)</p>
+                    <p className="text-[11px] text-amber-800 mt-0.5">
+                      Central Mart currently delivers exclusively across Kota, Rajasthan. Pincode <strong>{pincode}</strong> is outside our delivery area. Please select a Kota address (PIN: 324001, 324002, 324004, 324005, 324007, etc.).
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -359,10 +371,14 @@ export function CheckoutPageView() {
 
             <button
               onClick={placeOrder}
-              disabled={placing || (mode === "DELIVERY" && !addressId)}
+              disabled={placing || (mode === "DELIVERY" && (!addressId || !matchedZone))}
               className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] py-3.5 text-center text-sm font-black text-white shadow-md transition active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
-              {placing ? "Placing Order..." : "Place Order →"}
+              {placing
+                ? "Placing Order..."
+                : mode === "DELIVERY" && !matchedZone && pincode
+                ? "Address Outside Kota (Not Serviceable)"
+                : "Place Order →"}
             </button>
           </div>
         </div>
