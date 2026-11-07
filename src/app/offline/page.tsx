@@ -1,8 +1,8 @@
 export default function OfflinePage() {
   return (
     <div className="py-16 text-center">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-700 text-xl font-extrabold text-white">
-        AG
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0c831f] text-2xl font-black text-white shadow-md">
+        CM
       </div>
       <h1 className="mt-4 text-2xl font-bold">You are offline</h1>
       <p className="mx-auto mt-2 max-w-md text-muted">
