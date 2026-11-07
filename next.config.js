@@ -1,5 +1,5 @@
 const SUPABASE_DB_URL =
-  "postgresql://postgres.ezwkjxhdkhgvyahypsjn:Hufsasaifquazi@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+  "postgresql://postgres.ezwkjxhdkhgvyahypsjn:Hufsasaifquazi@aws-0-ap-south-1.pooler.supabase.com:5432/postgres";
 
 // Ensure DATABASE_URL is never undefined in serverless builds or cloud runtimes
 if (!process.env.DATABASE_URL) {
