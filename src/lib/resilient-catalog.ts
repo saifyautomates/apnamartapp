@@ -111,6 +111,15 @@ export interface HomeRailsData {
   storeBanners: StoreBanner[];
 }
 
+async function withFastTimeout<T>(promise: Promise<T>, timeoutMs = 200): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("DB timeout")), timeoutMs)
+    ),
+  ]);
+}
+
 /**
  * Bulletproof data loader for homepage rails.
  * Tries live DB with caching first; if DB is unconfigured, cold, or times out,
@@ -122,7 +131,7 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
       "home_rails_fmcg_v2",
       30,
       async () => {
-        // Query live Prisma database in parallel
+        // Query live Prisma database in parallel with fast timeouts
         const [
           dairyDb,
           snackDb,
@@ -132,8 +141,8 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
           dealsDb,
           banners,
         ] = await Promise.all([
-          prisma.productVariant
-            .findMany({
+          withFastTimeout(
+            prisma.productVariant.findMany({
               where: {
                 product: {
                   category: { slug: "dairy-eggs" },
@@ -147,11 +156,12 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
                 inventory: true,
               },
               take: 12,
-            })
-            .catch(() => []),
+            }),
+            200
+          ).catch(() => []),
 
-          prisma.productVariant
-            .findMany({
+          withFastTimeout(
+            prisma.productVariant.findMany({
               where: {
                 product: {
                   category: { slug: "snacks" },
@@ -165,11 +175,12 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
                 inventory: true,
               },
               take: 12,
-            })
-            .catch(() => []),
+            }),
+            200
+          ).catch(() => []),
 
-          prisma.productVariant
-            .findMany({
+          withFastTimeout(
+            prisma.productVariant.findMany({
               where: {
                 product: {
                   category: { slug: { in: ["cold-drinks", "beverages", "tea-coffee"] } },
@@ -183,11 +194,12 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
                 inventory: true,
               },
               take: 12,
-            })
-            .catch(() => []),
+            }),
+            200
+          ).catch(() => []),
 
-          prisma.productVariant
-            .findMany({
+          withFastTimeout(
+            prisma.productVariant.findMany({
               where: {
                 product: {
                   category: { slug: { in: ["staples", "masala-oil"] } },
@@ -201,11 +213,12 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
                 inventory: true,
               },
               take: 12,
-            })
-            .catch(() => []),
+            }),
+            200
+          ).catch(() => []),
 
-          prisma.productVariant
-            .findMany({
+          withFastTimeout(
+            prisma.productVariant.findMany({
               where: {
                 product: {
                   category: { slug: { in: ["personal-care", "cleaning-essentials", "household"] } },
@@ -219,11 +232,12 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
                 inventory: true,
               },
               take: 12,
-            })
-            .catch(() => []),
+            }),
+            200
+          ).catch(() => []),
 
-          prisma.productVariant
-            .findMany({
+          withFastTimeout(
+            prisma.productVariant.findMany({
               where: {
                 product: { isActive: true, onlineVisible: true, deletedAt: null },
               },
@@ -232,8 +246,9 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
                 inventory: true,
               },
               take: 30,
-            })
-            .catch(() => []),
+            }),
+            200
+          ).catch(() => []),
 
           getStoreBanners().catch(() => []),
         ]);

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ProductDetailView, BlinkitProductCard, VariantCardProps } from "@/components/product";
@@ -8,7 +8,7 @@ import { getFallbackProduct, getFallbackVariants } from "@/lib/resilient-catalog
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   try {
-    const product = await prisma.product.findUnique({ where: { slug: params.slug } });
+    const product = await withDbTimeout(prisma.product.findUnique({ where: { slug: params.slug } }), 200);
     if (product) {
       return {
         title: `${product.name} — Same-Day Delivery | Central Mart`,
@@ -34,16 +34,19 @@ export default async function ProductPage({ params }: { params: { slug: string }
   let product: any = null;
 
   try {
-    product = await prisma.product.findUnique({
-      where: { slug: params.slug },
-      include: {
-        brand: true,
-        category: true,
-        subcategory: true,
-        images: { orderBy: { sortOrder: "asc" } },
-        variants: { include: { inventory: true }, orderBy: { sellingPaise: "asc" } },
-      },
-    });
+    product = await withDbTimeout(
+      prisma.product.findUnique({
+        where: { slug: params.slug },
+        include: {
+          brand: true,
+          category: true,
+          subcategory: true,
+          images: { orderBy: { sortOrder: "asc" } },
+          variants: { include: { inventory: true }, orderBy: { sellingPaise: "asc" } },
+        },
+      }),
+      250
+    );
   } catch {
     /* database unconfigured or sleeping */
   }

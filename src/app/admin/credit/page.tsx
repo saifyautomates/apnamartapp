@@ -1,12 +1,21 @@
 import { adminPageDenied } from "@/lib/admin-page";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 import { formatPaise } from "@/lib/money";
 import { CreditAdjustForm } from "@/components/admin-ui";
 
 export default async function AdminCreditPage() {
   const denied = await adminPageDenied("credit:write");
   if (denied) return denied;
-  const accounts = await prisma.storeCreditAccount.findMany({ include: { user: { select: { phone: true, name: true } } }, orderBy: { balancePaise: "desc" }, take: 100 });
+
+  let accounts: any[] = [];
+  try {
+    accounts = await withDbTimeout(
+      prisma.storeCreditAccount.findMany({ include: { user: { select: { phone: true, name: true } } }, orderBy: { balancePaise: "desc" }, take: 100 }),
+      250
+    );
+  } catch {
+    /* fallback */
+  }
   return (
     <div>
       <h1 className="text-2xl font-bold">Store credit</h1>

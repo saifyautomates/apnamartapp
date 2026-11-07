@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 import { BlinkitProductCard, VariantCardProps } from "@/components/product";
 import { EmptyState } from "@/components/ui";
 import Link from "next/link";
@@ -21,10 +21,13 @@ export default async function CategoryPage({
   } | null = null;
 
   try {
-    category = await prisma.category.findUnique({
-      where: { slug: params.slug },
-      include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
-    });
+    category = await withDbTimeout(
+      prisma.category.findUnique({
+        where: { slug: params.slug },
+        include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
+      }),
+      250
+    );
   } catch {
     /* fallback to resilient catalog */
   }
@@ -58,19 +61,22 @@ export default async function CategoryPage({
   let total = 0;
 
   try {
-    const [dbVariants, dbTotal] = await Promise.all([
-      prisma.productVariant.findMany({
-        where: where as never,
-        include: {
-          product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
-          inventory: true,
-        },
-        orderBy,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-      prisma.productVariant.count({ where: where as never }),
-    ]);
+    const [dbVariants, dbTotal] = await withDbTimeout(
+      Promise.all([
+        prisma.productVariant.findMany({
+          where: where as never,
+          include: {
+            product: { include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } } },
+            inventory: true,
+          },
+          orderBy,
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.productVariant.count({ where: where as never }),
+      ]),
+      250
+    );
     variants = dbVariants as unknown as VariantCardProps[];
     total = dbTotal;
   } catch {

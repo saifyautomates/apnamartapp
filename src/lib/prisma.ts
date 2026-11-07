@@ -15,3 +15,13 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+/** Fast timeout wrapper for resilient operations — fails fast to fallback if DB is slow or offline */
+export async function withDbTimeout<T>(promise: Promise<T>, timeoutMs = 250): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("Database operation timeout")), timeoutMs)
+    ),
+  ]);
+}

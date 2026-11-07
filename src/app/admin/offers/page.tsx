@@ -1,10 +1,19 @@
 import { adminPageDenied } from "@/lib/admin-page";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 
 export default async function AdminOffersPage() {
   const denied = await adminPageDenied("offers:write");
   if (denied) return denied;
-  const offers = await prisma.offer.findMany({ include: { products: { include: { product: true } }, categories: { include: { category: true } } }, orderBy: { createdAt: "desc" } });
+
+  let offers: any[] = [];
+  try {
+    offers = await withDbTimeout(
+      prisma.offer.findMany({ include: { products: { include: { product: true } }, categories: { include: { category: true } } }, orderBy: { createdAt: "desc" } }),
+      250
+    );
+  } catch {
+    /* fallback */
+  }
   return (
     <div>
       <h1 className="text-2xl font-bold">Offers</h1>
@@ -15,8 +24,8 @@ export default async function AdminOffersPage() {
             <p className="font-bold">{o.title}</p>
             <p className="text-sm text-muted">{o.description ?? ""}</p>
             <p className="text-sm">{o.type} {o.value}{o.type === "PERCENT" ? "%" : " paise"} · {o.isActive ? "Active" : "Inactive"}</p>
-            {o.products.length > 0 ? <p className="text-sm text-muted">Products: {o.products.map((p) => p.product.name).join(", ")}</p> : null}
-            {o.categories.length > 0 ? <p className="text-sm text-muted">Categories: {o.categories.map((c) => c.category.name).join(", ")}</p> : null}
+            {o.products.length > 0 ? <p className="text-sm text-muted">Products: {o.products.map((p: any) => p.product?.name).filter(Boolean).join(", ")}</p> : null}
+            {o.categories.length > 0 ? <p className="text-sm text-muted">Categories: {o.categories.map((c: any) => c.category?.name).filter(Boolean).join(", ")}</p> : null}
           </article>
         ))}
         {offers.length === 0 ? <p className="text-muted">No offers yet. Create one via the API or seed data.</p> : null}

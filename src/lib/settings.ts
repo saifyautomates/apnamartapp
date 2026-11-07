@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { prisma, withDbTimeout } from "./prisma";
 
 export interface DeliveryConfig {
   mode: "SAME_DAY" | "LOCATION_BASED" | "SCHEDULED" | "EXPRESS";
@@ -71,25 +71,49 @@ export const DEFAULT_SETTINGS: Record<string, unknown> = {
   reservations: { expiryMinutes: 30 },
 };
 
+let memorySettings: Record<string, unknown> = { ...DEFAULT_SETTINGS };
+
 export async function getSetting<T>(key: string, fallback: T): Promise<T> {
-  const row = await prisma.setting.findUnique({ where: { key } });
-  if (!row) return fallback;
-  return row.value as unknown as T;
+  if (memorySettings[key] !== undefined) {
+    return memorySettings[key] as T;
+  }
+  try {
+    const row = await withDbTimeout(prisma.setting.findUnique({ where: { key } }), 200);
+    if (!row) return fallback;
+    memorySettings[key] = row.value;
+    return row.value as unknown as T;
+  } catch {
+    return fallback;
+  }
 }
 
 export async function getAllSettings(): Promise<Record<string, unknown>> {
-  const rows = await prisma.setting.findMany();
-  const out: Record<string, unknown> = { ...DEFAULT_SETTINGS };
-  for (const r of rows) out[r.key] = r.value;
-  return out;
+  try {
+    const rows = await withDbTimeout(prisma.setting.findMany(), 200);
+    const out: Record<string, unknown> = { ...DEFAULT_SETTINGS };
+    for (const r of rows) out[r.key] = r.value;
+    memorySettings = out;
+    return out;
+  } catch {
+    return memorySettings;
+  }
 }
 
 export async function setSetting(key: string, value: unknown) {
-  return prisma.setting.upsert({
-    where: { key },
-    create: { key, value: value as object },
-    update: { value: value as object },
-  });
+  memorySettings[key] = value;
+  try {
+    return await withDbTimeout(
+      prisma.setting.upsert({
+        where: { key },
+        create: { key, value: value as object },
+        update: { value: value as object },
+      }),
+      250
+    );
+  } catch {
+    /* fallback */
+  }
+  return { key, value };
 }
 
 export async function getBusyPostingTrigger(): Promise<string> {

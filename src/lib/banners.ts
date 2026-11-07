@@ -57,47 +57,64 @@ export const DEFAULT_STORE_BANNERS: StoreBanner[] = [
   },
 ];
 
+let memoryStoreBanners: StoreBanner[] = [...DEFAULT_STORE_BANNERS];
+
+async function withFastDbTimeout<T>(promise: Promise<T>, timeoutMs = 200): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("Database connection timeout")), timeoutMs)
+    ),
+  ]);
+}
+
 /** Fetch active store banners for customer storefront (cached) */
 export async function getStoreBanners(): Promise<StoreBanner[]> {
   try {
     return await cachedJson("home_store_banners_v2", 30, async () => {
       try {
-        const row = await prisma.setting.findUnique({ where: { key: "store_banners" } });
+        const row = await withFastDbTimeout(prisma.setting.findUnique({ where: { key: "store_banners" } }));
         if (row?.value && Array.isArray(row.value) && row.value.length > 0) {
-          return (row.value as unknown as StoreBanner[])
-            .filter((b) => b.isActive)
-            .sort((a, b) => a.displayOrder - b.displayOrder);
+          memoryStoreBanners = row.value as unknown as StoreBanner[];
         }
       } catch {
         // fallback
       }
-      return DEFAULT_STORE_BANNERS;
+      return memoryStoreBanners
+        .filter((b) => b.isActive)
+        .sort((a, b) => a.displayOrder - b.displayOrder);
     });
   } catch {
-    return DEFAULT_STORE_BANNERS;
+    return memoryStoreBanners;
   }
 }
 
 /** Fetch all banners for Admin panel management */
 export async function getAllStoreBanners(): Promise<StoreBanner[]> {
   try {
-    const row = await prisma.setting.findUnique({ where: { key: "store_banners" } });
+    const row = await withFastDbTimeout(prisma.setting.findUnique({ where: { key: "store_banners" } }));
     if (row?.value && Array.isArray(row.value) && row.value.length > 0) {
+      memoryStoreBanners = row.value as unknown as StoreBanner[];
       return (row.value as unknown as StoreBanner[]).sort((a, b) => a.displayOrder - b.displayOrder);
     }
   } catch {
     // fallback
   }
-  return DEFAULT_STORE_BANNERS;
+  return memoryStoreBanners;
 }
 
 /** Save updated banners and invalidate caches */
 export async function saveStoreBanners(banners: StoreBanner[]): Promise<StoreBanner[]> {
-  await prisma.setting.upsert({
-    where: { key: "store_banners" },
-    create: { key: "store_banners", value: banners as unknown as object },
-    update: { value: banners as unknown as object },
-  });
+  memoryStoreBanners = banners;
+  try {
+    await withFastDbTimeout(prisma.setting.upsert({
+      where: { key: "store_banners" },
+      create: { key: "store_banners", value: banners as unknown as object },
+      update: { value: banners as unknown as object },
+    }));
+  } catch {
+    /* fallback */
+  }
 
   // Invalidate cache immediately
   await cache.del("home_store_banners_v2");

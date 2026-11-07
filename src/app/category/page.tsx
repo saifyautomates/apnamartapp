@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 import Link from "next/link";
 import { ProductImage } from "@/components/product";
 import { getFallbackCategories } from "@/lib/resilient-catalog";
@@ -13,11 +13,14 @@ export default async function CategoriesPage() {
   }> = [];
 
   try {
-    categories = await prisma.category.findMany({
-      where: { isVisible: true },
-      include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
-      orderBy: { sortOrder: "asc" },
-    });
+    categories = await withDbTimeout(
+      prisma.category.findMany({
+        where: { isVisible: true },
+        include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
+        orderBy: { sortOrder: "asc" },
+      }),
+      250
+    );
   } catch {
     /* fallback to resilient catalog */
   }

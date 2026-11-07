@@ -1,5 +1,5 @@
 import { adminPageDenied } from "@/lib/admin-page";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 import { getBusyStatus } from "@/lib/busy";
 import { getShiprocketStatus } from "@/lib/shiprocket";
 import { SyncJobButton } from "@/components/admin-ui";
@@ -10,9 +10,23 @@ export default async function AdminIntegrationsPage() {
   if (denied) return denied;
   const busy = getBusyStatus();
   const shiprocket = getShiprocketStatus();
-  const jobs = await prisma.integrationSyncJob.findMany({ orderBy: { createdAt: "desc" }, take: 50, include: { logs: { orderBy: { createdAt: "desc" }, take: 3 } } });
-  const settings = await prisma.setting.findUnique({ where: { key: "busy" } });
-  const busyCfg = (settings?.value as { postingTrigger?: string } | undefined) ?? {};
+
+  let jobs: any[] = [];
+  let busyCfg: Record<string, any> = {};
+
+  try {
+    const res = await withDbTimeout(
+      Promise.all([
+        prisma.integrationSyncJob.findMany({ orderBy: { createdAt: "desc" }, take: 50, include: { logs: { orderBy: { createdAt: "desc" }, take: 3 } } }),
+        prisma.setting.findUnique({ where: { key: "busy" } }),
+      ]),
+      250
+    );
+    jobs = res[0];
+    busyCfg = (res[1]?.value as { postingTrigger?: string } | undefined) ?? {};
+  } catch {
+    /* fallback */
+  }
   const cards = [
     { name: "BUSY Enterprise", status: busy, note: "Sync products, inventory, customers, invoices and accounting. Posting trigger: " + (busyCfg.postingTrigger ?? "OUT_FOR_DELIVERY") },
     { name: "Shiprocket", status: shiprocket, note: "Shipping and courier fulfilment (future). Store-handled delivery is used in v1." },

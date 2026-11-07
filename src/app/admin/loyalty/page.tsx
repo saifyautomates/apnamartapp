@@ -1,11 +1,20 @@
 import { adminPageDenied } from "@/lib/admin-page";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 import { AdminCard, AdminPageHeader } from "@/components/admin-display";
 
 export default async function AdminLoyaltyPage() {
   const denied = await adminPageDenied("loyalty:write");
   if (denied) return denied;
-  const accounts = await prisma.loyaltyAccount.findMany({ include: { user: { select: { phone: true, name: true } } }, orderBy: { points: "desc" }, take: 100 });
+
+  let accounts: any[] = [];
+  try {
+    accounts = await withDbTimeout(
+      prisma.loyaltyAccount.findMany({ include: { user: { select: { phone: true, name: true } } }, orderBy: { points: "desc" }, take: 100 }),
+      250
+    );
+  } catch {
+    /* fallback */
+  }
   return (
     <div>
       <AdminPageHeader title="Loyalty" subtitle="Points are a ledger: the account total is a cached sum of loyalty transactions, never the source of truth." />

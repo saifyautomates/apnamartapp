@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { prisma, withDbTimeout } from "./prisma";
 import { FMCG_CATEGORIES } from "./fmcg-catalog";
 
 function slugify(text: string): string {
@@ -152,7 +152,8 @@ export async function fuzzyProductIds(tokens: string[], limit = 100): Promise<st
   const scores = new Map<string, { matched: number; sim: number }>();
   for (const tok of tokens) {
     try {
-      const rows = await prisma.$queryRaw<Array<{ id: string; sim: number }>>`
+      const rows = await withDbTimeout(
+        prisma.$queryRaw<Array<{ id: string; sim: number }>>`
         SELECT p.id AS id,
           GREATEST(word_similarity(p."name", ${tok}), COALESCE(word_similarity(b."name", ${tok}), 0)) AS sim
         FROM "Product" p
@@ -163,7 +164,9 @@ export async function fuzzyProductIds(tokens: string[], limit = 100): Promise<st
               AND (v."sku" <% ${tok} OR v."barcode" <% ${tok})))
         ORDER BY sim DESC
         LIMIT 100
-      `;
+      `,
+        250
+      );
       for (const r of rows) {
         const cur = scores.get(r.id) ?? { matched: 0, sim: 0 };
         cur.matched += 1;

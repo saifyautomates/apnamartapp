@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 import { verifyAccess } from "@/lib/auth";
 import { getEffectivePricePaise } from "@/lib/pricing";
 import { BlinkitHeader } from "./blinkit-header";
@@ -18,12 +18,12 @@ async function getCartStats(): Promise<{ count: number; total: number; isLoggedI
         const session = verifyAccess(token);
         if (session.kind === "CUSTOMER" && session.userId) {
           isLoggedIn = true;
-          const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { name: true, phone: true } });
+          const user = await withDbTimeout(prisma.user.findUnique({ where: { id: session.userId }, select: { name: true, phone: true } }), 200);
           customerName = user?.name ?? user?.phone ?? "Account";
-          cart = await prisma.cart.findFirst({
+          cart = await withDbTimeout(prisma.cart.findFirst({
             where: { userId: session.userId, status: "ACTIVE" },
             include: { items: { include: { variant: { include: { product: true } } } } },
-          });
+          }), 200);
         }
       } catch {
         /* fall through to guest cart */
@@ -31,10 +31,10 @@ async function getCartStats(): Promise<{ count: number; total: number; isLoggedI
     }
 
     if (!cart && guest) {
-      cart = await prisma.cart.findFirst({
+      cart = await withDbTimeout(prisma.cart.findFirst({
         where: { sessionToken: guest, status: "ACTIVE" },
         include: { items: { include: { variant: { include: { product: true } } } } },
-      });
+      }), 200).catch(() => null);
     }
 
     if (!cart) return { count: 0, total: 0, isLoggedIn, customerName };

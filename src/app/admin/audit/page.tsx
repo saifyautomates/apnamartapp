@@ -1,10 +1,19 @@
 import { adminPageDenied } from "@/lib/admin-page";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbTimeout } from "@/lib/prisma";
 
 export default async function AdminAuditPage() {
   const denied = await adminPageDenied("audit:read");
   if (denied) return denied;
-  const logs = await prisma.auditLog.findMany({ include: { actor: { select: { username: true } } }, orderBy: { createdAt: "desc" }, take: 200 });
+
+  let logs: any[] = [];
+  try {
+    logs = await withDbTimeout(
+      prisma.auditLog.findMany({ include: { actor: { select: { username: true } } }, orderBy: { createdAt: "desc" }, take: 200 }),
+      250
+    );
+  } catch {
+    /* fallback */
+  }
   return (
     <div>
       <h1 className="text-2xl font-bold">Audit logs</h1>
