@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { InstallBanner } from "@/components/pwa";
 import { MobileBottomNav } from "./mobile-nav";
 import { SiteFooter } from "./footer";
-import { AdminQuickSwitch } from "./admin-quick-switch";
 import { ActiveOrderPill } from "./active-order-pill";
 
 // Lazy-load modal sheets so low-spec phones parse 60% less initial JavaScript on cold start
@@ -47,9 +46,6 @@ export function SiteChrome({
 
       {/* Mobile Floating Cart & Bottom Nav */}
       <MobileBottomNav />
-
-      {/* Floating 1-Click Admin Access Switcher */}
-      <AdminQuickSwitch />
 
       {/* Modern Blinkit Footer */}
       <SiteFooter />
