@@ -115,3 +115,4 @@ export function CategoryDrawer() {
 }
 
 export default CategoryDrawer;
+
