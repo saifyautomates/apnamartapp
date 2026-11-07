@@ -74,5 +74,12 @@ export async function getAdminPermissions(adminId: string): Promise<string[]> {
 
 export function requirePermission(session: Session, key: PermissionKey): void {
   if (session.kind !== "ADMIN") throw forbidden("Admin session required");
-  if (!session.permissions.includes(key)) throw forbidden(`Missing permission: ${key}`);
+  if (
+    session.roles?.includes("OWNER") ||
+    session.permissions?.includes("*") ||
+    session.permissions?.includes(key)
+  ) {
+    return;
+  }
+  throw forbidden(`Missing permission: ${key}`);
 }

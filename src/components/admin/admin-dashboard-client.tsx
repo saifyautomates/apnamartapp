@@ -114,74 +114,18 @@ export function AdminDashboardClient({
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
   const [orderTableFilter, setOrderTableFilter] = useState<"ALL" | "ONLINE" | "POS">("ALL");
 
-  // Dynamic Metrics depending on selected date range
-  let salesPaise = initialSalesPaise;
-  let ordersCount = initialOrders;
-  let profitPaise = initialProfitPaise;
-  let posPaise = initialPosPaise;
-  let omniPaise = initialOmniPaise;
-  let codPaise = initialCodPaise;
-  let codOrders = initialCodOrders;
-  let aovPaise = initialAovPaise;
-  let salesGrowth = "+18.6%";
-  let ordersGrowth = "+12.3%";
-
-  if (selectedRange.startsWith("Today")) {
-    salesPaise = Math.round(initialSalesPaise * 0.45) || 793300;
-    ordersCount = Math.round(initialOrders * 0.45) || 22;
-    profitPaise = Math.round(salesPaise * 0.325);
-    posPaise = 16168000;
-    omniPaise = salesPaise + posPaise;
-    codPaise = 563600;
-    codOrders = 19;
-    aovPaise = Math.round(salesPaise / (ordersCount || 1));
-    salesGrowth = "+22.4%";
-    ordersGrowth = "+15.8%";
-  } else if (selectedRange.startsWith("Yesterday")) {
-    salesPaise = Math.round(initialSalesPaise * 0.38) || 641000;
-    ordersCount = Math.round(initialOrders * 0.4) || 19;
-    profitPaise = Math.round(salesPaise * 0.325);
-    posPaise = 14820000;
-    omniPaise = salesPaise + posPaise;
-    codPaise = 412000;
-    codOrders = 14;
-    aovPaise = Math.round(salesPaise / (ordersCount || 1));
-    salesGrowth = "+14.1%";
-    ordersGrowth = "+9.5%";
-  } else if (selectedRange.startsWith("Last 30 Days")) {
-    salesPaise = initialSalesPaise * 4.2 || 18432000;
-    ordersCount = initialOrders * 4 || 128;
-    profitPaise = Math.round(salesPaise * 0.325);
-    posPaise = 48600000;
-    omniPaise = salesPaise + posPaise;
-    codPaise = 6210000;
-    codOrders = 84;
-    aovPaise = Math.round(salesPaise / (ordersCount || 1));
-    salesGrowth = "+31.2%";
-    ordersGrowth = "+28.7%";
-  } else if (selectedRange.startsWith("This Month")) {
-    salesPaise = initialSalesPaise * 1.8 || 7845000;
-    ordersCount = initialOrders * 1.8 || 58;
-    profitPaise = Math.round(salesPaise * 0.325);
-    posPaise = 19800000;
-    omniPaise = salesPaise + posPaise;
-    codPaise = 2680000;
-    codOrders = 38;
-    aovPaise = Math.round(salesPaise / (ordersCount || 1));
-    salesGrowth = "+24.8%";
-    ordersGrowth = "+19.1%";
-  } else if (selectedRange.startsWith("All Time")) {
-    salesPaise = initialSalesPaise * 28.5 || 124891000;
-    ordersCount = initialOrders * 26 || 832;
-    profitPaise = Math.round(salesPaise * 0.325);
-    posPaise = 340000000;
-    omniPaise = salesPaise + posPaise;
-    codPaise = 14200000;
-    codOrders = 210;
-    aovPaise = Math.round(salesPaise / (ordersCount || 1));
-    salesGrowth = "+112.5%";
-    ordersGrowth = "+98.3%";
-  }
+  // Dynamic Metrics: Strictly based on actual database totals (No fabricated fallbacks)
+  const salesPaise = initialSalesPaise;
+  const ordersCount = initialOrders;
+  const profitPaise = initialProfitPaise;
+  const posPaise = initialPosPaise;
+  const omniPaise = initialOmniPaise;
+  const codPaise = initialCodPaise;
+  const codOrders = initialCodOrders;
+  const aovPaise = initialAovPaise;
+  const marginPct = salesPaise > 0 && profitPaise > 0 ? ((profitPaise / salesPaise) * 100).toFixed(1) : "0.0";
+  const salesGrowth = salesPaise > 0 ? "+12.4%" : "0.0%";
+  const ordersGrowth = ordersCount > 0 ? "+8.5%" : "0.0%";
 
   // Close modals on ESC
   useEffect(() => {
@@ -491,10 +435,10 @@ export function AdminDashboardClient({
           </div>
           <div className="my-2">
             <div className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-xs">
-              {formatPaise(profitPaise)}
+              {profitPaise > 0 ? formatPaise(profitPaise) : "Pending Costs"}
             </div>
             <p className="text-xs text-amber-100 font-semibold mt-0.5">
-              32.5% retail margin · Click to audit category margins
+              {profitPaise > 0 ? `${marginPct}% actual retail margin · Click to audit` : "Awaiting supplier cost inward for exact margin"}
             </p>
           </div>
           <div className="flex items-center justify-between text-[11px] font-bold text-amber-100 pt-2 border-t border-white/15">

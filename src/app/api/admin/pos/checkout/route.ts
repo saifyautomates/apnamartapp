@@ -77,122 +77,152 @@ export const POST = handler(async (req: NextRequest) => {
   const fallbackVariant =
     (await prisma.productVariant.findFirst({
       where: { product: { isActive: true } },
-      select: { id: true },
+      select: { id: true, costPricePaise: true },
     })) ||
     (await prisma.productVariant.findFirst({
-      select: { id: true },
+      select: { id: true, costPricePaise: true },
     }));
 
-  // 5. Atomic transaction: Create Order, Items, deduct inventory, and record payment
-  const result = await prisma.$transaction(async (tx) => {
-    const order = await tx.order.create({
-      data: {
-        orderNumber,
-        userId: user.id,
-        deliveryMethod: "PICKUP",
-        subtotalPaise,
-        taxPaise,
-        grandTotalPaise,
-        paymentMethod: pMethod,
-        paymentStatus: "CAPTURED",
-        status: "DELIVERED",
-        busyVoucherId: voucherNumber,
-        busyInvoiceId: `INV-${voucherNumber}`,
-        busySyncStatus: "SYNCED",
-        notes: `In-Store POS Sale from Counter ${counterId} by Cashier ${cashierName}`,
-      },
-    });
-
-    for (const it of items) {
+  // Resolve variants BEFORE transaction to minimize interactive transaction lock time
+  const resolvedItems = await Promise.all(
+    items.map(async (it: any) => {
       const qty = Math.max(1, parseInt(it.qty, 10) || 1);
       const unitPrice = Math.max(0, parseInt(it.sellingPaise, 10) || 0);
 
-      // Verify variant exists or connect to real variant
       let realVariantId: string | null = null;
+      let costPaise = 0;
 
-      // 1. If it.variantId is already a real valid UUID (and not synthetic master-... or v-...)
-      if (it.variantId && !it.variantId.startsWith("master-") && !it.variantId.startsWith("v-")) {
-        const check = await tx.productVariant.findUnique({
+      // 1. By variantId if real UUID
+      if (it.variantId && !it.variantId.startsWith("master-") && !it.variantId.startsWith("v-") && !it.variantId.startsWith("quick-")) {
+        const check = await prisma.productVariant.findUnique({
           where: { id: it.variantId },
-          select: { id: true },
+          select: { id: true, costPricePaise: true },
         });
-        if (check) realVariantId = check.id;
+        if (check) {
+          realVariantId = check.id;
+          costPaise = check.costPricePaise || 0;
+        }
       }
 
-      // 2. If not found by ID, look up by barcode
+      // 2. By barcode
       if (!realVariantId && it.barcode) {
-        const found = await tx.productVariant.findFirst({
+        const found = await prisma.productVariant.findFirst({
           where: { barcode: it.barcode },
-          select: { id: true },
+          select: { id: true, costPricePaise: true },
         });
-        if (found) realVariantId = found.id;
+        if (found) {
+          realVariantId = found.id;
+          costPaise = found.costPricePaise || 0;
+        }
       }
 
-      // 3. If not found by barcode, search by product name
+      // 3. By name
       if (!realVariantId && it.name) {
         const keyword = it.name.split(" ")[0];
-        const found = await tx.productVariant.findFirst({
+        const found = await prisma.productVariant.findFirst({
           where: { product: { name: { contains: keyword, mode: "insensitive" } } },
-          select: { id: true },
+          select: { id: true, costPricePaise: true },
         });
-        if (found) realVariantId = found.id;
+        if (found) {
+          realVariantId = found.id;
+          costPaise = found.costPricePaise || 0;
+        }
       }
 
-      // 4. Ultimate safety fallback to valid fallbackVariant
+      // 4. Fallback
       if (!realVariantId && fallbackVariant) {
         realVariantId = fallbackVariant.id;
+        costPaise = fallbackVariant.costPricePaise || 0;
       }
 
-      if (realVariantId) {
-        await tx.orderItem.create({
-          data: {
-            orderId: order.id,
-            variantId: realVariantId,
-            productName: it.name || "FMCG Grocery Item",
-            variantName: it.packSize || "Standard",
-            qty,
-            mrpPaise: unitPrice,
-            unitPricePaise: unitPrice,
-            taxPaise: Math.round(unitPrice * 0.05),
-            totalPaise: qty * unitPrice,
-          },
-        });
+      return {
+        ...it,
+        qty,
+        unitPrice,
+        realVariantId,
+        costPaise,
+      };
+    })
+  );
 
-        // Deduct inventory
-        await tx.inventory
-          .updateMany({
-            where: { variantId: realVariantId },
+  // 5. Fast Atomic transaction with generous 30s timeout for remote cloud poolers
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const order = await tx.order.create({
+        data: {
+          orderNumber,
+          userId: user.id,
+          deliveryMethod: "PICKUP",
+          subtotalPaise,
+          taxPaise,
+          grandTotalPaise,
+          paymentMethod: pMethod,
+          paymentStatus: "CAPTURED",
+          status: "DELIVERED",
+          busyVoucherId: voucherNumber,
+          busyInvoiceId: `INV-${voucherNumber}`,
+          busySyncStatus: "SYNCED",
+          notes: `In-Store POS Sale from Counter ${counterId} by Cashier ${cashierName}`,
+        },
+      });
+
+      for (const it of resolvedItems) {
+        if (it.realVariantId) {
+          await tx.orderItem.create({
             data: {
-              availableQty: { decrement: qty },
+              orderId: order.id,
+              variantId: it.realVariantId,
+              productName: it.name || "FMCG Grocery Item",
+              variantName: it.packSize || "Standard",
+              qty: it.qty,
+              mrpPaise: it.unitPrice,
+              unitPricePaise: it.unitPrice,
+              costPricePaise: it.costPaise,
+              taxPaise: Math.round(it.unitPrice * 0.05),
+              totalPaise: it.qty * it.unitPrice,
             },
-          })
-          .catch(() => {});
+          });
+
+          // Deduct inventory
+          await tx.inventory
+            .updateMany({
+              where: { variantId: it.realVariantId },
+              data: {
+                availableQty: { decrement: it.qty },
+              },
+            })
+            .catch(() => {});
+        }
       }
+
+      // Payment record
+      await tx.payment.create({
+        data: {
+          orderId: order.id,
+          method: pMethod,
+          status: "CAPTURED",
+          amountPaise: grandTotalPaise,
+        },
+      });
+
+      // Order status history
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          fromStatus: "PLACED",
+          toStatus: "DELIVERED",
+          changedById: session.adminId,
+          note: `POS Counter ${counterId} Sale Completed and Settled.`,
+        },
+      });
+
+      return order;
+    },
+    {
+      maxWait: 20000,
+      timeout: 30000,
     }
-
-    // Payment record
-    await tx.payment.create({
-      data: {
-        orderId: order.id,
-        method: pMethod,
-        status: "CAPTURED",
-        amountPaise: grandTotalPaise,
-      },
-    });
-
-    // Order status history
-    await tx.orderStatusHistory.create({
-      data: {
-        orderId: order.id,
-        fromStatus: "PLACED",
-        toStatus: "DELIVERED",
-        changedById: session.adminId,
-        note: `POS Counter ${counterId} Sale Completed and Settled.`,
-      },
-    });
-
-    return order;
-  });
+  );
 
   // 6. Purge caches
   await cache.del("admin:dashboard:metrics:v2");

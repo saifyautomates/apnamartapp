@@ -10,33 +10,37 @@ export default async function AdminDashboard() {
   const denied = await adminPageDenied("dashboard:read");
   if (denied) return denied;
 
-  // 1. Fetch POS configuration and in-store metrics in parallel with cached store data
-  const defaultStoreMetrics = {
-    totalSalesAgg: { _sum: { grandTotalPaise: 793300 as number | null }, _count: { id: 32 } },
-    totalOrdersCount: 32,
-    lowStockCount: 27,
-    totalProductsCount: 2045,
-    activeProductsCount: 1980,
-    inventoryStockItems: [] as Array<{ availableQty: number; variant: { mrpPaise: number; sellingPaise: number } }>,
-    pendingCodAgg: { _sum: { grandTotalPaise: 563600 as number | null }, _count: { id: 10 } },
+  // Real zero baseline (No fabricated financial placeholders)
+  const emptyStoreMetrics = {
+    totalSalesAgg: { _sum: { grandTotalPaise: 0 as number | null }, _count: { id: 0 } },
+    posSalesAgg: { _sum: { grandTotalPaise: 0 as number | null }, _count: { id: 0 } },
+    onlineSalesAgg: { _sum: { grandTotalPaise: 0 as number | null }, _count: { id: 0 } },
+    totalOrdersCount: 0,
+    lowStockCount: 0,
+    totalProductsCount: 0,
+    activeProductsCount: 0,
+    inventoryStockItems: [] as Array<{ availableQty: number; variant: { costPricePaise: number; sellingPaise: number; mrpPaise: number } }>,
+    pendingCodAgg: { _sum: { grandTotalPaise: 0 as number | null }, _count: { id: 0 } },
     recentOrders: [] as any[],
-    categorySalesItems: [] as any[],
+    soldItemsWithCost: [] as any[],
     liveHistoryEvents: [] as any[],
-    customersCount: 142,
+    customersCount: 0,
   };
 
-  let storeMetrics: any = defaultStoreMetrics;
-  let posConfig: any = {};
-  let posMetrics: any = {};
+  let storeMetrics: any = emptyStoreMetrics;
+  let posConfig: any = { enabled: false };
+  let posMetrics: any = { todaySalesPaise: 0, todayBillsCount: 0, recentVouchers: [] };
 
   try {
     const [fetchedPosConfig, fetchedPosMetrics, fetchedStoreMetrics] = await Promise.all([
-      getBusyPosConfig().catch(() => ({})),
-      getBusyPosMetrics().catch(() => ({})),
-      cachedJson("admin:dashboard:metrics:v2", 15, async () => {
+      getBusyPosConfig().catch(() => ({ enabled: false })),
+      getBusyPosMetrics().catch(() => ({ todaySalesPaise: 0, todayBillsCount: 0, recentVouchers: [] })),
+      cachedJson("admin:dashboard:metrics:v3", 10, async () => {
         try {
           const [
             totalSalesAgg,
+            posSalesAgg,
+            onlineSalesAgg,
             totalOrdersCount,
             lowStockCount,
             totalProductsCount,
@@ -44,7 +48,7 @@ export default async function AdminDashboard() {
             inventoryStockItems,
             pendingCodAgg,
             recentOrders,
-            categorySalesItems,
+            soldItemsWithCost,
             liveHistoryEvents,
             customersCount,
           ] = await Promise.all([
@@ -53,29 +57,55 @@ export default async function AdminDashboard() {
               where: { status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] } },
               _sum: { grandTotalPaise: true },
               _count: { id: true },
-            }).catch(() => defaultStoreMetrics.totalSalesAgg),
+            }).catch(() => emptyStoreMetrics.totalSalesAgg),
+
+            // In-store POS Sales (deliveryMethod == PICKUP)
+            prisma.order.aggregate({
+              where: {
+                deliveryMethod: "PICKUP",
+                status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] },
+              },
+              _sum: { grandTotalPaise: true },
+              _count: { id: true },
+            }).catch(() => emptyStoreMetrics.posSalesAgg),
+
+            // Online Orders (deliveryMethod == DELIVERY)
+            prisma.order.aggregate({
+              where: {
+                deliveryMethod: "DELIVERY",
+                status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] },
+              },
+              _sum: { grandTotalPaise: true },
+              _count: { id: true },
+            }).catch(() => emptyStoreMetrics.onlineSalesAgg),
 
             // Total Orders count
-            prisma.order.count().catch(() => defaultStoreMetrics.totalOrdersCount),
+            prisma.order.count().catch(() => 0),
 
             // Low stock items count (threshold <= 10 units)
             prisma.inventory.count({
               where: { availableQty: { lte: 10 } },
-            }).catch(() => defaultStoreMetrics.lowStockCount),
+            }).catch(() => 0),
 
             // Total products in catalog
-            prisma.product.count({ where: { deletedAt: null } }).catch(() => defaultStoreMetrics.totalProductsCount),
+            prisma.product.count({ where: { deletedAt: null } }).catch(() => 0),
 
             // Active products
-            prisma.product.count({ where: { deletedAt: null, isActive: true } }).catch(() => defaultStoreMetrics.activeProductsCount),
+            prisma.product.count({ where: { deletedAt: null, isActive: true } }).catch(() => 0),
 
-            // Inventory items for stock valuation (lean selection)
+            // Inventory items for stock valuation at cost
             prisma.inventory.findMany({
               select: {
                 availableQty: true,
-                variant: { select: { mrpPaise: true, sellingPaise: true } },
+                variant: {
+                  select: {
+                    costPricePaise: true,
+                    sellingPaise: true,
+                    mrpPaise: true,
+                  },
+                },
               },
-              take: 500,
+              take: 1000,
             }).catch(() => []),
 
             // Pending COD orders
@@ -86,7 +116,7 @@ export default async function AdminDashboard() {
               },
               _sum: { grandTotalPaise: true },
               _count: { id: true },
-            }).catch(() => defaultStoreMetrics.pendingCodAgg),
+            }).catch(() => emptyStoreMetrics.pendingCodAgg),
 
             // Recent orders with customer and items
             prisma.order.findMany({
@@ -98,18 +128,22 @@ export default async function AdminDashboard() {
               },
             }).catch(() => []),
 
-            // Category Sales breakdown
+            // Real Order Items for COGS & Category Profitability
             prisma.orderItem.findMany({
               where: { order: { status: { notIn: ["CANCELLED", "PAYMENT_FAILED"] } } },
               select: {
+                qty: true,
                 totalPaise: true,
+                costPricePaise: true,
                 variant: {
                   select: {
+                    costPricePaise: true,
+                    sellingPaise: true,
                     product: { select: { category: { select: { name: true, slug: true } } } },
                   },
                 },
               },
-              take: 200,
+              take: 500,
             }).catch(() => []),
 
             // Real Live Operations Feed
@@ -120,11 +154,13 @@ export default async function AdminDashboard() {
             }).catch(() => []),
 
             // Total registered customers
-            prisma.user.count().catch(() => defaultStoreMetrics.customersCount),
+            prisma.user.count().catch(() => 0),
           ]);
 
           return {
             totalSalesAgg,
+            posSalesAgg,
+            onlineSalesAgg,
             totalOrdersCount,
             lowStockCount,
             totalProductsCount,
@@ -132,25 +168,27 @@ export default async function AdminDashboard() {
             inventoryStockItems,
             pendingCodAgg,
             recentOrders,
-            categorySalesItems,
+            soldItemsWithCost,
             liveHistoryEvents,
             customersCount,
           };
         } catch {
-          return defaultStoreMetrics;
+          return emptyStoreMetrics;
         }
-      }).catch(() => defaultStoreMetrics),
+      }).catch(() => emptyStoreMetrics),
     ]);
 
     posConfig = fetchedPosConfig;
     posMetrics = fetchedPosMetrics;
-    storeMetrics = fetchedStoreMetrics ?? defaultStoreMetrics;
+    storeMetrics = fetchedStoreMetrics ?? emptyStoreMetrics;
   } catch {
-    /* fallback to safe defaults */
+    /* fallback to safe empty metrics */
   }
 
   const {
     totalSalesAgg,
+    posSalesAgg,
+    onlineSalesAgg,
     totalOrdersCount,
     lowStockCount,
     totalProductsCount,
@@ -158,72 +196,108 @@ export default async function AdminDashboard() {
     inventoryStockItems,
     pendingCodAgg,
     recentOrders,
-    categorySalesItems,
+    soldItemsWithCost,
     liveHistoryEvents,
     customersCount,
   } = storeMetrics;
 
-  // Real calculations (with standard FMCG retail baseline fallbacks if fresh store)
-  const realSalesPaise = totalSalesAgg._sum.grandTotalPaise ?? 0;
-  const displaySalesPaise = realSalesPaise > 0 ? realSalesPaise : 28456000; // ₹2,84,560 online baseline
-  const displayOrders = totalOrdersCount > 0 ? totalOrdersCount : 342;
-  const grossProfitPaise = Math.round(displaySalesPaise * 0.325); // 32.5% FMCG gross margin
-  const displayLowStock = lowStockCount > 0 ? lowStockCount : 27;
+  // Real calculations directly from database aggregates
+  const realSalesPaise = totalSalesAgg._sum?.grandTotalPaise ?? 0;
+  const realPosPaise = posSalesAgg._sum?.grandTotalPaise ?? 0;
+  const realOnlinePaise = onlineSalesAgg._sum?.grandTotalPaise ?? 0;
+  const displayOrders = totalOrdersCount;
 
-  const codPendingPaise = pendingCodAgg._sum.grandTotalPaise ?? 0;
-  const displayCodPaise = codPendingPaise > 0 ? codPendingPaise : 1875000; // ₹18,750
-  const displayCodOrders = pendingCodAgg._count.id > 0 ? pendingCodAgg._count.id : 6;
+  // Real COGS (Cost of Goods Sold) computation from item records
+  let computedCogsPaise = 0;
+  let hasIncompleteCost = false;
 
-  // Stock value computation
-  let computedStockPaise = 0;
-  for (const item of inventoryStockItems) {
-    computedStockPaise += item.availableQty * (item.variant.sellingPaise || item.variant.mrpPaise);
-  }
-  const displayStockPaise = computedStockPaise > 0 ? computedStockPaise : 87632000; // ₹8,76,320
-  const aovPaise = Math.round(displaySalesPaise / displayOrders);
-
-  // Omnichannel totals: Online Store + BUSY POS In-Store
-  const inStorePosPaise = posMetrics.todaySalesPaise; // ₹1,61,680
-  const omnichannelTotalPaise = displaySalesPaise + inStorePosPaise; // ₹4,46,240
-
-  // Category breakdown calculation
   const catTotals = new Map<string, number>();
-  for (const item of categorySalesItems) {
-    const catName = item.variant.product.category?.name ?? "Grocery & Staples";
+
+  for (const item of soldItemsWithCost) {
+    const cost = item.costPricePaise > 0 ? item.costPricePaise : (item.variant?.costPricePaise || 0);
+    if (cost > 0) {
+      computedCogsPaise += item.qty * cost;
+    } else {
+      hasIncompleteCost = true;
+    }
+
+    const catName = item.variant?.product?.category?.name || "Grocery & Staples";
     catTotals.set(catName, (catTotals.get(catName) ?? 0) + item.totalPaise);
   }
 
-  // Pre-seed FMCG category distribution if fresh database
-  if (catTotals.size === 0) {
-    catTotals.set("Dairy, Bread & Eggs", 5621000);
-    catTotals.set("Atta, Rice & Dal", 4876000);
-    catTotals.set("Snacks & Munchies", 4189000);
-    catTotals.set("Home & Cleaning", 2343000);
-    catTotals.set("Personal Care", 1820000);
+  // Calculate Gross Profit truthfully from real Net Sales minus recorded COGS
+  let grossProfitPaise = 0;
+  if (realSalesPaise > 0) {
+    if (computedCogsPaise > 0) {
+      grossProfitPaise = Math.max(0, realSalesPaise - computedCogsPaise);
+    } else {
+      // If purchase costs have not yet been inwarded, profit cannot be fabricated
+      grossProfitPaise = 0;
+    }
   }
 
-  const categoryList = [
-    { name: "Fruits & Vegetables", icon: "🍅", paise: 8243000, pct: 29.0 },
-    { name: "Dairy & Eggs", icon: "🥛", paise: catTotals.get("Dairy, Bread & Eggs") ?? 5621000, pct: 19.8 },
-    { name: "Grocery & Staples", icon: "🌾", paise: catTotals.get("Atta, Rice & Dal") ?? 4876000, pct: 17.1 },
-    { name: "Snacks & Beverages", icon: "🍿", paise: catTotals.get("Snacks & Munchies") ?? 4189000, pct: 14.7 },
-    { name: "Home & Cleaning", icon: "🧼", paise: catTotals.get("Home & Cleaning") ?? 2343000, pct: 8.2 },
-  ];
+  const displayLowStock = lowStockCount;
+  const displayCodPaise = pendingCodAgg._sum?.grandTotalPaise ?? 0;
+  const displayCodOrders = pendingCodAgg._count?.id ?? 0;
+
+  // Inventory Stock Valuation at Cost (or selling price if cost not yet entered)
+  let computedStockValuationPaise = 0;
+  for (const item of inventoryStockItems) {
+    const unitValuation = item.variant?.costPricePaise > 0
+      ? item.variant.costPricePaise
+      : (item.variant?.sellingPaise || item.variant?.mrpPaise || 0);
+    computedStockValuationPaise += (item.availableQty || 0) * unitValuation;
+  }
+
+  const aovPaise = displayOrders > 0 ? Math.round(realSalesPaise / displayOrders) : 0;
+
+  // Omnichannel totals: In-Store POS + Online Store
+  const omnichannelTotalPaise = realSalesPaise;
+
+  // Real Category Distribution based on actual order history
+  const categoryIcons: Record<string, string> = {
+    "Grocery & Staples": "🌾",
+    "Dairy, Bread & Eggs": "🥛",
+    "Dairy & Bakery": "🥛",
+    "Snacks & Munchies": "🍿",
+    "Snacks & Beverages": "🍿",
+    "Personal Care": "🧴",
+    "Home & Cleaning": "🧼",
+    "Beverages": "🥤",
+  };
+
+  const categoryList = Array.from(catTotals.entries()).map(([name, paise]) => ({
+    name,
+    icon: categoryIcons[name] || "📦",
+    paise,
+    pct: realSalesPaise > 0 ? parseFloat(((paise / realSalesPaise) * 100).toFixed(1)) : 0,
+  }));
+
+  // If no sales yet, show clean top categories from catalog with 0 sales
+  if (categoryList.length === 0) {
+    categoryList.push(
+      { name: "Grocery & Staples", icon: "🌾", paise: 0, pct: 0 },
+      { name: "Dairy & Bakery", icon: "🥛", paise: 0, pct: 0 },
+      { name: "Snacks & Beverages", icon: "🍿", paise: 0, pct: 0 },
+      { name: "Personal Care", icon: "🧴", paise: 0, pct: 0 },
+      { name: "Home & Cleaning", icon: "🧼", paise: 0, pct: 0 },
+    );
+  }
 
   return (
     <AdminDashboardClient
-      displaySalesPaise={displaySalesPaise}
+      displaySalesPaise={realSalesPaise}
       displayOrders={displayOrders}
       grossProfitPaise={grossProfitPaise}
       displayLowStock={displayLowStock}
       displayCodPaise={displayCodPaise}
       displayCodOrders={displayCodOrders}
-      displayStockPaise={displayStockPaise}
+      displayStockPaise={computedStockValuationPaise}
       aovPaise={aovPaise}
       totalProductsCount={totalProductsCount}
       activeProductsCount={activeProductsCount}
       customersCount={customersCount}
-      inStorePosPaise={inStorePosPaise}
+      inStorePosPaise={realPosPaise}
       omnichannelTotalPaise={omnichannelTotalPaise}
       categoryList={categoryList}
       recentOrders={recentOrders as any}
