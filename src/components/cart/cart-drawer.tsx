@@ -126,6 +126,35 @@ export function CartDrawer() {
   }, []);
 
   async function updateQty(variantId: string, nextQty: number) {
+    if (typeof window !== "undefined" && window.navigator?.vibrate) {
+      try {
+        window.navigator.vibrate(10);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // Instant 0ms Optimistic UI calculation
+    setCart((prev) => {
+      if (!prev) return null;
+      let newLines = prev.lines.map((l) =>
+        l.variantId === variantId
+          ? { ...l, qty: nextQty, lineTotalPaise: l.unitPricePaise * nextQty }
+          : l
+      );
+      if (nextQty <= 0) {
+        newLines = newLines.filter((l) => l.variantId !== variantId);
+      }
+      const newSubtotal = newLines.reduce((sum, l) => sum + l.lineTotalPaise, 0);
+      const newCount = newLines.reduce((sum, l) => sum + l.qty, 0);
+      return {
+        ...prev,
+        lines: newLines,
+        subtotalPaise: newSubtotal,
+        count: newCount,
+      };
+    });
+
     try {
       const data = await api<CartDetail>("/api/cart", {
         method: "POST",
@@ -134,7 +163,7 @@ export function CartDrawer() {
       setCart(data);
       window.dispatchEvent(new CustomEvent("cart-updated", { detail: data }));
     } catch {
-      /* ignore */
+      loadCart();
     }
   }
 
@@ -202,7 +231,7 @@ export function CartDrawer() {
 
       {/* Screen 3 Mockup Layout */}
       <aside
-        className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[460px] w-full max-h-[94vh] sm:max-h-full flex flex-col rounded-t-3xl sm:rounded-none bg-white shadow-2xl z-50 animate-in slide-in-from-bottom sm:slide-in-from-right duration-300 overflow-hidden"
+        className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[460px] w-full max-h-[94vh] sm:max-h-full flex flex-col rounded-t-3xl sm:rounded-none bg-white shadow-2xl z-50 animate-in slide-in-from-bottom sm:slide-in-from-right duration-300 overflow-hidden gpu-accel"
         aria-label="Your Cart"
       >
         {/* Mobile Drag Indicator Bar */}

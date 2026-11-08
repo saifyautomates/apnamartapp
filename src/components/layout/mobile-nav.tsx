@@ -100,7 +100,7 @@ export function MobileBottomNav() {
     <div className="sm:hidden">
       {/* Floating Cart Quick Banner (Pops above nav when 1+ items in cart) */}
       {count > 0 && !pathname.startsWith("/checkout") ? (
-        <div className="fixed bottom-[calc(3.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-250">
+        <div className="fixed bottom-[calc(3.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-250 gpu-accel">
           <button
             onClick={openCart}
             className="w-full flex items-center justify-between bg-gradient-to-r from-[#0c831f] via-[#0d8e23] to-[#0a701a] text-white px-4 py-3 rounded-2xl shadow-2xl shadow-emerald-950/25 border border-emerald-400/30 transition active:scale-[0.98] cursor-pointer"
@@ -130,7 +130,7 @@ export function MobileBottomNav() {
       {/* World-Class 5-Tab Mobile Navigation Dock (Matches Mockup) */}
       <nav
         aria-label="Mobile Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] shadow-xl flex justify-around items-center select-none"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] shadow-xl flex justify-around items-center select-none gpu-accel"
       >
         {navItems.map((item) => {
           const isActive = pathname === item.href;

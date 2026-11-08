@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { handler, ok } from "@/lib/http";
 import { prisma, withDbTimeout } from "@/lib/prisma";
+import { cachedJson } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,28 +52,27 @@ const KOTA_FALLBACK_ZONES = [
 ];
 
 export const GET = handler(async (req: NextRequest) => {
-  let zones: any[] = [];
-  try {
-    zones = await withDbTimeout(
-      prisma.deliveryZone.findMany({
-        where: { isActive: true },
-        include: { slots: { where: { isActive: true }, orderBy: { label: "asc" } } },
-        orderBy: { name: "asc" },
-      }),
-      2500
-    );
-  } catch {
-    /* fallback to Kota default zones */
-  }
-
-  if (zones.length === 0) {
-    zones = KOTA_FALLBACK_ZONES;
-  }
+  let zones: any[] = await cachedJson<any[]>("delivery_zones:active_v2", 300, async () => {
+    try {
+      const dbZones = await withDbTimeout(
+        prisma.deliveryZone.findMany({
+          where: { isActive: true },
+          include: { slots: { where: { isActive: true }, orderBy: { label: "asc" } } },
+          orderBy: { name: "asc" },
+        }),
+        2500
+      );
+      if (dbZones.length > 0) return dbZones;
+    } catch {
+      /* fallback to Kota default zones */
+    }
+    return KOTA_FALLBACK_ZONES;
+  });
 
   const url = new URL(req.url);
   const pincode = url.searchParams.get("pincode")?.trim();
   if (pincode) {
-    zones = zones.filter((z) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode));
+    zones = zones.filter((z: any) => Array.isArray(z.pincodes) && z.pincodes.includes(pincode));
   }
 
   return ok(zones);

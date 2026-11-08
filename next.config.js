@@ -71,6 +71,24 @@ const nextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
+        // Static JS/CSS chunks caching
+        source: "/_next/static/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        // Public catalogue API caching
+        source: "/api/categories",
+        headers: [{ key: "Cache-Control", value: "public, s-maxage=120, stale-while-revalidate=300" }],
+      },
+      {
+        source: "/api/banners",
+        headers: [{ key: "Cache-Control", value: "public, s-maxage=120, stale-while-revalidate=300" }],
+      },
+      {
+        source: "/api/products",
+        headers: [{ key: "Cache-Control", value: "public, s-maxage=30, stale-while-revalidate=120" }],
+      },
+      {
         // Icons caching
         source: "/icons/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],

@@ -59,6 +59,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://ezwkjxhdkhgvyahypsjn.supabase.co" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://ezwkjxhdkhgvyahypsjn.supabase.co" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body>
         <DeliveryProvider initialConfig={deliveryConfig}>
           <LaunchLoader storeName={storeName} monogram={monogramFor(storeName)} />

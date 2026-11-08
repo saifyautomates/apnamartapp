@@ -208,7 +208,7 @@ export function SearchModal() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in fade-in duration-200 gpu-accel">
       {/* Top Search App Bar */}
       <div className="sticky top-0 z-20 bg-white border-b border-neutral-200/80 px-3 py-2.5 sm:px-6 sm:py-3.5 shadow-xs flex items-center gap-2.5">
         <button
