@@ -54,7 +54,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         orderBy: { createdAt: "desc" },
         take: 100,
       }),
-      250
+      2500
     );
   } catch {
     /* fallback to live orders */

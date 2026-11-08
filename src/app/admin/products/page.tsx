@@ -80,7 +80,7 @@ export default async function AdminProductsPage({
         prisma.product.count({ where: where as never }),
         prisma.category.findMany({ orderBy: { name: "asc" } }),
       ]),
-      250
+      2500
     );
     products = res[0];
     totalCount = res[1];

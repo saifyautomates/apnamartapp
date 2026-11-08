@@ -59,7 +59,7 @@ export default async function AdminInventoryPage({ searchParams }: { searchParam
         orderBy: { updatedAt: "desc" },
         take: 200,
       }),
-      250
+      2500
     );
   } catch {
     /* fallback to fmcg stock */

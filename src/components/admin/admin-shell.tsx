@@ -267,6 +267,7 @@ export default function AdminShell({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={true}
                 className={`group flex items-center justify-between gap-3 rounded-2xl px-4 py-2.5 text-sm font-bold transition-all duration-200 cursor-pointer ${
                   active
                     ? "bg-gradient-to-r from-[#22c55e] to-[#16a34a] text-white shadow-lg shadow-emerald-900/40 font-black scale-[1.02]"
@@ -548,6 +549,7 @@ export default function AdminShell({
         <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.06)] lg:hidden">
           <Link
             href="/admin"
+            prefetch={true}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
               pathname === "/admin"
                 ? "text-[#0c831f] font-black"
@@ -562,6 +564,7 @@ export default function AdminShell({
 
           <Link
             href="/admin/pos"
+            prefetch={true}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
               pathname.startsWith("/admin/pos")
                 ? "text-[#0c831f] font-black"
@@ -576,6 +579,7 @@ export default function AdminShell({
 
           <Link
             href="/admin/orders"
+            prefetch={true}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
               pathname.startsWith("/admin/orders")
                 ? "text-[#0c831f] font-black"
@@ -590,6 +594,7 @@ export default function AdminShell({
 
           <Link
             href="/admin/products"
+            prefetch={true}
             className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition ${
               pathname.startsWith("/admin/products")
                 ? "text-[#0c831f] font-black"
@@ -654,6 +659,7 @@ export default function AdminShell({
                   <Link
                     key={idx}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setSearchOpen(false)}
                     className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold text-neutral-700 hover:bg-[#e8f5e9] hover:text-[#0c831f] transition cursor-pointer"
                   >
@@ -711,6 +717,7 @@ export default function AdminShell({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   onClick={() => setDrawerOpen(false)}
                   className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-bold text-emerald-100 hover:bg-white/10"
                 >

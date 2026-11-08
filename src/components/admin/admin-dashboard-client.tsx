@@ -172,11 +172,13 @@ export function AdminDashboardClient({
     },
   });
 
-  // Background auto-refresh interval (every 20 seconds fallback)
+  // Background auto-refresh interval (fallback 60s when tab is active)
   useEffect(() => {
     const timer = setInterval(() => {
-      refreshLiveMetrics(true);
-    }, 20000);
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        refreshLiveMetrics(true);
+      }
+    }, 60000);
     return () => clearInterval(timer);
   }, [refreshLiveMetrics]);
 

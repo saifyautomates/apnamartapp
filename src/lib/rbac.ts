@@ -59,7 +59,7 @@ export async function getAdminPermissions(adminId: string): Promise<string[]> {
         where: { adminUserId: adminId },
         include: { role: { include: { permissions: { include: { permission: true } } } } },
       }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 250)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500)),
     ]);
     const set = new Set<string>();
     for (const r of rows) {

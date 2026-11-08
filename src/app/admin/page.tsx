@@ -35,7 +35,7 @@ export default async function AdminDashboard() {
     const [fetchedPosConfig, fetchedPosMetrics, fetchedStoreMetrics] = await Promise.all([
       getBusyPosConfig().catch(() => ({ enabled: false })),
       getBusyPosMetrics().catch(() => ({ todaySalesPaise: 0, todayBillsCount: 0, recentVouchers: [] })),
-      cachedJson("admin:dashboard:metrics:v3", 10, async () => {
+      cachedJson("admin:dashboard:metrics:v4", 30, async () => {
         try {
           const [
             totalSalesAgg,
@@ -105,7 +105,7 @@ export default async function AdminDashboard() {
                   },
                 },
               },
-              take: 1000,
+              take: 200,
             }).catch(() => []),
 
             // Pending COD orders
@@ -143,7 +143,7 @@ export default async function AdminDashboard() {
                   },
                 },
               },
-              take: 500,
+              take: 150,
             }).catch(() => []),
 
             // Real Live Operations Feed
