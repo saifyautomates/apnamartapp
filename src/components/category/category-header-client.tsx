@@ -86,3 +86,4 @@ export function CategoryHeaderClient({ categoryName }: CategoryHeaderClientProps
 }
 
 export default CategoryHeaderClient;
+

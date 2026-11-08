@@ -10,6 +10,7 @@
     "next": "^14.2.18",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "resend": "^6.37.0",
     "zod": "^3.23.8"
   },
   "description": "Production-grade grocery commerce platform for a single independent Indian grocery store. Modular monolith: Next.js + TypeScript + Prisma + PostgreSQL, BUSY-ready and Shiprocket-ready via adapters (both NOT connected in v1).",

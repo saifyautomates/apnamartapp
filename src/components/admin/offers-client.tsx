@@ -524,3 +524,4 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
 }
 
 export default AdminOffersClient;
+

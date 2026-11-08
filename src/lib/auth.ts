@@ -245,8 +245,15 @@ export async function requestOtp(phone: string, provider: OtpProvider = consoleO
   const msg91Key = process.env.MSG91_AUTH_KEY;
   const msg91Template = process.env.MSG91_OTP_TEMPLATE_ID;
   const msg91Sender = process.env.MSG91_SENDER_ID;
-  if (provider === consoleOtpProvider && msg91Key && msg91Template) {
-    activeProvider = new Msg91OtpProvider(msg91Key, msg91Template, msg91Sender);
+  const isMsg91Active = Boolean(
+    msg91Key &&
+      !msg91Key.startsWith("your_") &&
+      msg91Template &&
+      !msg91Template.startsWith("your_")
+  );
+
+  if (provider === consoleOtpProvider && isMsg91Active) {
+    activeProvider = new Msg91OtpProvider(msg91Key!, msg91Template!, msg91Sender);
   }
 
   // Rate limit: max 5 OTPs per hour per phone.
@@ -259,8 +266,8 @@ export async function requestOtp(phone: string, provider: OtpProvider = consoleO
     data: { phone: digits, codeHash, purpose: "LOGIN", expiresAt: new Date(Date.now() + OTP_TTL_MS) },
   });
   await activeProvider.send(digits, code);
-  // Dev/test hook: enabled only when ALLOW_DEV_OTP is explicitly "true"
-  const devOtp = process.env.ALLOW_DEV_OTP === "true" ? code : undefined;
+  // Dev/test hook: enabled only when MSG91 is not active and ALLOW_DEV_OTP is explicitly "true"
+  const devOtp = !isMsg91Active && process.env.ALLOW_DEV_OTP === "true" ? code : undefined;
   return { phone: digits, devOtp };
 }
 

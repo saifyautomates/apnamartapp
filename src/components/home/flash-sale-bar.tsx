@@ -127,3 +127,4 @@ export function FlashSaleBar({ initialOffers }: { initialOffers?: StoreOffer[] }
 }
 
 export default FlashSaleBar;
+

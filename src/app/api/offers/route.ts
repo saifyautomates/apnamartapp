@@ -8,3 +8,4 @@ export const GET = handler(async (_req: NextRequest) => {
   const offers = await getStoreOffers();
   return ok(offers);
 });
+
