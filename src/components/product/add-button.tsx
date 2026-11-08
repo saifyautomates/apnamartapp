@@ -9,6 +9,41 @@ export interface AddButtonProps {
   className?: string;
 }
 
+function playCartPop(direction: "up" | "down" = "up") {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    osc.type = "sine";
+    if (direction === "up") {
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else {
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(330, now + 0.06);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    }
+  } catch {
+    /* AudioContext blocked or not supported */
+  }
+}
+
 export function AddButton({
   variantId,
   initialQty = 0,
@@ -45,6 +80,9 @@ export function AddButton({
     setQty(targetQty); // 0ms Instant Optimistic Feedback
     pendingQtyRef.current = targetQty;
     setError("");
+
+    // Subtle audio micro-pop feedback
+    playCartPop(next > prev ? "up" : "down");
 
     // Native micro-haptic pulse on mobile devices
     if (typeof window !== "undefined" && window.navigator?.vibrate) {

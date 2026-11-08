@@ -32,9 +32,18 @@ export const KOTA_LOCALITIES: KotaLocality[] = [
 export interface GoogleMapPickerProps {
   isOpen: boolean;
   onClose: () => void;
+  onSelectAddress?: (addr: {
+    label: string;
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    pincode: string;
+    locality: string;
+  }) => void;
 }
 
-export function GoogleMapPicker({ isOpen, onClose }: GoogleMapPickerProps) {
+export function GoogleMapPicker({ isOpen, onClose, onSelectAddress }: GoogleMapPickerProps) {
   const { activeLocation, setActiveLocation, zones } = useDelivery();
 
   const [selectedLocality, setSelectedLocality] = useState<KotaLocality>(
@@ -120,6 +129,18 @@ export function GoogleMapPicker({ isOpen, onClose }: GoogleMapPickerProps) {
       localStorage.setItem("cm_delivery_pincode", selectedLocality.pincode);
     } catch {
       /* ignore */
+    }
+
+    if (onSelectAddress) {
+      onSelectAddress({
+        label: tag,
+        line1: houseNo ? `${houseNo}, ${selectedLocality.name}` : selectedLocality.name,
+        line2: landmark || undefined,
+        city: "Kota",
+        state: "Rajasthan",
+        pincode: selectedLocality.pincode,
+        locality: selectedLocality.name,
+      });
     }
 
     setSavedSuccess(true);
@@ -450,3 +471,4 @@ export function GoogleMapPicker({ isOpen, onClose }: GoogleMapPickerProps) {
 }
 
 export default GoogleMapPicker;
+
