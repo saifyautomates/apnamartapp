@@ -69,14 +69,16 @@ export function CheckoutPageView() {
   const [devOtpHint, setDevOtpHint] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [availableOffers, setAvailableOffers] = useState<any[]>([]);
 
   const loadCheckoutData = async () => {
     try {
-      const [addrRes, zoneRes, infoRes, cartRes] = await Promise.all([
+      const [addrRes, zoneRes, infoRes, cartRes, offerRes] = await Promise.all([
         fetch("/api/account/addresses"),
         fetch("/api/delivery/zones"),
         fetch("/api/store-info"),
         fetch("/api/cart"),
+        fetch("/api/offers").then((r) => r.json()).catch(() => ({ data: [] })),
       ]);
       const addrJson = await addrRes.json();
       if (addrRes.status === 401) {
@@ -100,6 +102,9 @@ export function CheckoutPageView() {
       setStoreInfo(infoJson.data);
       const cartJson = await cartRes.json();
       setCartSummary(cartJson.data);
+      if (offerRes?.data && Array.isArray(offerRes.data)) {
+        setAvailableOffers(offerRes.data);
+      }
     } catch {
       setError("Failed to load checkout data");
     }
@@ -220,16 +225,66 @@ export function CheckoutPageView() {
     }
   }
 
-  // Apply Promo Coupon
-  function applyCoupon() {
-    if (!couponCode.trim()) return;
-    if (couponCode === "FIRST50" || couponCode === "KOTA50" || couponCode === "BLINKIT") {
+  // Apply Promo Coupon / Dynamic Offer
+  function applyCoupon(codeToApply?: string) {
+    const raw = (typeof codeToApply === "string" ? codeToApply : couponCode).trim().toUpperCase();
+    if (!raw) return;
+
+    const sub = cartSummary?.subtotalPaise || 0;
+    const matched = availableOffers.find(
+      (o) => o.code?.toUpperCase() === raw || o.id === raw
+    );
+
+    if (matched) {
+      const minPaise = Math.round(Number(matched.minOrderValue) * 100);
+      if (sub < minPaise) {
+        setError(`Add ₹${Math.round((minPaise - sub) / 100)} more to use ${matched.code} (Min order: ₹${matched.minOrderValue})`);
+        return;
+      }
+      let disc = 0;
+      if (matched.type === "PERCENT") {
+        disc = Math.round((sub * Number(matched.discountValue)) / 100);
+        if (matched.maxDiscountValue) {
+          disc = Math.min(disc, Math.round(Number(matched.maxDiscountValue) * 100));
+        }
+      } else {
+        disc = Math.round(Number(matched.discountValue) * 100);
+      }
       setCouponApplied(true);
-      setDiscountPaise(5000); // ₹50 off
+      setCouponCode(matched.code);
+      setDiscountPaise(Math.min(disc, sub));
+      setError("");
+      return;
+    }
+
+    if (raw === "SAVE100" || raw === "CENTRAL100") {
+      if (sub < 100000) {
+        setError("Min order for SAVE100 is ₹1,000");
+        return;
+      }
+      setCouponApplied(true);
+      setCouponCode(raw);
+      setDiscountPaise(10000);
+      setError("");
+    } else if (raw === "KOTA50" || raw === "FIRST50" || raw === "BLINKIT") {
+      if (sub < 49900) {
+        setError("Min order for KOTA50 is ₹499");
+        return;
+      }
+      setCouponApplied(true);
+      setCouponCode(raw);
+      setDiscountPaise(5000);
       setError("");
     } else {
-      setError("Invalid coupon code. Try KOTA50 or FIRST50");
+      setError("Invalid coupon code. Try SAVE100 or KOTA50");
     }
+  }
+
+  function removeCoupon() {
+    setCouponApplied(false);
+    setCouponCode("");
+    setDiscountPaise(0);
+    setError("");
   }
 
   const matchedZone = zones.find((z) => z.pincodes.includes(pincode)) || {
@@ -724,22 +779,63 @@ export function CheckoutPageView() {
               </div>
             ) : null}
 
-            {/* Promo Code Input */}
-            <div className="pt-2 border-t border-neutral-100 flex gap-2">
-              <input
-                type="text"
-                placeholder="PROMO CODE (e.g. KOTA50)"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                className="flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-xs font-bold uppercase placeholder-neutral-400 focus:border-[#0c831f] focus:outline-hidden"
-              />
-              <button
-                type="button"
-                onClick={applyCoupon}
-                className="rounded-xl bg-[#e8f5e9] text-[#0c831f] font-black text-xs px-4 py-2 hover:bg-[#d4edd8] transition cursor-pointer"
-              >
-                Apply
-              </button>
+            {/* Promo Code & Available Offers */}
+            <div className="pt-2 border-t border-neutral-100 space-y-2">
+              {couponApplied ? (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base text-emerald-700">🏷️</span>
+                    <div>
+                      <p className="text-xs font-mono font-black text-emerald-900">{couponCode} APPLIED</p>
+                      <p className="text-[11px] text-emerald-700 font-bold">Saved <Price paise={discountPaise} /></p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="PROMO CODE (e.g. SAVE100)"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    className="flex-1 rounded-xl border border-neutral-200 px-3 py-2 text-xs font-bold uppercase placeholder-neutral-400 focus:border-[#0c831f] focus:outline-hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => applyCoupon()}
+                    className="rounded-xl bg-[#e8f5e9] text-[#0c831f] font-black text-xs px-4 py-2 hover:bg-[#d4edd8] transition cursor-pointer"
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+
+              {/* Available Promo Chips */}
+              {!couponApplied && availableOffers && availableOffers.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {availableOffers.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => applyCoupon(o.code)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-emerald-50 hover:text-emerald-800 text-[11px] font-mono font-bold text-neutral-700 transition cursor-pointer border border-neutral-200"
+                    >
+                      <span>🏷️</span>
+                      <span>{o.code}</span>
+                      <span className="text-[10px] text-emerald-700 font-sans font-bold">
+                        ({o.type === "PERCENT" ? `${o.discountValue}%` : `₹${o.discountValue}`} OFF)
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Primary Action Button */}

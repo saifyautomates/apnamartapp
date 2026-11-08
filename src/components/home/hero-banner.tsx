@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { StoreBanner } from "@/lib/banners";
@@ -12,6 +12,10 @@ export interface HeroBannerProps {
 
 export function HeroBanner({ banners: initialBanners }: HeroBannerProps) {
   const [activeIdx, setActiveIdx] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const bannerContainerRef = useRef<HTMLDivElement>(null);
 
   const bannerList: StoreBanner[] =
     initialBanners && initialBanners.length > 0
@@ -58,23 +62,94 @@ export function HeroBanner({ banners: initialBanners }: HeroBannerProps) {
           },
         ];
 
-  // Auto-slide every 5 seconds
+  const nextSlide = useCallback(() => {
+    setActiveIdx((prev) => (prev + 1) % bannerList.length);
+  }, [bannerList.length]);
+
+  const prevSlide = useCallback(() => {
+    setActiveIdx((prev) => (prev - 1 + bannerList.length) % bannerList.length);
+  }, [bannerList.length]);
+
+  // Auto-slide every 5 seconds, pauses on interaction
   useEffect(() => {
-    if (bannerList.length <= 1) return;
+    if (bannerList.length <= 1 || isPaused) return;
     const timer = setInterval(() => {
-      setActiveIdx((prev) => (prev + 1) % bannerList.length);
+      nextSlide();
     }, 5000);
     return () => clearInterval(timer);
-  }, [bannerList.length]);
+  }, [bannerList.length, isPaused, nextSlide]);
+
+  // Touch Swipe Handlers for mobile & tablet (Left/Right gestures)
+  const minSwipeDistance = 40;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    setIsPaused(false);
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      // Swiped left -> Next slide
+      nextSlide();
+    } else if (isRightSwipe) {
+      // Swiped right -> Previous slide
+      prevSlide();
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
 
   const current = bannerList[activeIdx] || bannerList[0];
 
   return (
-    <div className="space-y-2">
-      <section className="relative overflow-hidden rounded-3xl shadow-md transition-all duration-300">
+    <div
+      className="space-y-2 select-none"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <section
+        ref={bannerContainerRef}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        className="relative group/banner overflow-hidden rounded-3xl shadow-md transition-all duration-300 touch-pan-y"
+      >
+        {/* Left Arrow Button for Desktop / Tablet */}
+        {bannerList.length > 1 && (
+          <button
+            onClick={prevSlide}
+            aria-label="Previous Banner"
+            className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 rounded-full bg-black/30 hover:bg-black/60 text-white items-center justify-center backdrop-blur-xs transition opacity-0 group-hover/banner:opacity-100 cursor-pointer active:scale-90"
+          >
+            ‹
+          </button>
+        )}
+
+        {/* Right Arrow Button for Desktop / Tablet */}
+        {bannerList.length > 1 && (
+          <button
+            onClick={nextSlide}
+            aria-label="Next Banner"
+            className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 rounded-full bg-black/30 hover:bg-black/60 text-white items-center justify-center backdrop-blur-xs transition opacity-0 group-hover/banner:opacity-100 cursor-pointer active:scale-90"
+          >
+            ›
+          </button>
+        )}
+
         {/* Card with Fresh Green Gradient (Matches Screen 1 Mockup) */}
         <div
-          className={`relative overflow-hidden bg-gradient-to-r ${current.bgGradient} text-white px-4 py-4 sm:px-8 sm:py-6 flex items-center justify-between min-h-[155px] sm:min-h-[195px] md:min-h-[220px]`}
+          className={`relative overflow-hidden bg-gradient-to-r ${current.bgGradient} text-white px-4 py-4 sm:px-8 sm:py-6 flex items-center justify-between min-h-[155px] sm:min-h-[195px] md:min-h-[220px] transition-colors duration-500`}
         >
           {/* Subtle Ambient Glow */}
           <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-emerald-400/20 blur-2xl pointer-events-none" />

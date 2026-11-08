@@ -140,9 +140,14 @@ export function InstallBanner() {
     <div className="bg-[#096918] text-white border-b border-emerald-600/30 text-xs" role="region" aria-label="Download the app">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-1.5 sm:px-4 sm:py-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white text-[10px] font-black text-[#0c831f] shadow-xs">
-            CM
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icons/icon-192.png"
+            alt="Central Mart Logo"
+            width="24"
+            height="24"
+            className="h-6 w-6 shrink-0 rounded-lg object-contain shadow-xs ring-1 ring-white/40"
+          />
           <p className="truncate text-[11px] sm:text-xs font-semibold">
             <span className="hidden sm:inline font-bold">Install Central Mart App — </span>Fastest grocery delivery in Kota
           </p>

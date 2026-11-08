@@ -7,6 +7,13 @@ import { getSession } from "./auth";
 
 export const CART_COOKIE = "gcp_cart";
 
+function isSecureCookie(): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+  if (base.startsWith("http://localhost") || base.startsWith("http://127.0.0.1")) return false;
+  return true;
+}
+
 export function getGuestToken(req: NextRequest): string | null {
   return req.cookies.get(CART_COOKIE)?.value ?? null;
 }
@@ -15,7 +22,7 @@ export function setGuestCookie(res: NextResponse, token: string): void {
   res.cookies.set(CART_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecureCookie(),
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });

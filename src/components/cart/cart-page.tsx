@@ -37,13 +37,22 @@ export function CartPageView() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [tip, setTip] = useState<number | null>(null);
+  const [offers, setOffers] = useState<any[]>([]);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [discountPaise, setDiscountPaise] = useState(0);
+  const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
 
   const { deliveryPromiseText, estimatedArrivalNotice, deliveryConfig } = useDelivery();
 
   const load = useCallback(async () => {
     try {
-      const data = await fetch("/api/cart").then((r) => r.json());
-      setCart(data.data);
+      const [cartRes, offerRes] = await Promise.all([
+        fetch("/api/cart").then((r) => r.json()),
+        fetch("/api/offers").then((r) => r.json()).catch(() => ({ data: [] })),
+      ]);
+      setCart(cartRes.data);
+      setOffers(offerRes.data ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load cart");
     } finally {
@@ -96,7 +105,76 @@ export function CartPageView() {
   const deliveryCharge = subtotal >= FREE_THRESHOLD ? 0 : 1500;
   const handlingCharge = 200;
   const tipPaise = tip ? tip * 100 : 0;
-  const grandTotal = subtotal + deliveryCharge + handlingCharge + tipPaise;
+  const grandTotal = Math.max(0, subtotal + deliveryCharge + handlingCharge + tipPaise - discountPaise);
+
+  function applyCouponCode(codeToApply?: string) {
+    const raw = (codeToApply || couponCode).trim().toUpperCase();
+    if (!raw) {
+      setCouponMsg({ text: "Please enter a valid offer or coupon code", isError: true });
+      return;
+    }
+
+    const matchedOffer = offers.find(
+      (o) => o.code?.toUpperCase() === raw || o.id === raw
+    );
+
+    if (matchedOffer) {
+      const minPaise = Math.round(Number(matchedOffer.minOrderValue) * 100);
+      if (subtotal < minPaise) {
+        setCouponMsg({
+          text: `Add ${formatPaise(minPaise - subtotal)} more to use ${matchedOffer.code} (Min order: ₹${matchedOffer.minOrderValue})`,
+          isError: true,
+        });
+        return;
+      }
+
+      let discount = 0;
+      if (matchedOffer.type === "PERCENT") {
+        discount = Math.round((subtotal * Number(matchedOffer.discountValue)) / 100);
+        if (matchedOffer.maxDiscountValue) {
+          discount = Math.min(discount, Math.round(Number(matchedOffer.maxDiscountValue) * 100));
+        }
+      } else {
+        discount = Math.round(Number(matchedOffer.discountValue) * 100);
+      }
+      discount = Math.min(discount, subtotal);
+
+      setDiscountPaise(discount);
+      setCouponApplied(true);
+      setCouponCode(matchedOffer.code);
+      setCouponMsg({ text: `🎉 Offer ${matchedOffer.code} applied! Saved ${formatPaise(discount)}`, isError: false });
+      return;
+    }
+
+    if (raw === "SAVE100" || raw === "CENTRAL100") {
+      if (subtotal < 100000) {
+        setCouponMsg({ text: `Add ${formatPaise(100000 - subtotal)} more to unlock ₹100 OFF (Min order: ₹1,000)`, isError: true });
+        return;
+      }
+      setDiscountPaise(10000);
+      setCouponApplied(true);
+      setCouponCode(raw);
+      setCouponMsg({ text: "🎉 Code SAVE100 applied! Saved ₹100.00", isError: false });
+    } else if (raw === "KOTA50" || raw === "FIRST50") {
+      if (subtotal < 49900) {
+        setCouponMsg({ text: `Add ${formatPaise(49900 - subtotal)} more to unlock ₹50 OFF (Min order: ₹499)`, isError: true });
+        return;
+      }
+      setDiscountPaise(5000);
+      setCouponApplied(true);
+      setCouponCode(raw);
+      setCouponMsg({ text: `🎉 Code ${raw} applied! Saved ₹50.00`, isError: false });
+    } else {
+      setCouponMsg({ text: "Invalid offer code. Try SAVE100 or KOTA50", isError: true });
+    }
+  }
+
+  function removeCoupon() {
+    setCouponApplied(false);
+    setCouponCode("");
+    setDiscountPaise(0);
+    setCouponMsg(null);
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -195,6 +273,84 @@ export function CartPageView() {
 
         {/* Right Column: Bill Details & Checkout */}
         <div className="lg:col-span-5 space-y-4">
+          {/* Offers & Coupons Box */}
+          <div className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🏷️</span>
+                <span>Offers & Coupons</span>
+              </span>
+              {couponApplied && (
+                <button
+                  onClick={removeCoupon}
+                  className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                placeholder="Enter offer code"
+                className="flex-1 rounded-xl border border-neutral-200 px-3 py-1.5 text-xs font-mono font-bold tracking-wider uppercase focus:border-[#0c831f] focus:outline-hidden"
+              />
+              <button
+                onClick={() => applyCouponCode()}
+                className="rounded-xl bg-[#0c831f] text-white px-4 py-1.5 text-xs font-black hover:bg-[#0a701a] transition cursor-pointer"
+              >
+                Apply
+              </button>
+            </div>
+
+            {couponMsg && (
+              <p className={`text-[11px] font-bold ${couponMsg.isError ? "text-red-600" : "text-[#0c831f]"}`}>
+                {couponMsg.text}
+              </p>
+            )}
+
+            {/* List of Available Offers */}
+            {offers && offers.length > 0 && (
+              <div className="space-y-1.5 pt-2 border-t border-neutral-100">
+                {offers.map((o) => {
+                  const minPaise = Math.round(Number(o.minOrderValue) * 100);
+                  const isEligible = subtotal >= minPaise;
+                  const isThisApplied = couponApplied && couponCode === o.code;
+
+                  return (
+                    <div
+                      key={o.id}
+                      className={`p-2 rounded-xl border text-xs flex items-center justify-between gap-2 ${
+                        isThisApplied ? "bg-emerald-50 border-emerald-300" : "bg-neutral-50/70 border-neutral-200"
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <span className="font-mono font-black text-ink">{o.code}</span>
+                        <p className="text-[11px] text-neutral-500 truncate">{o.title}</p>
+                      </div>
+                      <button
+                        onClick={() => applyCouponCode(o.code)}
+                        disabled={!isEligible || isThisApplied}
+                        className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black transition cursor-pointer ${
+                          isThisApplied
+                            ? "bg-emerald-600 text-white"
+                            : isEligible
+                              ? "bg-[#0c831f] text-white hover:bg-[#0a701a]"
+                              : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                        }`}
+                      >
+                        {isThisApplied ? "Applied ✓" : isEligible ? "Apply" : `Min ₹${o.minOrderValue}`}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-xs space-y-3.5">
             <h3 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider">Bill Summary</h3>
             <div className="space-y-2 text-xs text-neutral-600">
@@ -214,6 +370,12 @@ export function CartPageView() {
                 <span>Handling Fee</span>
                 <span className="font-semibold text-[#1c1c1c]">{formatPaise(handlingCharge)}</span>
               </div>
+              {discountPaise > 0 && (
+                <div className="flex justify-between text-xs text-[#0c831f] font-bold bg-[#e8f5e9] p-2 rounded-lg">
+                  <span>Offer Discount ({couponCode})</span>
+                  <span>-{formatPaise(discountPaise)}</span>
+                </div>
+              )}
               {tipPaise > 0 ? (
                 <div className="flex justify-between text-[#0c831f] font-semibold">
                   <span>Delivery Tip</span>
@@ -228,7 +390,7 @@ export function CartPageView() {
               ) : null}
               <div className="flex justify-between pt-3 border-t border-neutral-200 text-base font-black text-[#1c1c1c]">
                 <span>To Pay</span>
-                <span>{formatPaise(grandTotal)}</span>
+                <span className="text-[#0c831f] font-black">{formatPaise(grandTotal)}</span>
               </div>
             </div>
 

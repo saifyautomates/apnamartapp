@@ -81,6 +81,8 @@ export function ProductImage({ src, alt, className = "", priority = false }: Pro
       alt={alt}
       width="180"
       height="180"
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
       fetchPriority={priority ? "high" : "low"}

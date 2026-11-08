@@ -1,10 +1,12 @@
 import { getHomeRailsSafe } from "@/lib/resilient-catalog";
+import { getStoreOffers } from "@/lib/offers";
 import { HeroBanner, PromoCards, CategoryGrid, QuickFeatures, DealsRail } from "@/components/home";
+import { FlashSaleBar } from "@/components/home/flash-sale-bar";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
 
 export default async function HomePage() {
-  const { dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals, storeBanners } =
-    await getHomeRailsSafe();
+  const [{ dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals, storeBanners }, storeOffers] =
+    await Promise.all([getHomeRailsSafe(), getStoreOffers()]);
 
   const discountDeals = deals.filter((v) => v.sellingPaise < v.mrpPaise).slice(0, 10);
 
@@ -18,6 +20,11 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-12">
+      {/* 0. Live Ticking Flash Sale Announcement Bar */}
+      {storeOffers && storeOffers.length > 0 ? (
+        <FlashSaleBar initialOffers={storeOffers} />
+      ) : null}
+
       {/* 1. Hero Banner Carousel with "Daily Essentials at Best Prices" (Matches Phone 1 Mockup) */}
       <HeroBanner banners={storeBanners} />
 

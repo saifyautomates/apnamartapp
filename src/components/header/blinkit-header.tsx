@@ -31,7 +31,13 @@ export function BlinkitHeader({
 
   const { deliveryPromiseText, activeLocation, setActiveLocation, zones } = useDelivery();
 
-  const refreshCart = async () => {
+  const refreshCart = async (e?: Event) => {
+    const detail = (e as CustomEvent)?.detail;
+    if (detail && typeof detail.count === "number") {
+      setCount(detail.count);
+      if (typeof detail.subtotalPaise === "number") setTotal(detail.subtotalPaise);
+      return;
+    }
     try {
       const res = await fetch("/api/cart");
       if (res.ok) {

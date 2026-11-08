@@ -25,6 +25,11 @@ button, a, input, select, textarea, [role="button"] {
   touch-action: manipulation;
 }
 
+img, a {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
 body {
   @apply bg-bg text-ink font-sans antialiased;
   min-height: 100vh;
@@ -41,14 +46,14 @@ body {
 }
 
 /* Momentum scrolling utilities:
-   Horizontal tracks (carousels, chips, tabs) allow vertical panning freely (touch-action: pan-y).
+   Horizontal tracks (carousels, chips, tabs) allow horizontal swipe and vertical panning (touch-action: pan-x pan-y).
    Vertical tracks (drawers, modal sheets) contain vertical scroll gestures. */
 .scroll-touch-x,
 .scroll-touch {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   overscroll-behavior-y: auto;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
 }
 
 .scroll-touch-y {

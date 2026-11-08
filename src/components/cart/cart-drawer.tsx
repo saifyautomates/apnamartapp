@@ -49,6 +49,10 @@ export function CartDrawer() {
   const [loading, setLoading] = useState(false);
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponCode, setCouponCode] = useState("");
+  const [discountPaise, setDiscountPaise] = useState(0);
+  const [availableOffers, setAvailableOffers] = useState<any[]>([]);
+  const [showCouponBox, setShowCouponBox] = useState(false);
+  const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Customer & Address state
   const [sessionUser, setSessionUser] = useState<UserSession | null>(null);
@@ -60,6 +64,18 @@ export function CartDrawer() {
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
 
   const [showMapPicker, setShowMapPicker] = useState(false);
+
+  async function loadOffers() {
+    try {
+      const res = await fetch("/api/offers");
+      if (res.ok) {
+        const json = await res.json();
+        setAvailableOffers(json.data ?? []);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
   async function loadSession() {
     try {
@@ -92,12 +108,14 @@ export function CartDrawer() {
   useEffect(() => {
     loadCart();
     loadSession();
+    loadOffers();
 
     const handleOpen = () => {
       setOpen(true);
       setStep("cart");
       loadCart();
       loadSession();
+      loadOffers();
     };
     const handleClose = () => setOpen(false);
     const handleCartUpdated = (e: Event) => {
@@ -172,7 +190,78 @@ export function CartDrawer() {
 
   const subtotal = cart?.subtotalPaise ?? 0;
   const deliveryFee = 0; // Kota Free Delivery Promotion
-  const totalAmount = subtotal + deliveryFee;
+  const totalAmount = Math.max(0, subtotal + deliveryFee - discountPaise);
+
+  function applyCouponCode(codeToApply?: string) {
+    const raw = (codeToApply || couponCode).trim().toUpperCase();
+    if (!raw) {
+      setCouponMsg({ text: "Please enter a valid offer or coupon code", isError: true });
+      return;
+    }
+
+    // Check against available offers first
+    const matchedOffer = availableOffers.find(
+      (o) => o.code?.toUpperCase() === raw || o.id === raw
+    );
+
+    if (matchedOffer) {
+      const minPaise = Math.round(Number(matchedOffer.minOrderValue) * 100);
+      if (subtotal < minPaise) {
+        setCouponMsg({
+          text: `Add ${formatPaise(minPaise - subtotal)} more to use ${matchedOffer.code} (Min order: ₹${matchedOffer.minOrderValue})`,
+          isError: true,
+        });
+        return;
+      }
+
+      let discount = 0;
+      if (matchedOffer.type === "PERCENT") {
+        discount = Math.round((subtotal * Number(matchedOffer.discountValue)) / 100);
+        if (matchedOffer.maxDiscountValue) {
+          discount = Math.min(discount, Math.round(Number(matchedOffer.maxDiscountValue) * 100));
+        }
+      } else {
+        discount = Math.round(Number(matchedOffer.discountValue) * 100);
+      }
+      discount = Math.min(discount, subtotal);
+
+      setDiscountPaise(discount);
+      setCouponApplied(true);
+      setCouponCode(matchedOffer.code);
+      setCouponMsg({ text: `🎉 Offer ${matchedOffer.code} applied! Saved ${formatPaise(discount)}`, isError: false });
+      return;
+    }
+
+    // Default promo codes fallback (SAVE100, KOTA50, FIRST50)
+    if (raw === "SAVE100" || raw === "CENTRAL100") {
+      if (subtotal < 100000) {
+        setCouponMsg({ text: `Add ${formatPaise(100000 - subtotal)} more to unlock ₹100 OFF (Min order: ₹1,000)`, isError: true });
+        return;
+      }
+      setDiscountPaise(10000);
+      setCouponApplied(true);
+      setCouponCode(raw);
+      setCouponMsg({ text: "🎉 Code SAVE100 applied! Saved ₹100.00", isError: false });
+    } else if (raw === "KOTA50" || raw === "FIRST50") {
+      if (subtotal < 49900) {
+        setCouponMsg({ text: `Add ${formatPaise(49900 - subtotal)} more to unlock ₹50 OFF (Min order: ₹499)`, isError: true });
+        return;
+      }
+      setDiscountPaise(5000);
+      setCouponApplied(true);
+      setCouponCode(raw);
+      setCouponMsg({ text: `🎉 Code ${raw} applied! Saved ₹50.00`, isError: false });
+    } else {
+      setCouponMsg({ text: "Invalid offer code. Try SAVE100 or KOTA50", isError: true });
+    }
+  }
+
+  function removeCoupon() {
+    setCouponApplied(false);
+    setCouponCode("");
+    setDiscountPaise(0);
+    setCouponMsg(null);
+  }
 
   async function handlePlaceOrder() {
     if (!sessionUser) {
@@ -195,6 +284,7 @@ export function CartDrawer() {
         body: JSON.stringify({
           deliveryMethod: "DELIVERY",
           paymentMethod,
+          couponCode: couponApplied ? couponCode : undefined,
           address: {
             line1: `${houseNo}, ${streetLandmark}`,
             city: "Kota",
@@ -384,16 +474,141 @@ export function CartDrawer() {
 
                 {cart && cart.lines.length > 0 && (
                   <>
-                    {/* Apply Coupon Row (Matches Screen 3 Mockup) */}
-                    <div className="flex items-center justify-between p-3 rounded-2xl border border-neutral-100 bg-[#f8faf8] cursor-pointer hover:border-[#0c831f] transition">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base text-[#0c831f]">🏷️</span>
-                        <span className="text-xs font-black text-[#1c1c1c]">Apply Coupon</span>
+                    {/* Interactive Offers & Coupons Box (Matches Screen 3 Mockup + Live Timers) */}
+                    <div className="rounded-2xl border border-neutral-100 bg-[#f8faf8] overflow-hidden transition-all duration-200">
+                      <div
+                        onClick={() => setShowCouponBox(!showCouponBox)}
+                        className="flex items-center justify-between p-3.5 cursor-pointer hover:bg-neutral-100/50 transition"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base text-[#0c831f]">🏷️</span>
+                          <div>
+                            <span className="text-xs font-black text-[#1c1c1c]">
+                              {couponApplied ? `Coupon "${couponCode}" Applied` : "Apply Coupon / Available Offers"}
+                            </span>
+                            {couponApplied && (
+                              <p className="text-[10px] text-[#0c831f] font-bold">
+                                You are saving {formatPaise(discountPaise)}!
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {couponApplied ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeCoupon();
+                              }}
+                              className="text-xs font-black text-red-600 hover:underline cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          ) : (
+                            <span className="text-xs font-black text-[#0c831f] flex items-center gap-0.5">
+                              <span>{showCouponBox ? "Hide" : "View Offers"}</span>
+                              <span className="text-xs">{showCouponBox ? "▴" : "›"}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-xs font-black text-[#0c831f] flex items-center gap-0.5">
-                        <span>Save more</span>
-                        <span className="text-xs">›</span>
-                      </span>
+
+                      {/* Expandable Offers & Coupon Input */}
+                      {showCouponBox && (
+                        <div className="border-t border-neutral-100 p-3.5 space-y-3 bg-white animate-in slide-in-from-top-1 duration-200">
+                          {/* Promo Code Input */}
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={couponCode}
+                              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                              placeholder="Enter coupon code"
+                              className="flex-1 rounded-xl border border-neutral-200 px-3 py-1.5 text-xs font-mono font-bold tracking-wider uppercase focus:border-[#0c831f] focus:outline-hidden"
+                            />
+                            <button
+                              onClick={() => applyCouponCode()}
+                              className="rounded-xl bg-[#0c831f] text-white px-4 py-1.5 text-xs font-black hover:bg-[#0a701a] transition cursor-pointer"
+                            >
+                              Apply
+                            </button>
+                          </div>
+
+                          {couponMsg && (
+                            <p
+                              className={`text-[11px] font-bold ${
+                                couponMsg.isError ? "text-red-600" : "text-[#0c831f]"
+                              }`}
+                            >
+                              {couponMsg.text}
+                            </p>
+                          )}
+
+                          {/* List of Available Offers */}
+                          {availableOffers && availableOffers.length > 0 && (
+                            <div className="space-y-2 pt-1 border-t border-neutral-100">
+                              <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider">
+                                Available Flash Deals & Promos
+                              </p>
+                              {availableOffers.map((o) => {
+                                const minPaise = Math.round(Number(o.minOrderValue) * 100);
+                                const isEligible = subtotal >= minPaise;
+                                const isThisApplied = couponApplied && couponCode === o.code;
+
+                                return (
+                                  <div
+                                    key={o.id}
+                                    className={`p-2.5 rounded-xl border transition flex items-center justify-between gap-2 ${
+                                      isThisApplied
+                                        ? "bg-emerald-50/80 border-emerald-300"
+                                        : "bg-neutral-50/80 border-neutral-200/80"
+                                    }`}
+                                  >
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-mono text-xs font-black text-ink">
+                                          {o.code}
+                                        </span>
+                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-sm">
+                                          {o.badgeText || "OFFER"}
+                                        </span>
+                                      </div>
+                                      <p className="text-[11px] font-semibold text-neutral-600 truncate mt-0.5">
+                                        {o.title}
+                                      </p>
+                                      {!isEligible && (
+                                        <p className="text-[10px] text-amber-700 font-bold mt-0.5">
+                                          Add {formatPaise(minPaise - subtotal)} more to unlock
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    <div>
+                                      {isThisApplied ? (
+                                        <span className="text-[11px] font-black text-[#0c831f] flex items-center gap-1">
+                                          <span>✓</span>
+                                          <span>Applied</span>
+                                        </span>
+                                      ) : (
+                                        <button
+                                          onClick={() => applyCouponCode(o.code)}
+                                          disabled={!isEligible}
+                                          className={`text-[11px] font-black px-3 py-1 rounded-lg transition cursor-pointer ${
+                                            isEligible
+                                              ? "bg-[#0c831f] text-white hover:bg-[#0a701a]"
+                                              : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                                          }`}
+                                        >
+                                          {isEligible ? "Apply" : `Min ₹${o.minOrderValue}`}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Delivery Address Card (Matches Screen 3 Mockup) */}
@@ -451,6 +666,12 @@ export function CartDrawer() {
                           <span className="font-black text-[#0c831f]">₹0 FREE</span>
                         </div>
                       </div>
+                      {discountPaise > 0 && (
+                        <div className="flex justify-between text-xs text-[#0c831f] font-bold bg-[#e8f5e9]/70 px-2 py-1 rounded-lg">
+                          <span>Offer Discount ({couponCode})</span>
+                          <span>-{formatPaise(discountPaise)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between pt-2 border-t border-neutral-100 text-sm font-black text-[#1c1c1c]">
                         <span>Total Amount</span>
                         <span className="text-base font-black text-[#1c1c1c]">{formatPaise(totalAmount)}</span>

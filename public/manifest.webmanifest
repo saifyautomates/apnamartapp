@@ -6,7 +6,7 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#052b14",
+  "background_color": "#0c831f",
   "theme_color": "#0c831f",
   "categories": [
     "shopping",
@@ -38,6 +38,22 @@
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today's Best Deals",
+      "short_name": "Deals",
+      "description": "View Kota flash deals and daily essentials",
+      "url": "/#deals",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Cart & Checkout",
+      "short_name": "Cart",
+      "description": "View shopping cart and checkout",
+      "url": "/cart",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

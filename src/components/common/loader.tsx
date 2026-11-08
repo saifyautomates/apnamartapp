@@ -40,21 +40,26 @@ export default function LaunchLoader({ storeName }: { storeName?: string; monogr
       }`}
     >
       <div className={`flex flex-col items-center ${reduced ? "" : "loader-pop"}`}>
-        {/* Animated Cart Emblem */}
-        <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-[#0c831f] to-[#15803d] shadow-lg flex items-center justify-center text-white mb-3 ring-4 ring-white/30 transform hover:scale-105 transition">
-          <svg className="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
+        {/* Authentic 3D Central Mart App Emblem */}
+        <div className="relative mb-3 flex items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icons/icon-192.png"
+            alt="Central Mart Logo"
+            width="88"
+            height="88"
+            className="h-20 w-20 sm:h-22 sm:w-22 rounded-3xl object-contain shadow-2xl ring-4 ring-white/60 transform hover:scale-105 transition-transform"
+          />
         </div>
 
         {/* Brand Wordmark */}
-        <div className="text-4xl sm:text-5xl font-black tracking-tight font-sans">
+        <div className="text-3xl sm:text-4xl font-black tracking-tight font-sans">
           <span className="text-[#1c1c1c]">central</span>
           <span className="text-[#0c831f]">mart</span>
         </div>
 
         <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#1c1c1c] text-white px-3.5 py-1 text-xs font-black uppercase tracking-wider shadow-sm">
-          ⚡ Same-Day FMCG Delivery
+          ⚡ 10-15 Min Kota Delivery
         </span>
       </div>
 

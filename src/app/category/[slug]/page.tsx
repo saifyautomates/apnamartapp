@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFallbackCategories, getFallbackVariants } from "@/lib/resilient-catalog";
-import { openSearchModal } from "@/components/search/search-modal";
+import { CategoryHeaderClient } from "@/components/category/category-header-client";
 
 export default async function CategoryPage({
   params,
@@ -108,40 +108,7 @@ export default async function CategoryPage({
   return (
     <div className="space-y-4 pb-12">
       {/* Mobile Sticky Green Category Header (Matches Phone 2 Mockup) */}
-      <div className="sm:hidden -mx-4 -mt-4 bg-[#0a6833] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition"
-          >
-            ←
-          </Link>
-          <h1 className="text-base font-black text-white leading-tight">{category.name}</h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent("open-search-modal"));
-              }
-            }}
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition"
-          >
-            🔍
-          </button>
-          <button
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new Event("open-cart"));
-              }
-            }}
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition relative"
-          >
-            🛒
-          </button>
-        </div>
-      </div>
+      <CategoryHeaderClient categoryName={category.name} />
 
       {/* Subcategories Horizontal Icon Rail (Matches Phone 2 Mockup) */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-touch-x">

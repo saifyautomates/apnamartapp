@@ -21,8 +21,12 @@ export function DealsRail({ items }: DealsRailProps) {
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollStart, setScrollStart] = useState(0);
+
+  // High-performance pointer refs: zero async state lag for instant 60fps drag
+  const isPointerDownRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollStartRef = useRef(0);
+  const hasDraggedRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -91,23 +95,57 @@ export function DealsRail({ items }: DealsRailProps) {
     scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Global window pointerup listener so drag ends even if mouse is released outside
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (isPointerDownRef.current) {
+        isPointerDownRef.current = false;
+        setIsDragging(false);
+        setTimeout(() => {
+          hasDraggedRef.current = false;
+        }, 80);
+      }
+    };
+    window.addEventListener("pointerup", handleGlobalPointerUp);
+    window.addEventListener("pointercancel", handleGlobalPointerUp);
+    return () => {
+      window.removeEventListener("pointerup", handleGlobalPointerUp);
+      window.removeEventListener("pointercancel", handleGlobalPointerUp);
+    };
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!scrollRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollStart(scrollRef.current.scrollLeft);
+    // Primary mouse button only
+    if (e.button !== 0) return;
+    // Mobile touch screens have 120Hz native momentum scrolling; don't fight native gesture
+    if (e.pointerType === "touch") return;
+
+    isPointerDownRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.clientX;
+    scrollStartRef.current = scrollRef.current.scrollLeft;
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    scrollRef.current.scrollLeft = scrollStart - walk;
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current || !scrollRef.current) return;
+    if (e.pointerType === "touch") return;
+
+    const delta = e.clientX - startXRef.current;
+    if (Math.abs(delta) > 8) {
+      hasDraggedRef.current = true;
+      if (!isDragging) setIsDragging(true);
+      scrollRef.current.scrollLeft = scrollStartRef.current - delta;
+    }
   };
 
-  const handleMouseUpOrLeave = () => {
+  const handlePointerUpOrCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
+    isPointerDownRef.current = false;
     setIsDragging(false);
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 80);
   };
 
   if (dealProducts.length === 0) return null;
@@ -173,9 +211,16 @@ export function DealsRail({ items }: DealsRailProps) {
         {/* Horizontal Deal Cards with Smooth Native Scroll & Mouse Drag */}
         <div
           ref={scrollRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUpOrLeave}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUpOrCancel}
+          onPointerCancel={handlePointerUpOrCancel}
+          onClickCapture={(e) => {
+            if (hasDraggedRef.current) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
           className={`flex gap-3 sm:gap-3.5 overflow-x-auto no-scrollbar pb-3 pt-1 px-1 scroll-touch-x select-none ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}

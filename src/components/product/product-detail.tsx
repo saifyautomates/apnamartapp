@@ -34,7 +34,42 @@ export function ProductDetailView({
 }: ProductDetailProps) {
   const { deliveryPromiseText, estimatedArrivalNotice } = useDelivery();
   const [selected, setSelected] = useState<VariantDetail>(variants[0]);
-  const [activeImg, setActiveImg] = useState(images[0] ?? "/placeholder.svg");
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  const activeImg = images[activeImgIndex] ?? images[0] ?? "/placeholder.svg";
+
+  const nextImage = () => {
+    if (images.length <= 1) return;
+    setActiveImgIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    if (images.length <= 1) return;
+    setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    if (distance > 35) {
+      nextImage();
+    } else if (distance < -35) {
+      prevImage();
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
 
   if (!selected) return null;
   const price =
@@ -49,13 +84,38 @@ export function ProductDetailView({
     <div className="grid gap-8 lg:grid-cols-12 bg-white rounded-3xl border border-neutral-200/80 p-5 sm:p-8 shadow-xs">
       {/* Media / Image Gallery (Left Column) */}
       <div className="lg:col-span-5 flex flex-col items-center">
-        <div className="relative w-full h-72 sm:h-96 rounded-2xl bg-white border border-neutral-100 p-6 flex items-center justify-center">
+        <div
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          className="relative w-full h-72 sm:h-96 rounded-2xl bg-white border border-neutral-100 p-6 flex items-center justify-center select-none touch-pan-y group"
+        >
           <div className="absolute left-4 top-4 z-10 flex flex-col gap-1.5 items-start">
             <EtaBadge minutes={8} className="px-2.5 py-1 text-xs" />
             {discount > 0 ? (
               <DiscountBadge percent={discount} className="px-2 py-0.5 text-xs" />
             ) : null}
           </div>
+
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-white/80 hover:bg-white shadow border border-neutral-200 text-neutral-700 items-center justify-center text-sm transition cursor-pointer"
+                aria-label="Previous image"
+              >
+                ‹
+              </button>
+              <button
+                onClick={nextImage}
+                className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-white/80 hover:bg-white shadow border border-neutral-200 text-neutral-700 items-center justify-center text-sm transition cursor-pointer"
+                aria-label="Next image"
+              >
+                ›
+              </button>
+            </>
+          )}
+
           <ProductImage
             src={activeImg}
             alt={productName ?? "Product Image"}
@@ -64,13 +124,13 @@ export function ProductDetailView({
         </div>
 
         {images.length > 1 ? (
-          <div className="mt-4 flex gap-2.5 overflow-x-auto py-1">
-            {images.map((u) => (
+          <div className="mt-4 flex gap-2.5 overflow-x-auto py-1 scroll-touch-x">
+            {images.map((u, idx) => (
               <button
                 key={u}
-                onClick={() => setActiveImg(u)}
+                onClick={() => setActiveImgIndex(idx)}
                 className={`h-16 w-16 rounded-xl border p-1 bg-white overflow-hidden transition cursor-pointer ${
-                  activeImg === u
+                  activeImgIndex === idx
                     ? "border-[#0c831f] ring-2 ring-[#e8f5e9]"
                     : "border-neutral-200 hover:border-neutral-300"
                 }`}
