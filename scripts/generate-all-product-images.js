@@ -173,3 +173,4 @@ for (const p of products) {
 }
 
 console.log(`Done! Existing: ${existing}, Newly Generated: ${generated}, Total: ${existing + generated}`);
+

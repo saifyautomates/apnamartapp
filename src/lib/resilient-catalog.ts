@@ -11,7 +11,7 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-/** Flatten all FMCG categories and variants into typed VariantCardProps items */
+/** Flatten all FMCG categories and variants into typed VariantCardProps items, prioritizing diverse products */
 export function getFallbackVariants(categorySlugs?: string[], limit = 20): VariantCardProps[] {
   const matchingCategories = categorySlugs
     ? FMCG_CATEGORIES.filter((c) => categorySlugs.includes(c.slug))
@@ -19,35 +19,85 @@ export function getFallbackVariants(categorySlugs?: string[], limit = 20): Varia
 
   const results: VariantCardProps[] = [];
 
+  // Pass 1: Primary flagship variant of each distinct product
   for (const cat of matchingCategories) {
     for (const item of cat.items) {
-      for (const v of item.variants) {
-        const prodSlug = slugify(item.name);
-        const varId = `fmcg-var-${prodSlug}-${slugify(v.pack)}`;
-        results.push({
-          id: varId,
-          name: `${item.name} (${v.pack})`,
-          packSize: v.pack,
-          mrpPaise: Math.round(v.mrp * 100),
-          sellingPaise: Math.round(v.selling * 100),
-          product: {
-            id: `fmcg-prod-${prodSlug}`,
-            name: item.name,
-            slug: prodSlug,
-            brand: item.brand ? { name: item.brand } : null,
-            images: [{ url: `/images/products/${prodSlug}.jpg` }],
-          },
-          inventory: {
-            availableQty: v.stock ?? 100,
-            reservedQty: 0,
-          },
-        });
-        if (results.length >= limit) return results;
+      const v = item.variants[0];
+      if (!v) continue;
+      const prodSlug = slugify(item.name);
+      const varId = `fmcg-var-${prodSlug}-${slugify(v.pack)}`;
+      results.push({
+        id: varId,
+        name: `${item.name} (${v.pack})`,
+        packSize: v.pack,
+        mrpPaise: Math.round(v.mrp * 100),
+        sellingPaise: Math.round(v.selling * 100),
+        product: {
+          id: `fmcg-prod-${prodSlug}`,
+          name: item.name,
+          slug: prodSlug,
+          brand: item.brand ? { name: item.brand } : null,
+          images: [{ url: `/images/products/${prodSlug}.jpg` }],
+        },
+        inventory: {
+          availableQty: v.stock ?? 100,
+          reservedQty: 0,
+        },
+      });
+      if (results.length >= limit) return results;
+    }
+  }
+
+  // Pass 2: Remaining pack sizes if limit not yet satisfied
+  if (results.length < limit) {
+    for (const cat of matchingCategories) {
+      for (const item of cat.items) {
+        for (let i = 1; i < item.variants.length; i++) {
+          const v = item.variants[i];
+          const prodSlug = slugify(item.name);
+          const varId = `fmcg-var-${prodSlug}-${slugify(v.pack)}`;
+          results.push({
+            id: varId,
+            name: `${item.name} (${v.pack})`,
+            packSize: v.pack,
+            mrpPaise: Math.round(v.mrp * 100),
+            sellingPaise: Math.round(v.selling * 100),
+            product: {
+              id: `fmcg-prod-${prodSlug}`,
+              name: item.name,
+              slug: prodSlug,
+              brand: item.brand ? { name: item.brand } : null,
+              images: [{ url: `/images/products/${prodSlug}.jpg` }],
+            },
+            inventory: {
+              availableQty: v.stock ?? 100,
+              reservedQty: 0,
+            },
+          });
+          if (results.length >= limit) return results;
+        }
       }
     }
   }
 
   return results;
+}
+
+function dedupeByProduct<T extends { product?: { slug?: string; id?: string }; productId?: string; id?: string }>(
+  items: T[],
+  limit: number
+): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const item of items) {
+    const key = item.product?.slug || item.productId || item.product?.id || item.id || "";
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(item);
+    }
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 /** Fallback categories list matching CategoryGrid and CategoriesPage */
@@ -254,12 +304,12 @@ export async function getHomeRailsSafe(): Promise<HomeRailsData> {
         ]);
 
         return {
-          dairyItems: (dairyDb.length > 0 ? dairyDb : getFallbackVariants(["dairy-eggs"], 12)) as unknown as VariantCardProps[],
-          snackItems: (snackDb.length > 0 ? snackDb : getFallbackVariants(["snacks"], 12)) as unknown as VariantCardProps[],
-          drinkItems: (drinkDb.length > 0 ? drinkDb : getFallbackVariants(["cold-drinks", "tea-coffee"], 12)) as unknown as VariantCardProps[],
-          stapleItems: (stapleDb.length > 0 ? stapleDb : getFallbackVariants(["staples", "masala-oil"], 12)) as unknown as VariantCardProps[],
-          personalCareItems: (personalCareDb.length > 0 ? personalCareDb : getFallbackVariants(["personal-care", "cleaning-essentials"], 12)) as unknown as VariantCardProps[],
-          deals: (dealsDb.length > 0 ? dealsDb : getFallbackVariants(["dairy-eggs", "snacks", "staples"], 24)) as unknown as VariantCardProps[],
+          dairyItems: dedupeByProduct(dairyDb.length > 0 ? dairyDb : getFallbackVariants(["dairy-eggs"], 12), 12) as unknown as VariantCardProps[],
+          snackItems: dedupeByProduct(snackDb.length > 0 ? snackDb : getFallbackVariants(["snacks"], 12), 12) as unknown as VariantCardProps[],
+          drinkItems: dedupeByProduct(drinkDb.length > 0 ? drinkDb : getFallbackVariants(["cold-drinks", "tea-coffee"], 12), 12) as unknown as VariantCardProps[],
+          stapleItems: dedupeByProduct(stapleDb.length > 0 ? stapleDb : getFallbackVariants(["staples", "masala-oil"], 12), 12) as unknown as VariantCardProps[],
+          personalCareItems: dedupeByProduct(personalCareDb.length > 0 ? personalCareDb : getFallbackVariants(["personal-care", "cleaning-essentials"], 12), 12) as unknown as VariantCardProps[],
+          deals: dedupeByProduct(dealsDb.length > 0 ? dealsDb : getFallbackVariants(["dairy-eggs", "snacks", "staples"], 24), 20) as unknown as VariantCardProps[],
           storeBanners: banners && banners.length > 0 ? banners : [],
         };
       }

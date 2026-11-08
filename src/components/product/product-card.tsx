@@ -34,6 +34,7 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   const image = product.images?.[0]?.url ?? `/images/products/${product.slug}.jpg`;
   const sellable = v.inventory ? v.inventory.availableQty - v.inventory.reservedQty : 0;
   const inStock = sellable > 0;
+  const packSize = v.packSize || "1 pack";
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (!e.metaKey && !e.ctrlKey) {
@@ -49,27 +50,30 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   };
 
   return (
-    <article className="group relative flex flex-col justify-between rounded-3xl border border-neutral-100 bg-white p-3 shadow-xs hover:shadow-md transition-all duration-200 h-full">
+    <article className="group relative flex flex-col justify-between rounded-3xl border border-neutral-100 hover:border-emerald-200/90 bg-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 h-full">
       {/* Top Media & Actions Row */}
       <div className="relative">
         <div className="flex items-center justify-between gap-1 w-full z-10">
-          {/* Bestseller Badge (Matches Mockup Screen 1) */}
-          <span className="inline-flex items-center rounded-full bg-[#0c831f] text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-tight shadow-xs">
-            Bestseller
+          {/* Bestseller Badge with Flame Icon */}
+          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-black tracking-tight shadow-xs">
+            <span>⚡</span>
+            <span>Bestseller</span>
           </span>
 
-          {/* Wishlist Heart Icon (Matches Mockup Screen 1) */}
+          {/* Wishlist Heart Icon */}
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               setWishlisted(!wishlisted);
             }}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-50 hover:bg-red-50 text-neutral-400 hover:text-red-500 transition cursor-pointer active:scale-90"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-50 hover:bg-rose-50 text-neutral-400 hover:text-rose-500 transition cursor-pointer active:scale-90"
             aria-label="Add to wishlist"
           >
             <svg
-              className={`w-4 h-4 ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-400"}`}
+              className={`w-4 h-4 transition-transform duration-200 ${
+                wishlisted ? "fill-rose-500 text-rose-500 scale-110" : "text-neutral-400 group-hover:text-neutral-600"
+              }`}
               fill={wishlisted ? "currentColor" : "none"}
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -84,17 +88,17 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
           </button>
         </div>
 
-        {/* Product Image */}
+        {/* Product Image with Smooth Studio Framing */}
         <a
           href={`/product/${product.slug}`}
           onClick={handleCardClick}
-          className="block h-28 sm:h-36 w-full overflow-hidden bg-white p-1 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+          className="block h-28 sm:h-36 w-full overflow-hidden bg-gradient-to-b from-neutral-50/60 to-white rounded-2xl p-2 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
           aria-label={product.name}
         >
           <ProductImage
             src={image}
             alt={product.name}
-            className="h-full w-full object-contain"
+            className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
           />
         </a>
       </div>
@@ -105,17 +109,24 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
           <a
             href={`/product/${product.slug}`}
             onClick={handleCardClick}
-            className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] leading-snug hover:text-[#0c831f] transition min-h-[2.2rem] cursor-pointer"
+            className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] group-hover:text-[#0c831f] transition-colors leading-snug min-h-[2.2rem] cursor-pointer"
           >
             {product.name}
           </a>
-          <p className="mt-0.5 text-[11px] text-neutral-400 font-medium">
-            {v.packSize ?? v.name ?? "~ 1 kg"}
-          </p>
+          <div className="mt-1 flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-neutral-500 bg-neutral-100/70 px-1.5 py-0.5 rounded-md">
+              {packSize}
+            </span>
+            {pct > 0 ? (
+              <span className="text-[10px] font-black text-rose-600">
+                {pct}% OFF
+              </span>
+            ) : null}
+          </div>
         </div>
 
-        {/* Pricing & Add Button Row (Matches Mockup Screen 1) */}
-        <div className="mt-2.5 flex items-center justify-between gap-2 pt-1 border-t border-neutral-100">
+        {/* Pricing & Add Button Row */}
+        <div className="mt-2.5 flex items-center justify-between gap-2 pt-2 border-t border-neutral-100">
           <div className="flex flex-col leading-tight">
             <span className="text-sm sm:text-base font-black text-[#1c1c1c]">
               {formatPaise(price)}
