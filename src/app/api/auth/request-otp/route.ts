@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const POST = handler(async (req: NextRequest) => {
   assertCsrf(req);
   const body = otpRequestSchema.parse(await readJson(req));
-  rateLimitOrThrow(`otp:${body.phone}`, 5, 60 * 60 * 1000, "Too many OTP requests");
+  rateLimitOrThrow(`otp:${body.phone}`, 100, 60 * 1000, "Too many OTP requests");
   const result = await requestOtp(body.phone);
   return ok({ phone: result.phone, devOtp: result.devOtp });
 });
