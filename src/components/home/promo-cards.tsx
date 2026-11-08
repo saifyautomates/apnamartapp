@@ -3,7 +3,7 @@ import { ProductImage } from "@/components/product/product-image";
 
 export function PromoCards() {
   return (
-    <section className="flex overflow-x-auto snap-x no-scrollbar scroll-touch md:grid md:grid-cols-3 gap-3 sm:gap-4 pb-1 md:pb-0">
+    <section className="flex overflow-x-auto no-scrollbar scroll-touch-x md:grid md:grid-cols-3 gap-3 sm:gap-4 pb-1 md:pb-0">
       {/* Card 1: Pharmacy */}
       <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#009688] to-[#00796b] p-4 sm:p-5 text-white shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between min-h-[135px] sm:min-h-[155px] min-w-[260px] sm:min-w-[280px] md:min-w-0 snap-start shrink-0 md:shrink">
         <div className="pr-24 sm:pr-28 z-10">

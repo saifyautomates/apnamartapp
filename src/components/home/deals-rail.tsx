@@ -47,7 +47,7 @@ export function DealsRail({ items }: DealsRailProps) {
       </div>
 
       {/* Horizontal Deal Cards (Matches Phone 1 Mockup) */}
-      <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 px-1 scroll-touch">
+      <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 px-1 scroll-touch-x">
         {dealProducts.map((p) => {
           const price = p.sellingPaise;
           const mrp = p.mrpPaise > price ? p.mrpPaise : Math.round(price * 1.25);

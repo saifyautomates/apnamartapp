@@ -240,7 +240,7 @@ export function CartDrawer() {
           {/* MAIN CART VIEW (Matches Screen 3 Mockup) */}
           {step === "cart" && (
             <div className="flex-1 flex flex-col justify-between overflow-hidden">
-              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3.5 scroll-touch">
+              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3.5 scroll-touch-y">
                 {/* Empty Cart State */}
                 {(!cart || cart.lines.length === 0) && !loading ? (
                   <div className="flex flex-col items-center justify-center h-80 text-center px-4">

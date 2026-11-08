@@ -9,13 +9,16 @@
 }
 
 html {
-  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
 
 button, a, input, select, textarea, [role="button"] {
@@ -26,7 +29,6 @@ body {
   @apply bg-bg text-ink font-sans antialiased;
   min-height: 100vh;
   min-height: 100dvh;
-  overscroll-behavior-y: none;
 }
 
 /* Safe area padding utilities for notched devices (iPhone X-16, modern Androids) */
@@ -38,9 +40,22 @@ body {
   padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
 }
 
+/* Momentum scrolling utilities:
+   Horizontal tracks (carousels, chips, tabs) allow vertical panning freely (touch-action: pan-y).
+   Vertical tracks (drawers, modal sheets) contain vertical scroll gestures. */
+.scroll-touch-x,
 .scroll-touch {
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+}
+
+.scroll-touch-y {
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  overscroll-behavior-x: auto;
+  touch-action: pan-y;
 }
 
 a {
@@ -64,15 +79,20 @@ textarea:focus-visible {
   scrollbar-width: none;
 }
 
-/* Low-spec / Budget Smartphone Performance Optimizations */
-article {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 240px;
+/* Custom scrollbars for desktop panels and drawers */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-
-.cv-auto {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 180px;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
 }
 
 /* Hardware accelerated layer promotion for 60fps scrolling */

@@ -144,7 +144,7 @@ export default async function CategoryPage({
       </div>
 
       {/* Subcategories Horizontal Icon Rail (Matches Phone 2 Mockup) */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-touch">
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 scroll-touch-x">
         {subcategoryPills.map((sub) => {
           const isSelected = !searchParams.sub ? sub.slug === "" : searchParams.sub === sub.slug;
           return (
@@ -165,7 +165,7 @@ export default async function CategoryPage({
       </div>
 
       {/* Filter & Sort Chips Row (Matches Phone 2 Mockup) */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs font-bold scroll-touch">
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs font-bold scroll-touch-x">
         <Link
           href={`/category/${category.slug}${searchParams.sub ? `?sub=${searchParams.sub}&` : "?"}sort=popular`}
           className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 shrink-0"

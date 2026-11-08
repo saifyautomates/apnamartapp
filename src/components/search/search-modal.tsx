@@ -149,7 +149,7 @@ export function SearchModal() {
       </div>
 
       {/* Main Search Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 max-w-4xl mx-auto w-full scroll-touch">
+      <div className="flex-1 overflow-y-auto px-4 py-4 max-w-4xl mx-auto w-full scroll-touch-y">
         {/* If query is empty: show trending search chips */}
         {!query.trim() ? (
           <div className="space-y-4">

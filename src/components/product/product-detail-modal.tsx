@@ -216,7 +216,7 @@ export function ProductDetailModal() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 scroll-touch">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 scroll-touch-y">
           {/* Hero Product Media */}
           <div className="relative flex flex-col items-center">
             <div className="relative h-60 sm:h-72 w-full rounded-3xl bg-[#fafafa] border border-neutral-100 p-4 flex items-center justify-center">
