@@ -69,7 +69,7 @@ async function runUiAuthTests() {
     // UI TEST 2: Instant OTP Verification via Auto-Fill & Submit
     // ------------------------------------------------------------------------
     console.log("\n▶ [UI CHECK 2/3] Phone Input -> OTP Send -> Auto-Fill -> Verified Session");
-    const testPhone = "9876543210";
+    const testPhone = `98290${Math.floor(10000 + Math.random() * 90000)}`;
     const phoneInput = await page.$("input[placeholder*='10-digit']");
     if (phoneInput) {
       await phoneInput.type(testPhone, { delay: 30 });
@@ -122,8 +122,9 @@ async function runUiAuthTests() {
     });
     assert(clickedVerify, "Clicked 'Verify & Continue →'");
 
-    // Wait for page to reload with new session
-    await sleep(2500);
+    // Wait for page reload to complete
+    await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => sleep(2000));
+    await sleep(500);
 
     // Verify user is logged in
     const accountState = await page.evaluate(() => {

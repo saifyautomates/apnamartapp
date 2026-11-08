@@ -54,7 +54,7 @@ async function runAuthTests() {
     // TEST 2: Customer Request OTP & Verify OTP
     // ------------------------------------------------------------------------
     console.log("\n▶ [CHECK 2/5] Customer OTP Flow (/api/auth/request-otp & verify-otp)");
-    const testPhone = "9876543210";
+    const testPhone = `98765${Math.floor(10000 + Math.random() * 90000)}`;
 
     const otpReq = await page.evaluate(async ({ phone, token }) => {
       const res = await fetch("/api/auth/request-otp", {
