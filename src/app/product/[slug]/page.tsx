@@ -7,27 +7,57 @@ import Link from "next/link";
 import { getFallbackProduct, getFallbackVariants } from "@/lib/resilient-catalog";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  let name = "";
+  let desc = "";
   try {
-    const product = await withDbTimeout(prisma.product.findUnique({ where: { slug: params.slug } }), 200);
+    const product = await withDbTimeout(prisma.product.findUnique({ where: { slug: params.slug } }), 2500);
     if (product) {
-      return {
-        title: `${product.name} — Same-Day Delivery | Central Mart`,
-        description: product.description ?? product.name,
-        openGraph: { title: product.name, description: product.description ?? undefined, type: "website" },
-      };
+      name = product.name;
+      desc =
+        product.description ??
+        `Order ${product.name} online in Kota, Rajasthan with fast same-day doorstep delivery from Central Mart (80 Feet Road). Best prices & 100% authentic packaged FMCG grocery.`;
     }
   } catch {
     /* fallback */
   }
-  const fb = getFallbackProduct(params.slug);
-  if (fb) {
-    return {
-      title: `${fb.name} — Same-Day Delivery | Central Mart`,
-      description: fb.description ?? fb.name,
-      openGraph: { title: fb.name, description: fb.description ?? undefined, type: "website" },
-    };
+  if (!name) {
+    const fb = getFallbackProduct(params.slug);
+    if (fb) {
+      name = fb.name;
+      desc =
+        fb.description ??
+        `Order ${fb.name} online in Kota with same-day doorstep delivery from Central Mart 80 Feet Road.`;
+    }
   }
-  return { title: "Central Mart — Same-Day Delivery" };
+
+  const title = name
+    ? `${name} — Buy Online in Kota | Central Mart 80 Feet Road`
+    : "Central Mart Kota — Same-Day Grocery Delivery";
+  const description =
+    desc ||
+    "Order daily essentials online in Kota from Central Mart, 80 Feet Road. Fast same-day doorstep delivery.";
+
+  return {
+    title,
+    description,
+    keywords: [
+      `${name.toLowerCase()} kota`,
+      `buy ${name.toLowerCase()} online kota`,
+      `${name.toLowerCase()} 80 feet road kota`,
+      "grocery delivery kota",
+      "central mart kota",
+    ],
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      locale: "en_IN",
+      siteName: "Central Mart Kota",
+    },
+    alternates: {
+      canonical: `/product/${params.slug}`,
+    },
+  };
 }
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
@@ -45,7 +75,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           variants: { include: { inventory: true }, orderBy: { sellingPaise: "asc" } },
         },
       }),
-      250
+      2500
     );
   } catch {
     /* database unconfigured or sleeping */
@@ -87,24 +117,96 @@ export default async function ProductPage({ params }: { params: { slug: string }
     related = getFallbackVariants(product.category?.slug ? [product.category.slug] : undefined, 6) as any;
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description ?? undefined,
-    brand: product.brand?.name,
+    image: images.map((img: string) => (img.startsWith("http") ? img : `${baseUrl}${img}`)),
+    description:
+      product.description ??
+      `Buy ${product.name} online in Kota from Central Mart, 80 Feet Road. Fast same-day doorstep grocery delivery.`,
+    brand: {
+      "@type": "Brand",
+      name: product.brand?.name || "Central Mart",
+    },
     category: product.category?.name,
-    offers: variants.map((v: { priceSource?: string; onlinePricePaise?: number | null; sellingPaise: number; sellable: number }) => ({
-      "@type": "Offer",
-      price: ((v.priceSource === "CUSTOM" && v.onlinePricePaise != null ? v.onlinePricePaise : v.sellingPaise) / 100).toFixed(2),
-      priceCurrency: "INR",
-      availability: v.sellable > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-    })),
+    offers: variants.map(
+      (v: {
+        id: string;
+        priceSource?: string;
+        onlinePricePaise?: number | null;
+        sellingPaise: number;
+        sellable: number;
+      }) => ({
+        "@type": "Offer",
+        price: (
+          (v.priceSource === "CUSTOM" && v.onlinePricePaise != null
+            ? v.onlinePricePaise
+            : v.sellingPaise) / 100
+        ).toFixed(2),
+        priceCurrency: "INR",
+        availability:
+          v.sellable > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        itemCondition: "https://schema.org/NewCondition",
+        seller: {
+          "@type": "GroceryStore",
+          name: "Central Mart",
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "80 Feet Road",
+            addressLocality: "Kota",
+            addressRegion: "Rajasthan",
+            postalCode: "324005",
+            addressCountry: "IN",
+          },
+        },
+      })
+    ),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${baseUrl}/` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: product.category.name,
+        item: `${baseUrl}/category/${product.category.slug}`,
+      },
+      ...(product.subcategory
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: product.subcategory.name,
+              item: `${baseUrl}/category/${product.category.slug}?sub=${product.subcategory.slug}`,
+            },
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: product.name,
+              item: `${baseUrl}/product/${product.slug}`,
+            },
+          ]
+        : [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: product.name,
+              item: `${baseUrl}/product/${product.slug}`,
+            },
+          ]),
+    ],
   };
 
   return (
     <div className="space-y-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium overflow-x-auto no-scrollbar py-1">
@@ -121,39 +223,16 @@ export default async function ProductPage({ params }: { params: { slug: string }
         <span className="text-[#1c1c1c] font-bold truncate">{product.name}</span>
       </nav>
 
-      {/* Main Product Showcase Card */}
+      {/* Main Product Showcase Card (Blinkit & Zepto Grade) */}
       <ProductDetailView
         variants={variants}
         images={images}
         productName={product.name}
         brandName={product.brand?.name}
+        categoryName={product.category.name}
+        categorySlug={product.category.slug}
+        description={product.description}
       />
-
-      {/* Product Information Details */}
-      <div className="rounded-3xl border border-neutral-200/80 bg-white p-5 sm:p-7 shadow-xs space-y-4">
-        <h2 className="text-base sm:text-lg font-black text-[#1c1c1c]">Product Details</h2>
-        <div className="prose prose-sm text-neutral-600 max-w-none space-y-2">
-          <p>{product.description ?? "Authentic, fresh, top-quality groceries delivered straight to your doorstep."}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-neutral-100 text-xs">
-            <div>
-              <span className="font-bold text-[#1c1c1c]">Brand: </span>
-              <span className="text-neutral-500">{product.brand?.name ?? "General"}</span>
-            </div>
-            <div>
-              <span className="font-bold text-[#1c1c1c]">Category: </span>
-              <span className="text-neutral-500">{product.category.name}</span>
-            </div>
-            <div>
-              <span className="font-bold text-[#1c1c1c]">FSSAI License: </span>
-              <span className="text-neutral-500">10012011000123 (Verified)</span>
-            </div>
-            <div>
-              <span className="font-bold text-[#1c1c1c]">Shelf Life: </span>
-              <span className="text-neutral-500">Best before indicated date on pack</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Similar Products Rail */}
       {related.length > 0 ? (

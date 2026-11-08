@@ -15,6 +15,9 @@ const ALLOWED_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
+  "image/svg+xml",
+  "image/x-icon",
+  "image/vnd.microsoft.icon",
   "application/pdf",
 ]);
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;

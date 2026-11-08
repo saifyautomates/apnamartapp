@@ -43,13 +43,15 @@ export const DEFAULT_DELIVERY_CONFIG: DeliveryConfig = {
 export const DEFAULT_SETTINGS: Record<string, unknown> = {
   store: {
     name: "Central Mart",
-    tagline: "India's Same-Day FMCG Grocery Store",
-    phone: "",
-    email: "",
-    address: "",
-    gstin: "",
+    tagline: "Kota's #1 Online Supermarket — 80 Feet Road Same-Day Grocery Delivery",
+    phone: "+91 98290 12345",
+    email: "contact@centralmart.in",
+    address: "80 Feet Road, Kota, Rajasthan - 324005",
+    gstin: "08AABCC1234D1Z5",
     currency: "INR",
     logoUrl: "",
+    appIconUrl: "",
+    displayMode: "IMAGE_ONLY",
   },
   businessHours: { open: "08:00", close: "21:00", days: "Mon-Sun" },
   delivery: DEFAULT_DELIVERY_CONFIG,
@@ -71,36 +73,46 @@ export const DEFAULT_SETTINGS: Record<string, unknown> = {
   reservations: { expiryMinutes: 30 },
 };
 
-let memorySettings: Record<string, unknown> = { ...DEFAULT_SETTINGS };
+let memorySettings: Record<string, unknown> | null = null;
+let lastSettingsFetch = 0;
+const SETTINGS_CACHE_TTL_MS = 5000;
 
-export async function getSetting<T>(key: string, fallback: T): Promise<T> {
-  if (memorySettings[key] !== undefined) {
-    return memorySettings[key] as T;
+export async function getAllSettings(forceFresh = false): Promise<Record<string, unknown>> {
+  const now = Date.now();
+  if (!forceFresh && memorySettings && now - lastSettingsFetch < SETTINGS_CACHE_TTL_MS) {
+    return memorySettings;
   }
   try {
-    const row = await withDbTimeout(prisma.setting.findUnique({ where: { key } }), 200);
-    if (!row) return fallback;
-    memorySettings[key] = row.value;
-    return row.value as unknown as T;
+    const rows = await withDbTimeout(prisma.setting.findMany(), 500);
+    const out: Record<string, unknown> = { ...DEFAULT_SETTINGS };
+    for (const r of rows) {
+      if (typeof r.value === "object" && r.value !== null && typeof out[r.key] === "object") {
+        out[r.key] = { ...(out[r.key] as object), ...(r.value as object) };
+      } else {
+        out[r.key] = r.value;
+      }
+    }
+    memorySettings = out;
+    lastSettingsFetch = now;
+    return out;
   } catch {
-    return fallback;
+    return memorySettings ?? { ...DEFAULT_SETTINGS };
   }
 }
 
-export async function getAllSettings(): Promise<Record<string, unknown>> {
-  try {
-    const rows = await withDbTimeout(prisma.setting.findMany(), 200);
-    const out: Record<string, unknown> = { ...DEFAULT_SETTINGS };
-    for (const r of rows) out[r.key] = r.value;
-    memorySettings = out;
-    return out;
-  } catch {
-    return memorySettings;
-  }
+export async function getSetting<T>(key: string, fallback: T): Promise<T> {
+  const all = await getAllSettings();
+  return all[key] !== undefined ? (all[key] as T) : fallback;
 }
 
 export async function setSetting(key: string, value: unknown) {
-  memorySettings[key] = value;
+  if (!memorySettings) memorySettings = { ...DEFAULT_SETTINGS };
+  if (typeof value === "object" && value !== null && typeof memorySettings[key] === "object") {
+    memorySettings[key] = { ...(memorySettings[key] as object), ...(value as object) };
+  } else {
+    memorySettings[key] = value;
+  }
+  lastSettingsFetch = Date.now();
   try {
     return await withDbTimeout(
       prisma.setting.upsert({
@@ -108,7 +120,7 @@ export async function setSetting(key: string, value: unknown) {
         create: { key, value: value as object },
         update: { value: value as object },
       }),
-      250
+      500
     );
   } catch {
     /* fallback */

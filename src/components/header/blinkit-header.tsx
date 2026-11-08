@@ -10,9 +10,11 @@ import { useDelivery } from "@/lib/delivery-context";
 import { openLoginModal } from "@/components/auth/login-modal";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
+import { MapPin, Zap, Settings, ChevronDown } from "lucide-react";
 
 export interface HeaderProps {
   storeName?: string;
+  logoUrl?: string;
   initialCount?: number;
   initialTotal?: number;
   customerName?: string | null;
@@ -20,6 +22,8 @@ export interface HeaderProps {
 }
 
 export function BlinkitHeader({
+  storeName,
+  logoUrl,
   initialCount = 0,
   initialTotal = 0,
   customerName = null,
@@ -78,7 +82,7 @@ export function BlinkitHeader({
           </button>
 
           {/* Central Mart Logo */}
-          <CentralMartLogo theme="greenHeader" />
+          <CentralMartLogo theme="greenHeader" logoUrl={logoUrl} storeName={storeName} />
 
           {/* Right Action: Notifications Bell & Cart */}
           <div className="flex items-center gap-2">
@@ -117,11 +121,11 @@ export function BlinkitHeader({
             className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-white shadow-sm border border-neutral-100 text-left group transition cursor-pointer active:scale-[0.99]"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="text-base text-[#0c831f] shrink-0">📍</span>
+              <MapPin className="w-4 h-4 text-[#0c831f] shrink-0" />
               <div className="min-w-0 leading-tight">
                 <div className="flex items-center gap-1 text-xs font-black text-[#1c1c1c]">
                   <span>Deliver to Home</span>
-                  <span className="text-[10px] text-neutral-400">▾</span>
+                  <ChevronDown className="w-3 h-3 text-neutral-400" />
                 </div>
                 <p className="text-[11px] text-neutral-500 font-semibold truncate max-w-[200px]">
                   {activeLocation.address || activeLocation.zoneName || "Kota Central, Nayapura - 324001"}
@@ -129,7 +133,7 @@ export function BlinkitHeader({
               </div>
             </div>
             <span className="text-[10px] font-black text-amber-900 bg-[#fef08a] px-2.5 py-1 rounded-xl shadow-xs shrink-0 flex items-center gap-1">
-              <span>⚡</span>
+              <Zap className="w-3 h-3 fill-amber-700 text-amber-700" />
               <span>Get in {deliveryPromiseText || "12-15 min"}</span>
             </span>
           </button>
@@ -144,18 +148,19 @@ export function BlinkitHeader({
         <div className="hidden sm:flex mx-auto max-w-7xl items-center justify-between gap-3 px-6 py-3">
           {/* Logo & Location */}
           <div className="flex items-center gap-7">
-            <CentralMartLogo showBadge />
+            <CentralMartLogo showBadge logoUrl={logoUrl} storeName={storeName} />
 
             <button
               onClick={() => setLocationOpen(true)}
               className="flex flex-col text-left group transition max-w-[240px] cursor-pointer"
             >
               <div className="flex items-center gap-1.5 text-sm font-black text-[#1c1c1c] leading-tight">
-                <span>⚡ {deliveryPromiseText}</span>
+                <Zap className="w-4 h-4 fill-[#0c831f] text-[#0c831f]" />
+                <span>{deliveryPromiseText}</span>
               </div>
               <div className="flex items-center gap-1 text-xs text-neutral-500 font-medium truncate mt-0.5 group-hover:text-[#0c831f]">
                 <span className="truncate">{activeLocation.address || activeLocation.zoneName || "Select Location"}</span>
-                <span className="text-[9px]">▾</span>
+                <ChevronDown className="w-3 h-3 text-neutral-400" />
               </div>
             </button>
           </div>
@@ -172,7 +177,7 @@ export function BlinkitHeader({
               className="flex items-center gap-1.5 rounded-xl border border-neutral-200/90 bg-neutral-50 hover:bg-[#0c831f] hover:text-white hover:border-[#0c831f] px-3 py-2 text-xs font-black text-neutral-800 transition shadow-xs group"
               title="Central Mart Store Admin Panel"
             >
-              <span className="text-sm group-hover:rotate-45 transition-transform">⚙️</span>
+              <Settings className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
               <span className="hidden md:inline font-bold">Admin</span>
             </Link>
 

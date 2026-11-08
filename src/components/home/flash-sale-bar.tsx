@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { StoreOffer } from "@/lib/offers";
+import { Sparkles, Check, Copy, X } from "lucide-react";
 
 export function FlashSaleBar({ initialOffers }: { initialOffers?: StoreOffer[] }) {
   const [offers, setOffers] = useState<StoreOffer[]>(initialOffers || []);
@@ -74,12 +75,12 @@ export function FlashSaleBar({ initialOffers }: { initialOffers?: StoreOffer[] }
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-3 py-2 text-xs">
         {/* Left: Badge & Offer Title */}
         <div className="flex items-center gap-2 min-w-0">
-          <span className="flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider backdrop-blur-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
-            <span>{currentOffer.badgeText || "⚡ FLASH SALE"}</span>
+          <span className="flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs">
+            <Sparkles className="w-3 h-3 text-amber-300" />
+            <span>{currentOffer.badgeText?.replace(/^⚡\s*/, "") || "Flash Offer"}</span>
           </span>
 
-          <p className="font-extrabold truncate text-[11px] sm:text-xs">
+          <p className="font-bold truncate text-[11px] sm:text-xs">
             <span>{currentOffer.title}</span>
             {currentOffer.minOrderValue > 0 && (
               <span className="hidden md:inline font-normal text-white/80 ml-1">
@@ -92,11 +93,11 @@ export function FlashSaleBar({ initialOffers }: { initialOffers?: StoreOffer[] }
         {/* Center / Right: Live Countdown Timer & Action */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Countdown Clock */}
-          <div className="flex items-center gap-1 bg-black/30 px-2.5 py-1 rounded-lg font-mono font-black text-[11px] sm:text-xs shadow-inner">
-            <span className="text-[10px] text-white/70 font-sans font-bold uppercase hidden sm:inline mr-1">
+          <div className="flex items-center gap-1 bg-black/30 px-2.5 py-1 rounded-lg font-mono font-bold tabular-nums text-[11px] sm:text-xs shadow-inner">
+            <span className="text-[10px] text-white/70 font-sans font-semibold uppercase hidden sm:inline mr-1">
               Ends in
             </span>
-            <span className="text-amber-300">
+            <span className="text-amber-300 tracking-wider">
               {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:
               {String(timeLeft.seconds).padStart(2, "0")}
             </span>
@@ -106,19 +107,29 @@ export function FlashSaleBar({ initialOffers }: { initialOffers?: StoreOffer[] }
           {currentOffer.code && (
             <button
               onClick={handleCopyCode}
-              className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-[11px] font-black text-[#991b1b] hover:bg-neutral-100 transition shadow-xs cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-[#991b1b] hover:bg-neutral-100 transition shadow-xs cursor-pointer active:scale-95"
             >
-              <span>{copied ? "COPIED! ✓" : currentOffer.code}</span>
+              {copied ? (
+                <>
+                  <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 h-3" />
+                  <span>{currentOffer.code}</span>
+                </>
+              )}
             </button>
           )}
 
           {/* Dismiss Button */}
           <button
             onClick={() => setDismissed(true)}
-            className="p-1 text-white/70 hover:text-white transition cursor-pointer"
+            className="p-1 text-white/70 hover:text-white transition cursor-pointer active:scale-90"
             aria-label="Dismiss banner"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

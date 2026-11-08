@@ -17,6 +17,11 @@ export interface StoreOffer {
   autoApply: boolean;
   bgGradient: string;
   createdAt: string;
+
+  // Targeted Scope (Admin Product / Category Filtering)
+  targetType?: "ALL" | "SPECIFIC_PRODUCTS" | "SPECIFIC_CATEGORIES";
+  targetProductIds?: string[];
+  targetCategorySlugs?: string[];
 }
 
 export const DEFAULT_STORE_OFFERS: StoreOffer[] = [

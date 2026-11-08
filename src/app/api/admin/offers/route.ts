@@ -29,6 +29,9 @@ const offerSchema = z.object({
   isActive: z.boolean().optional(),
   autoApply: z.boolean().optional(),
   bgGradient: z.string().optional(),
+  targetType: z.enum(["ALL", "SPECIFIC_PRODUCTS", "SPECIFIC_CATEGORIES"]).optional(),
+  targetProductIds: z.array(z.string()).optional(),
+  targetCategorySlugs: z.array(z.string()).optional(),
 });
 
 export const GET = handler(async (req: NextRequest) => {
@@ -59,6 +62,9 @@ export const POST = handler(async (req: NextRequest) => {
     isActive: body.isActive ?? true,
     autoApply: body.autoApply ?? false,
     bgGradient: body.bgGradient || "from-[#b91c1c] via-[#c2410c] to-[#d97706]",
+    targetType: body.targetType || "ALL",
+    targetProductIds: body.targetProductIds || [],
+    targetCategorySlugs: body.targetCategorySlugs || [],
     createdAt: new Date().toISOString(),
   };
 

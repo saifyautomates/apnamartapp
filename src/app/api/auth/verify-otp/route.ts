@@ -5,12 +5,14 @@ import { otpVerifySchema } from "@/lib/validation";
 import { prisma } from "@/lib/prisma";
 import { forbidden } from "@/lib/errors";
 import { mergeGuestCart } from "@/lib/cart";
+import { rateLimitOrThrow } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
 export const POST = handler(async (req: NextRequest) => {
   assertCsrf(req);
   const body = otpVerifySchema.parse(await readJson(req));
+  rateLimitOrThrow(`verify-otp:${body.phone}`, 15, 5 * 60 * 1000, "Too many OTP verification attempts. Please wait 5 minutes.");
   const { phone } = await verifyOtp(body.phone, body.code);
   let user = await prisma.user.findUnique({ where: { phone } });
   if (!user) {

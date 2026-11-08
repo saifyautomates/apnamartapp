@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { InstallAppLink } from "@/components/pwa";
 import { CentralMartLogo } from "@/components/ui/logo";
+import { MapPin, Phone, Zap, Tag, ShieldCheck } from "lucide-react";
 
 export function SiteFooter() {
   return (
@@ -12,12 +13,20 @@ export function SiteFooter() {
               <CentralMartLogo size="sm" showBadge />
             </div>
             <p className="text-xs text-neutral-500 leading-relaxed mt-2">
-              Central Mart · Kota&apos;s Trusted Same-Day FMCG Grocery Supermarket. Delivering 100% genuine packaged staples, dairy, snacks, beverages, cleaning &amp; personal care across Kota with reliable doorstep delivery.
+              Central Mart · Kota&apos;s #1 Online Supermarket located at <strong>80 Feet Road, Kota, Rajasthan</strong>. Delivering 100% genuine packaged FMCG staples, dairy, snacks, beverages, cleaning &amp; personal care across Kota with reliable same-day doorstep delivery.
             </p>
+            <div className="mt-3 flex items-center gap-1.5 text-xs text-neutral-600">
+              <MapPin className="w-3.5 h-3.5 text-[#0c831f] shrink-0" />
+              <span>80 Feet Road, Kota, Rajasthan - 324005</span>
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-neutral-600">
+              <Phone className="w-3.5 h-3.5 text-[#0c831f] shrink-0" />
+              <span>+91 98290 12345 · Daily 8:00 AM - 10:00 PM</span>
+            </div>
           </div>
 
           <div>
-            <h4 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider mb-3">Popular Categories</h4>
+            <h4 className="text-xs font-bold text-[#1c1c1c] uppercase tracking-wider mb-3">Popular Categories</h4>
             <ul className="space-y-1.5 text-xs text-neutral-600 font-medium">
               <li><Link href="/category/dairy-eggs" className="hover:text-[#0c831f] transition">Dairy, Bread &amp; Eggs</Link></li>
               <li><Link href="/category/staples" className="hover:text-[#0c831f] transition">Atta, Rice &amp; Dal</Link></li>
@@ -28,7 +37,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h4 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider mb-3">Customer Service</h4>
+            <h4 className="text-xs font-bold text-[#1c1c1c] uppercase tracking-wider mb-3">Customer Service</h4>
             <ul className="space-y-1.5 text-xs text-neutral-600 font-medium">
               <li><Link href="/orders" className="hover:text-[#0c831f] transition">My Orders</Link></li>
               <li><Link href="/account" className="hover:text-[#0c831f] transition">My Profile</Link></li>
@@ -38,18 +47,18 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h4 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider mb-3">Why Shop With Us?</h4>
+            <h4 className="text-xs font-bold text-[#1c1c1c] uppercase tracking-wider mb-3">Why Shop With Us?</h4>
             <ul className="space-y-2 text-xs text-neutral-600">
               <li className="flex items-center gap-2">
-                <span className="text-amber-500 font-bold">⚡</span>
+                <Zap className="w-3.5 h-3.5 fill-[#0c831f] text-[#0c831f]" />
                 <span className="font-bold text-[#1c1c1c]">Same-Day Doorstep Delivery</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-[#0c831f] font-bold">🏷️</span>
+                <Tag className="w-3.5 h-3.5 text-[#0c831f]" />
                 <span>Best Prices &amp; Daily Offers</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-blue-500 font-bold">💯</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0c831f]" />
                 <span>100% Genuine Branded Products</span>
               </li>
             </ul>

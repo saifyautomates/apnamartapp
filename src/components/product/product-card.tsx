@@ -7,7 +7,7 @@ import { formatPaise } from "@/lib/money";
 import { ProductImage } from "./product-image";
 import { AddButton } from "./add-button";
 import { useDelivery } from "@/lib/delivery-context";
-import { openProductSheet } from "./product-detail-modal";
+import { Sparkles, Heart } from "lucide-react";
 
 export interface VariantCardProps {
   id: string;
@@ -36,27 +36,14 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   const inStock = sellable > 0;
   const packSize = v.packSize || "1 pack";
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (!e.metaKey && !e.ctrlKey) {
-      e.preventDefault();
-      openProductSheet({
-        slug: product.slug,
-        initialName: product.name,
-        initialPrice: price,
-        initialMrp: v.mrpPaise,
-        initialImage: image,
-      });
-    }
-  };
-
   return (
     <article className="group relative flex flex-col justify-between rounded-3xl border border-neutral-100/90 hover:border-emerald-300/80 bg-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_-8px_rgba(12,131,31,0.14)] hover:-translate-y-1 transition-all duration-300 h-full">
       {/* Top Media & Actions Row */}
       <div className="relative">
         <div className="flex items-center justify-between gap-1 w-full z-10">
-          {/* Bestseller Badge with Flame Icon */}
-          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-black tracking-tight shadow-xs">
-            <span>⚡</span>
+          {/* Bestseller Badge with Refined Vector Sparkle */}
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700 text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-tight shadow-xs">
+            <Sparkles className="w-2.5 h-2.5 fill-white/80" />
             <span>Bestseller</span>
           </span>
 
@@ -65,33 +52,24 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
+              e.preventDefault();
               setWishlisted(!wishlisted);
             }}
             className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-50 hover:bg-rose-50 text-neutral-400 hover:text-rose-500 transition cursor-pointer active:scale-90"
             aria-label="Add to wishlist"
           >
-            <svg
-              className={`w-4 h-4 transition-transform duration-200 ${
+            <Heart
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${
                 wishlisted ? "fill-rose-500 text-rose-500 scale-110" : "text-neutral-400 group-hover:text-neutral-600"
               }`}
-              fill={wishlisted ? "currentColor" : "none"}
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
+            />
           </button>
         </div>
 
         {/* Product Image with Smooth Studio Pedestal Framing */}
-        <a
+        <Link
           href={`/product/${product.slug}`}
-          onClick={handleCardClick}
+          prefetch={true}
           className="block h-28 sm:h-36 w-full overflow-hidden bg-gradient-to-b from-neutral-50/80 via-emerald-50/15 to-white rounded-2xl p-2 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-all group-hover:bg-emerald-50/30"
           aria-label={product.name}
         >
@@ -100,19 +78,19 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
             alt={product.name}
             className="h-full w-full object-contain group-hover:scale-108 transition-transform duration-300"
           />
-        </a>
+        </Link>
       </div>
 
       {/* Product Details */}
       <div className="mt-1 flex-1 flex flex-col justify-between">
         <div>
-          <a
+          <Link
             href={`/product/${product.slug}`}
-            onClick={handleCardClick}
+            prefetch={true}
             className="line-clamp-2 text-xs sm:text-sm font-bold text-[#1c1c1c] group-hover:text-[#0c831f] transition-colors leading-snug min-h-[2.2rem] cursor-pointer"
           >
             {product.name}
-          </a>
+          </Link>
           <div className="mt-1 flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-neutral-500 bg-neutral-100/70 px-1.5 py-0.5 rounded-md">
               {packSize}
@@ -128,11 +106,11 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
         {/* Pricing & Add Button Row */}
         <div className="mt-2.5 flex items-center justify-between gap-2 pt-2 border-t border-neutral-100">
           <div className="flex flex-col leading-tight">
-            <span className="text-sm sm:text-base font-black text-[#1c1c1c]">
+            <span className="text-sm sm:text-base font-bold tabular-nums text-[#1c1c1c]">
               {formatPaise(price)}
             </span>
             {v.mrpPaise > price ? (
-              <span className="text-[10px] text-neutral-400 line-through font-normal">
+              <span className="text-[10px] text-neutral-400 line-through tabular-nums font-normal">
                 {formatPaise(v.mrpPaise)}
               </span>
             ) : null}

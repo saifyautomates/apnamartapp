@@ -7,6 +7,7 @@ import { formatPaise } from "@/lib/money";
 import { discountPercent } from "@/lib/pricing";
 import { useDelivery } from "@/lib/delivery-context";
 import { api } from "@/lib/api/client";
+import { Truck, Zap, Leaf, ShieldCheck, Sparkles, ShoppingBag, X } from "lucide-react";
 
 export interface OpenProductEventDetail {
   slug: string;
@@ -276,54 +277,57 @@ export function ProductDetailModal() {
             )}
           </div>
 
-          {/* Delivery Promise Container (Matches Screen 2 Mockup) */}
+          {/* Delivery Promise Container */}
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f2f7fc] border border-neutral-200/80">
-            <span className="text-lg">🚚</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-[#0c831f] shadow-xs shrink-0">
+              <Truck className="w-4 h-4 stroke-[2.2]" />
+            </span>
             <div className="text-xs leading-tight">
               <p className="font-bold text-[#1c1c1c]">
                 Get it by Today, 6:00 – 8:00 PM
               </p>
-              <p className="text-[11px] text-[#0c831f] font-semibold mt-0.5">
-                ⚡ 12-15 MINS Superfast Kota Delivery
+              <p className="text-[11px] text-[#0c831f] font-semibold mt-0.5 flex items-center gap-1">
+                <Zap className="w-3 h-3 fill-[#0c831f]" />
+                <span>12-15 Mins Superfast Kota Delivery</span>
               </p>
             </div>
           </div>
 
           {/* Product Details Paragraph */}
           <div className="space-y-1.5 pt-2 border-t border-neutral-100">
-            <h3 className="text-sm font-black text-[#1c1c1c]">Product Details</h3>
+            <h3 className="text-sm font-bold text-[#1c1c1c]">Product Details</h3>
             <p className="text-xs text-neutral-600 leading-relaxed">
               {product.description ||
                 "Fresh, 100% genuine quality product carefully inspected and packed by Central Mart store partners for superfast delivery across Kota."}
             </p>
           </div>
 
-          {/* 3 Trust Feature Badges (Matches Screen 2 Mockup) */}
+          {/* 3 Trust Feature Badges */}
           <div className="grid grid-cols-3 gap-2 pt-2">
             <div className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 text-center">
-              <span className="text-lg mb-1">🍃</span>
+              <Leaf className="w-5 h-5 text-[#0c831f] mb-1" />
               <span className="text-[10px] font-bold text-[#1c1c1c] leading-tight">Farm Fresh</span>
             </div>
             <div className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 text-center">
-              <span className="text-lg mb-1">🛡️</span>
+              <ShieldCheck className="w-5 h-5 text-[#0c831f] mb-1" />
               <span className="text-[10px] font-bold text-[#1c1c1c] leading-tight">Handpicked Quality</span>
             </div>
             <div className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#f8faf8] border border-neutral-100 text-center">
-              <span className="text-lg mb-1">🌾</span>
-              <span className="text-[10px] font-bold text-[#1c1c1c] leading-tight">Rich in Vitamins</span>
+              <Sparkles className="w-5 h-5 text-[#0c831f] mb-1" />
+              <span className="text-[10px] font-bold text-[#1c1c1c] leading-tight">100% Genuine</span>
             </div>
           </div>
         </div>
 
-        {/* Sticky Full-Width Dark Green Bottom Button (Matches Screen 2 Mockup) */}
+        {/* Sticky Full-Width Dark Green Bottom Button */}
         <div className="border-t border-neutral-200 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] sticky bottom-0 z-10 shadow-lg">
           <button
             onClick={handleDirectAddToCart}
             disabled={addingToCart}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#0c831f] hover:bg-[#0a701a] py-3.5 text-white font-black text-sm shadow-md active:scale-[0.98] transition cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#0c831f] hover:bg-[#0a701a] py-3.5 text-white font-bold text-sm shadow-md active:scale-[0.98] transition cursor-pointer"
           >
-            <span>🛒</span>
-            <span>Add to Cart – {formatPaise(price)}</span>
+            <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
+            <span>Add to Cart – <strong className="font-mono tabular-nums">{formatPaise(price)}</strong></span>
           </button>
         </div>
       </aside>

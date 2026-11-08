@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearch } from "@/hooks/use-search";
 import { openSearchModal } from "@/components/search/search-modal";
-import { openProductSheet } from "@/components/product/product-detail-modal";
 
 export interface SearchInputProps {
   initial?: string;
@@ -78,15 +77,7 @@ export function SearchInput({
             <li key={s.id}>
               <Link
                 href={`/product/${s.slug}`}
-                onClick={(e) => {
-                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                  e.preventDefault();
-                  setIsOpen(false);
-                  openProductSheet({
-                    slug: s.slug,
-                    initialName: s.name,
-                  });
-                }}
+                onClick={() => setIsOpen(false)}
                 className="flex items-center justify-between px-4 py-2.5 hover:bg-neutral-50 text-sm transition"
               >
                 <div className="flex items-center gap-2.5">

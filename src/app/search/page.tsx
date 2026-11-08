@@ -2,6 +2,7 @@ import { searchProducts } from "@/lib/search";
 import { BlinkitProductCard, VariantCardProps } from "@/components/product";
 import { EmptyState } from "@/components/ui";
 import Link from "next/link";
+import { Zap } from "lucide-react";
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string; page?: string } }) {
   const q = searchParams.q ?? "";
@@ -22,8 +23,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
             {result.total > 0 ? `Found ${result.total} items with Same-Day Delivery` : "Delivered to your doorstep with Same-Day Delivery"}
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-black self-start sm:self-auto">
-          ⚡ Same Day Delivery
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-bold self-start sm:self-auto">
+          <Zap className="w-3.5 h-3.5 fill-[#0c831f]" />
+          <span>Same Day Delivery</span>
         </span>
       </div>
 

@@ -121,11 +121,18 @@ export function getFallbackCategories() {
 
 /** Fallback single product view by slug */
 export function getFallbackProduct(slug: string) {
+  const normSlug = slug.toLowerCase().replace(/[^a-z0-9]/g, "");
+  let partialMatch: any = null;
+
   for (const cat of FMCG_CATEGORIES) {
     for (const item of cat.items) {
       const prodSlug = slugify(item.name);
-      if (prodSlug === slug) {
-        return {
+      const normProd = prodSlug.replace(/[^a-z0-9]/g, "");
+      const isExact = prodSlug === slug;
+      const isFuzzy = normProd === normSlug || normProd.includes(normSlug) || normSlug.includes(normProd);
+
+      if (isExact || (!partialMatch && isFuzzy)) {
+        const productObj = {
           id: `fmcg-prod-${prodSlug}`,
           name: item.name,
           slug: prodSlug,
@@ -145,10 +152,12 @@ export function getFallbackProduct(slug: string) {
             inventory: { availableQty: v.stock ?? 100, reservedQty: 0 },
           })),
         };
+        if (isExact) return productObj;
+        partialMatch = productObj;
       }
     }
   }
-  return null;
+  return partialMatch;
 }
 
 export interface HomeRailsData {

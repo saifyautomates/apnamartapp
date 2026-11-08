@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import Link from "next/link";
 import { ProductImage } from "@/components/product/product-image";
 import { AddButton } from "@/components/product/add-button";
-import { openProductSheet } from "@/components/product/product-detail-modal";
 import { formatPaise } from "@/lib/money";
+import { Search, Clock, TrendingUp, X, ShoppingBag, Zap, Milk, Cookie, Wine, Wheat } from "lucide-react";
 
 interface SearchResultItem {
   id: string;
@@ -243,10 +244,10 @@ export function SearchModal() {
                 setSuggestions([]);
                 inputRef.current?.focus();
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-neutral-200 text-neutral-600 flex items-center justify-center text-xs font-bold hover:bg-neutral-300 transition cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-neutral-200 text-neutral-600 flex items-center justify-center hover:bg-neutral-300 transition cursor-pointer"
               aria-label="Clear search"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           ) : null}
         </form>
@@ -261,9 +262,9 @@ export function SearchModal() {
               key={s.id}
               type="button"
               onClick={() => handleSelectTerm(s.name)}
-              className="shrink-0 inline-flex items-center gap-1 rounded-full bg-white border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-800 hover:border-[#0c831f] hover:text-[#0c831f] shadow-2xs transition active:scale-95 cursor-pointer"
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-white border border-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-800 hover:border-[#0c831f] hover:text-[#0c831f] shadow-2xs transition active:scale-95 cursor-pointer"
             >
-              <span>🔍</span>
+              <Search className="w-3 h-3 text-neutral-400" />
               <span>{s.name}</span>
             </button>
           ))}
@@ -279,8 +280,9 @@ export function SearchModal() {
             {recentSearches.length > 0 ? (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-black text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <span>🕒</span> Recent Searches
+                  <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                    <span>Recent Searches</span>
                   </p>
                   <button
                     onClick={clearRecentSearches}
@@ -305,17 +307,19 @@ export function SearchModal() {
 
             {/* Trending Searches */}
             <div>
-              <p className="text-xs font-black text-neutral-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                <span>🔥</span> Trending Searches in Kota
+              <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-[#0c831f]" />
+                <span>Trending Searches in Kota</span>
               </p>
               <div className="flex flex-wrap gap-2">
                 {TRENDING_SEARCHES.map((term) => (
                   <button
                     key={term}
                     onClick={() => handleSelectTerm(term)}
-                    className="rounded-full bg-neutral-100 hover:bg-[#e8f5e9] hover:text-[#0c831f] border border-neutral-200/80 px-3.5 py-1.5 text-xs font-bold text-neutral-700 transition active:scale-95 cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-full bg-neutral-100 hover:bg-[#e8f5e9] hover:text-[#0c831f] border border-neutral-200/80 px-3.5 py-1.5 text-xs font-semibold text-neutral-700 transition active:scale-95 cursor-pointer"
                   >
-                    🔍 {term}
+                    <Search className="w-3 h-3 text-neutral-400" />
+                    <span>{term}</span>
                   </button>
                 ))}
               </div>
@@ -323,24 +327,25 @@ export function SearchModal() {
 
             {/* Popular Categories */}
             <div className="pt-4 border-t border-neutral-100">
-              <p className="text-xs font-black text-neutral-400 uppercase tracking-wider mb-2.5">
+              <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2.5">
                 Popular Categories
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {[
-                  { name: "Dairy & Bread", query: "milk", icon: "🥛" },
-                  { name: "Snacks & Munchies", query: "chips", icon: "🍿" },
-                  { name: "Cold Drinks", query: "cold drink", icon: "🥤" },
-                  { name: "Atta, Rice & Dal", query: "atta", icon: "🌾" },
+                  { name: "Dairy & Bread", query: "milk", Icon: Milk },
+                  { name: "Snacks & Munchies", query: "chips", Icon: Cookie },
+                  { name: "Cold Drinks", query: "cold drink", Icon: Wine },
+                  { name: "Atta, Rice & Dal", query: "atta", Icon: Wheat },
                 ].map((c) => (
                   <button
                     key={c.name}
                     onClick={() => handleSelectTerm(c.query)}
-                    className="p-3 rounded-2xl bg-[#fafafa] hover:bg-[#f0f8f1] border border-neutral-100 text-left transition active:scale-95 cursor-pointer"
+                    className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#fafafa] hover:bg-[#f0f8f1] border border-neutral-100 text-left transition active:scale-95 cursor-pointer group"
                   >
-                    <span className="text-xl mb-1 block">{c.icon}</span>
-                    <p className="text-xs font-bold text-[#1c1c1c]">{c.name}</p>
-                    <p className="text-[10px] text-[#0c831f] font-semibold mt-0.5">Explore items →</p>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-neutral-700 group-hover:text-[#0c831f] shadow-2xs shrink-0">
+                      <c.Icon className="w-4 h-4" />
+                    </span>
+                    <span className="text-xs font-bold text-[#1c1c1c] leading-tight">{c.name}</span>
                   </button>
                 ))}
               </div>
@@ -362,8 +367,9 @@ export function SearchModal() {
               <p className="text-xs font-bold text-neutral-500">
                 Found {results.length} {results.length === 1 ? "result" : "results"} for &ldquo;{query}&rdquo;
               </p>
-              <span className="text-[11px] font-bold text-[#0c831f] bg-[#e8f5e9] px-2 py-0.5 rounded-full">
-                ⚡ Same Day Delivery
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0c831f] bg-[#e8f5e9] px-2.5 py-0.5 rounded-full">
+                <Zap className="w-3 h-3 fill-[#0c831f]" />
+                <span>Same Day Delivery</span>
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -385,17 +391,9 @@ export function SearchModal() {
                     key={variantId || item.id}
                     className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-neutral-100 bg-white hover:border-[#0c831f] shadow-xs transition"
                   >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        openProductSheet({
-                          slug: prodSlug,
-                          initialName: prodName,
-                          initialPrice: sellingPrice,
-                          initialMrp: mrpPrice,
-                          initialImage: img,
-                        });
-                      }}
+                    <Link
+                      href={`/product/${prodSlug}`}
+                      onClick={() => setIsOpen(false)}
                       className="flex items-center gap-3 text-left flex-1 min-w-0 cursor-pointer"
                     >
                       <div className="h-16 w-16 shrink-0 rounded-xl bg-[#fafafa] p-1 border border-neutral-100 overflow-hidden flex items-center justify-center">
@@ -405,13 +403,13 @@ export function SearchModal() {
                         <h4 className="text-xs sm:text-sm font-bold text-[#1c1c1c] truncate">{prodName}</h4>
                         <p className="text-[11px] text-neutral-400 mt-0.5">{packText}</p>
                         <div className="flex items-baseline gap-1.5 mt-1">
-                          <span className="text-xs sm:text-sm font-black text-[#1c1c1c]">{formatPaise(sellingPrice)}</span>
+                          <span className="text-xs sm:text-sm font-bold tabular-nums text-[#1c1c1c]">{formatPaise(sellingPrice)}</span>
                           {mrpPrice > sellingPrice ? (
-                            <span className="text-[10px] text-neutral-400 line-through">{formatPaise(mrpPrice)}</span>
+                            <span className="text-[10px] text-neutral-400 line-through tabular-nums">{formatPaise(mrpPrice)}</span>
                           ) : null}
                         </div>
                       </div>
-                    </button>
+                    </Link>
 
                     <div className="w-20 shrink-0">
                       <AddButton variantId={variantId} className="w-full text-xs" />
@@ -426,10 +424,10 @@ export function SearchModal() {
         {/* No Results Empty State */}
         {!loading && query.trim() && results.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-neutral-100 flex items-center justify-center text-3xl mb-3">
-              🔍
+            <div className="h-16 w-16 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-3">
+              <Search className="w-8 h-8 stroke-[1.5]" />
             </div>
-            <h3 className="text-base font-black text-[#1c1c1c]">No items found</h3>
+            <h3 className="text-base font-bold text-[#1c1c1c]">No items found</h3>
             <p className="text-xs text-neutral-500 mt-1 max-w-xs">
               We couldn&apos;t find anything matching &ldquo;{query}&rdquo;. Try checking the spelling or browse our popular categories.
             </p>
@@ -458,14 +456,14 @@ export function SearchModal() {
             className="w-full flex items-center justify-between bg-gradient-to-r from-[#0c831f] via-[#0d8e23] to-[#0a701a] text-white px-4 py-3 rounded-2xl shadow-xl border border-emerald-400/30 transition active:scale-[0.98] cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 text-sm">
-                🛒
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20">
+                <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
               </span>
               <div className="text-left leading-tight">
                 <p className="text-[11px] font-bold text-emerald-100 uppercase tracking-wide">
                   {cartCount} {cartCount === 1 ? "item" : "items"} in cart
                 </p>
-                <p className="text-sm font-black">{formatPaise(cartTotal)}</p>
+                <p className="text-sm font-bold tabular-nums">{formatPaise(cartTotal)}</p>
               </div>
             </div>
             <div className="flex items-center gap-1 text-xs font-black uppercase tracking-wider bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl transition">

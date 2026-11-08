@@ -331,6 +331,15 @@ async function runAudit() {
     `matchedName=${lookupData?.name || lookupData?.suggestion?.name}`
   );
 
+  // Unknown Barcode Resilience Test (Must not 500 crash)
+  const unknownBarcode = `999${Date.now().toString().slice(-10)}`;
+  const unknownLookupRes = await makeRequest(`/api/admin/products/barcode-lookup?barcode=${unknownBarcode}`);
+  assertCheck(
+    "Uncatalogued Barcode Lookup gracefully handles unknown item without error",
+    unknownLookupRes.status === 200 && (unknownLookupRes.json.data as any)?.exists === false,
+    `status=${unknownLookupRes.status}`
+  );
+
   // Quick Add Test
   const testBarcode = `890999${Date.now().toString().slice(-7)}`;
   const quickAddRes = await makeRequest("/api/admin/products/quick-add", {

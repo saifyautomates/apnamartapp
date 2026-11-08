@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { ProductImage } from "@/components/product/product-image";
-import { openProductSheet } from "@/components/product/product-detail-modal";
 import { formatPaise } from "@/lib/money";
 import { discountPercent } from "@/lib/pricing";
 import { VariantCardProps } from "@/components/product/product-card";
@@ -250,16 +249,9 @@ export function DealsRail({ items }: DealsRailProps) {
                 </div>
 
                 {/* Product Artwork with Subtle Studio Pedestal Backdrop */}
-                <div
-                  onClick={() =>
-                    openProductSheet({
-                      slug,
-                      initialName: name,
-                      initialPrice: price,
-                      initialMrp: mrp,
-                      initialImage: image,
-                    })
-                  }
+                <Link
+                  href={`/product/${slug}`}
+                  prefetch={true}
                   className="relative h-28 sm:h-32 w-full flex items-center justify-center p-2 rounded-2xl bg-gradient-to-b from-neutral-50/80 via-emerald-50/10 to-white my-2 cursor-pointer overflow-hidden group-hover:bg-emerald-50/30 transition-colors"
                 >
                   <ProductImage
@@ -267,25 +259,18 @@ export function DealsRail({ items }: DealsRailProps) {
                     alt={name}
                     className="h-full w-full object-contain group-hover:scale-108 transition-transform duration-300"
                   />
-                </div>
+                </Link>
 
                 {/* Title & Price & ADD Action */}
                 <div className="space-y-2">
-                  <h4
-                    onClick={() =>
-                      openProductSheet({
-                        slug,
-                        initialName: name,
-                        initialPrice: price,
-                        initialMrp: mrp,
-                        initialImage: image,
-                      })
-                    }
+                  <Link
+                    href={`/product/${slug}`}
+                    prefetch={true}
                     title={name}
-                    className="text-xs sm:text-sm font-bold text-[#1c1c1c] group-hover:text-[#0c831f] transition-colors line-clamp-2 min-h-[2.2rem] leading-snug cursor-pointer"
+                    className="text-xs sm:text-sm font-bold text-[#1c1c1c] group-hover:text-[#0c831f] transition-colors line-clamp-2 min-h-[2.2rem] leading-snug cursor-pointer block"
                   >
                     {name}
-                  </h4>
+                  </Link>
 
                   <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-neutral-100">
                     <div className="flex flex-col leading-tight">

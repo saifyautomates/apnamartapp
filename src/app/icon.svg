@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <!-- Arched Tote Bag Handle -->
+  <path d="M176 180 C176 116 212 68 256 68 C300 68 336 116 336 180" stroke="#0c831f" stroke-width="36" stroke-linecap="round" fill="none" />
+  
+  <!-- Grocery Tote Bag Body with gentle taper -->
+  <path d="M106 164 C94 164 85 174 87 186 L122 434 C124 448 136 458 150 458 L362 458 C376 458 388 448 390 434 L425 186 C427 174 418 164 406 164 Z" fill="#0c831f" />
+  
+  <!-- Subtle Bag Lip Highlight -->
+  <path d="M102 176 L410 176" stroke="#16a34a" stroke-width="8" stroke-linecap="round" />
+  
+  <!-- Organic White Fresh Leaf Emblem in Center -->
+  <path d="M256 220 C202 220 166 262 166 314 C166 366 218 390 270 378 C322 366 346 314 346 262 C346 236 296 220 256 220 Z" fill="#ffffff" />
+  
+  <!-- Fresh Leaf Midrib Line -->
+  <path d="M184 344 C232 312 274 274 326 242" stroke="#0c831f" stroke-width="18" stroke-linecap="round" />
+</svg>

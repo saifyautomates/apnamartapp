@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import type { NotificationChannel } from "@prisma/client";
 import { sendMsg91Sms, sendMsg91WhatsApp } from "./msg91";
 import { sendEmail, renderOrderConfirmationEmail } from "./resend";
+import { getSetting } from "./settings";
 
 export interface NotificationProvider {
   send(channel: NotificationChannel, to: string, title: string, body: string, metadata?: Record<string, unknown>): Promise<void>;
@@ -123,12 +124,15 @@ export async function notifyOrderEvent(orderId: string, event: string): Promise<
   if (event === "ORDER_PLACED" && order.user?.email) {
     const addr = order.addressSnapshot as { line1?: string; city?: string; pincode?: string } | null;
     const deliveryAddress = addr ? `${addr.line1 || ""}, ${addr.city || "Kota"} - ${addr.pincode || "324001"}` : undefined;
+    const store = await getSetting<{ logoUrl?: string; name?: string }>("store", {});
 
     const html = renderOrderConfirmationEmail({
       orderNumber: order.orderNumber,
       customerName: order.user.name,
       totalPaise: order.grandTotalPaise,
       deliveryAddress,
+      logoUrl: store.logoUrl,
+      storeName: store.name,
       items: order.items.map((it) => ({
         name: it.productName || it.variantName,
         qty: it.qty,
@@ -138,7 +142,7 @@ export async function notifyOrderEvent(orderId: string, event: string): Promise<
 
     await sendEmail({
       to: order.user.email,
-      subject: `Order Confirmed: #${order.orderNumber} — Central Mart Kota`,
+      subject: `Order Confirmed: #${order.orderNumber} — ${store.name || "Central Mart"} Kota`,
       html,
     });
   }

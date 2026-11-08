@@ -114,22 +114,26 @@ export const GET = handler(async (req: NextRequest) => {
   }
 
   // Match category slug with local category ID
-  const matchedCat = await prisma.category.findFirst({
-    where: {
-      OR: [
-        { slug: suggestion.categorySlug },
-        { name: { contains: suggestion.categoryName, mode: "insensitive" } },
-      ],
-    },
-  });
+  const matchedCat = suggestion
+    ? await prisma.category.findFirst({
+        where: {
+          OR: [
+            { slug: suggestion.categorySlug },
+            { name: { contains: suggestion.categoryName, mode: "insensitive" } },
+          ],
+        },
+      })
+    : null;
 
   return ok({
     exists: false,
-    suggestion: {
-      ...suggestion,
-      matchedCategoryId: matchedCat?.id ?? null,
-      matchedCategoryName: matchedCat?.name ?? suggestion.categoryName,
-    },
+    suggestion: suggestion
+      ? {
+          ...suggestion,
+          matchedCategoryId: matchedCat?.id ?? null,
+          matchedCategoryName: matchedCat?.name ?? suggestion.categoryName,
+        }
+      : null,
   });
 });
 

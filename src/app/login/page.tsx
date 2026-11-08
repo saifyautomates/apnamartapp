@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Suspense } from "react";
 import Link from "next/link";
 import { CentralMartLogo } from "@/components/ui/logo";
+import { Smartphone, Mail, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 
 function LoginInner() {
   const params = useSearchParams();
@@ -176,20 +177,21 @@ function LoginInner() {
         </p>
 
         {/* Auth Mode Toggle Tabs (Phone vs Supabase Email) */}
-        <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl bg-neutral-100 p-1 text-xs font-bold">
+        <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl bg-neutral-100 p-1 text-xs font-semibold">
           <button
             type="button"
             onClick={() => {
               setAuthMode("phone");
               setError("");
             }}
-            className={`rounded-xl py-2 transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 transition-all duration-150 cursor-pointer active:scale-[0.98] ${
               authMode === "phone"
-                ? "bg-white text-[#0c831f] shadow-xs font-black"
-                : "text-neutral-500 hover:text-neutral-800"
+                ? "bg-white text-[#0c831f] shadow-xs font-bold"
+                : "text-neutral-600 hover:text-neutral-900"
             }`}
           >
-            📱 Mobile OTP
+            <Smartphone className="w-3.5 h-3.5 stroke-[2.2]" />
+            <span>Mobile OTP</span>
           </button>
           <button
             type="button"
@@ -197,26 +199,29 @@ function LoginInner() {
               setAuthMode("email");
               setError("");
             }}
-            className={`rounded-xl py-2 transition cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 transition-all duration-150 cursor-pointer active:scale-[0.98] ${
               authMode === "email"
-                ? "bg-white text-[#0c831f] shadow-xs font-black"
-                : "text-neutral-500 hover:text-neutral-800"
+                ? "bg-white text-[#0c831f] shadow-xs font-bold"
+                : "text-neutral-600 hover:text-neutral-900"
             }`}
           >
-            ✉️ Email (Supabase)
+            <Mail className="w-3.5 h-3.5 stroke-[2.2]" />
+            <span>Email</span>
           </button>
         </div>
 
         {error ? (
-          <p className="mt-4 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs font-bold text-red-600 text-left">
-            {error}
-          </p>
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-red-50 border border-red-200/80 px-3 py-2.5 text-xs font-semibold text-red-600 text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
         ) : null}
 
         {successMsg ? (
-          <p className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs font-bold text-emerald-700 text-left">
-            {successMsg}
-          </p>
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-emerald-50 border border-emerald-200/80 px-3 py-2.5 text-xs font-semibold text-emerald-700 text-left">
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-[#0c831f]" />
+            <span>{successMsg}</span>
+          </div>
         ) : null}
 
         {/* 1. Phone OTP Auth Section */}
@@ -247,9 +252,10 @@ function LoginInner() {
                   type="button"
                   onClick={requestOtp}
                   disabled={busy || phone.length < 10}
-                  className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] text-white py-3.5 text-center text-sm font-black shadow-md transition active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0c831f] hover:bg-[#0a701a] text-white py-3.5 text-center text-sm font-bold shadow-xs transition-all duration-140 active:scale-[0.98] disabled:opacity-50 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#0c831f] focus-visible:outline-hidden"
                 >
-                  {busy ? "Sending Code…" : "Continue with OTP →"}
+                  <span>{busy ? "Sending Code…" : "Continue with OTP"}</span>
+                  {!busy && <ArrowRight className="w-4 h-4" />}
                 </button>
               </div>
             ) : (
@@ -275,17 +281,15 @@ function LoginInner() {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     inputMode="numeric"
                     maxLength={6}
-                    placeholder="• • • • • •"
-                    className="w-full text-center tracking-widest text-lg font-black rounded-xl border border-neutral-300 py-3 text-[#1c1c1c] focus:border-[#0c831f] focus:outline-hidden"
+                    placeholder="••••••"
+                    className="w-full text-center tracking-[0.4em] font-mono text-xl font-bold tabular-nums rounded-xl border border-neutral-300 bg-neutral-50/50 py-3 text-[#1c1c1c] focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition"
                   />
                 </div>
 
                 {devOtp ? (
-                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-2.5 text-center text-xs text-emerald-900 font-bold">
-                    Dev Auto-OTP:{" "}
-                    <span className="text-sm font-black text-[#0c831f] tracking-wider">
-                      {devOtp}
-                    </span>
+                  <div className="rounded-xl bg-emerald-50 border border-emerald-200/80 p-2.5 text-center text-xs text-emerald-900 font-semibold flex items-center justify-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#0c831f]" />
+                    <span>Auto-fill OTP: <strong className="font-mono tabular-nums text-sm font-bold text-[#0c831f]">{devOtp}</strong></span>
                   </div>
                 ) : null}
 
@@ -293,7 +297,7 @@ function LoginInner() {
                   type="button"
                   onClick={verifyOtp}
                   disabled={busy || otp.length !== 6}
-                  className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] text-white py-3.5 text-center text-sm font-black shadow-md transition active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                  className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] text-white py-3.5 text-center text-sm font-bold shadow-xs transition-all duration-140 active:scale-[0.98] disabled:opacity-50 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#0c831f] focus-visible:outline-hidden"
                 >
                   {busy ? "Verifying…" : "Verify & Continue"}
                 </button>

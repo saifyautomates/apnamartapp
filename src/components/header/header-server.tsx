@@ -53,11 +53,12 @@ async function getCartStats(): Promise<{ count: number; total: number; isLoggedI
   }
 }
 
-export default async function Header({ storeName }: { storeName: string }) {
+export default async function Header({ storeName, logoUrl }: { storeName: string; logoUrl?: string }) {
   const { count, total, isLoggedIn, customerName } = await getCartStats();
   return (
     <BlinkitHeader
       storeName={storeName}
+      logoUrl={logoUrl}
       initialCount={count}
       initialTotal={total}
       isLoggedIn={isLoggedIn}

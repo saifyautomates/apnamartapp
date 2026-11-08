@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { effectivePrice, discountPercent } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import { ProductImage } from "./product-image";
 import { AddButton } from "./add-button";
-import { openProductSheet } from "./product-detail-modal";
 import { VariantCardProps } from "./product-card";
 
 export function ProductListItem({ v }: { v: VariantCardProps }) {
@@ -28,25 +28,12 @@ export function ProductListItem({ v }: { v: VariantCardProps }) {
 
   const ratingInfo = ratingsMap[product.slug] || { rating: "4.8", count: "8.4K+" };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (!e.metaKey && !e.ctrlKey) {
-      e.preventDefault();
-      openProductSheet({
-        slug: product.slug,
-        initialName: product.name,
-        initialPrice: price,
-        initialMrp: mrp,
-        initialImage: image,
-      });
-    }
-  };
-
   return (
     <article className="group relative flex items-center justify-between gap-3 rounded-2xl border border-neutral-100 bg-white p-3 shadow-xs hover:shadow-md transition-all duration-200">
       {/* Left: Product Image */}
-      <a
+      <Link
         href={`/product/${product.slug}`}
-        onClick={handleCardClick}
+        prefetch={true}
         className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-xl bg-[#fafafa] p-1.5 flex items-center justify-center overflow-hidden border border-neutral-100 active:scale-95 transition-transform"
       >
         <ProductImage
@@ -54,20 +41,20 @@ export function ProductListItem({ v }: { v: VariantCardProps }) {
           alt={product.name}
           className="h-full w-full object-contain"
         />
-      </a>
+      </Link>
 
       {/* Center & Right Content */}
       <div className="flex-1 min-w-0 flex flex-col justify-between h-24 sm:h-28">
         {/* Top Row: Title & Heart */}
         <div className="flex items-start justify-between gap-1">
           <div className="min-w-0 flex-1">
-            <a
+            <Link
               href={`/product/${product.slug}`}
-              onClick={handleCardClick}
+              prefetch={true}
               className="text-xs sm:text-sm font-black text-[#1c1c1c] truncate block hover:text-[#0c831f] transition cursor-pointer"
             >
               {product.name}
-            </a>
+            </Link>
             <p className="text-[11px] text-neutral-400 font-medium truncate mt-0.5">
               {v.packSize ?? v.name ?? "1 kg"}
             </p>

@@ -2,6 +2,7 @@ import { prisma, withDbTimeout } from "@/lib/prisma";
 import Link from "next/link";
 import { ProductImage } from "@/components/product";
 import { getFallbackCategories } from "@/lib/resilient-catalog";
+import { Zap } from "lucide-react";
 
 export default async function CategoriesPage() {
   let categories: Array<{
@@ -19,7 +20,7 @@ export default async function CategoriesPage() {
         include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
         orderBy: { sortOrder: "asc" },
       }),
-      250
+      3500
     );
   } catch {
     /* fallback to resilient catalog */
@@ -36,8 +37,9 @@ export default async function CategoriesPage() {
           <h1 className="text-xl sm:text-2xl font-black text-[#1c1c1c]">All Categories</h1>
           <p className="mt-0.5 text-xs text-neutral-500 font-medium">All items delivered to your doorstep with Same-Day Delivery</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-black">
-          ⚡ Same Day Delivery
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-bold">
+          <Zap className="w-3.5 h-3.5 fill-[#0c831f]" />
+          <span>Same Day Delivery</span>
         </span>
       </div>
 

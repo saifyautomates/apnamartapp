@@ -8,6 +8,7 @@ import { api, ensureCsrf } from "@/lib/api/client";
 import { useDelivery } from "@/lib/delivery-context";
 import { openLoginModal } from "@/components/auth/login-modal";
 import { GoogleMapPicker } from "@/components/location/google-map-picker";
+import { ShoppingBag, Zap, Tag, MapPin, CreditCard, Banknote, Clock, Check, Sparkles, X } from "lucide-react";
 
 export interface CartLine {
   variantId: string;
@@ -366,33 +367,36 @@ export function CartDrawer() {
                 {/* Empty Cart State */}
                 {(!cart || cart.lines.length === 0) && !loading ? (
                   <div className="flex flex-col items-center justify-center h-80 text-center px-4">
-                    <div className="h-20 w-20 rounded-2xl bg-[#e8f5e9] text-[#0c831f] flex items-center justify-center text-4xl mb-3">
-                      🛒
+                    <div className="h-20 w-20 rounded-2xl bg-[#e8f5e9] text-[#0c831f] flex items-center justify-center mb-3">
+                      <ShoppingBag className="w-10 h-10 stroke-[1.8]" />
                     </div>
-                    <h3 className="font-black text-[#1c1c1c] text-lg">Your cart is empty</h3>
-                    <p className="text-xs text-neutral-500 mt-1 max-w-xs">
+                    <h3 className="font-bold text-[#1c1c1c] text-lg">Your cart is empty</h3>
+                    <p className="text-xs text-neutral-500 mt-1 max-w-xs leading-relaxed">
                       Add fresh fruits, vegetables, dairy & staples to get instant 12-15 mins delivery across Kota!
                     </p>
                     <button
                       onClick={() => setOpen(false)}
-                      className="mt-4 rounded-full bg-[#0c831f] px-6 py-2.5 text-xs font-black text-white active:scale-95 transition cursor-pointer"
+                      className="mt-4 rounded-full bg-[#0c831f] hover:bg-[#0a701a] px-6 py-2.5 text-xs font-bold text-white active:scale-95 transition cursor-pointer"
                     >
                       Start Shopping
                     </button>
                   </div>
                 ) : null}
 
-                {/* Free Delivery Milestone Progress Bar (Blinkit Standard) */}
+                {/* Free Delivery Milestone Progress Bar */}
                 {cart && cart.lines.length > 0 && (
                   <div className="rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50/80 border border-emerald-200/90 p-3 space-y-1.5 shadow-xs animate-in fade-in duration-200">
-                    <div className="flex items-center justify-between text-xs font-black">
+                    <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-emerald-950 flex items-center gap-1.5">
-                        <span className="text-sm">⚡</span>
+                        <Zap className="w-3.5 h-3.5 fill-[#0c831f] text-[#0c831f]" />
                         {subtotal >= 29900 ? (
-                          <span className="text-emerald-700">🎉 FREE Delivery Unlocked!</span>
+                          <span className="text-emerald-700 flex items-center gap-1">
+                            <Sparkles className="w-3.5 h-3.5 text-[#0c831f]" />
+                            <span>Free Delivery Unlocked!</span>
+                          </span>
                         ) : (
                           <span>
-                            Add <strong className="text-emerald-700 font-black">{formatPaise(29900 - subtotal)}</strong> more for FREE delivery
+                            Add <strong className="text-emerald-700 font-bold tabular-nums">{formatPaise(29900 - subtotal)}</strong> more for free delivery
                           </span>
                         )}
                       </span>
@@ -481,7 +485,7 @@ export function CartDrawer() {
                         className="flex items-center justify-between p-3.5 cursor-pointer hover:bg-neutral-100/50 transition"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-base text-[#0c831f]">🏷️</span>
+                          <Tag className="w-4 h-4 text-[#0c831f] stroke-[2.2]" />
                           <div>
                             <span className="text-xs font-black text-[#1c1c1c]">
                               {couponApplied ? `Coupon "${couponCode}" Applied` : "Apply Coupon / Available Offers"}
@@ -615,12 +619,12 @@ export function CartDrawer() {
                     <div className="p-3.5 rounded-2xl border border-neutral-100 bg-[#f8faf8] space-y-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-base text-[#0c831f]">📍</span>
-                          <span className="text-xs font-black text-[#1c1c1c]">Delivery Address</span>
+                          <MapPin className="w-4 h-4 text-[#0c831f] stroke-[2.2]" />
+                          <span className="text-xs font-bold text-[#1c1c1c]">Delivery Address</span>
                         </div>
                         <button
                           onClick={() => setShowMapPicker(true)}
-                          className="text-xs font-black text-[#0c831f] hover:underline cursor-pointer"
+                          className="text-xs font-bold text-[#0c831f] hover:underline cursor-pointer"
                         >
                           Change Pin on Map ›
                         </button>
@@ -637,18 +641,22 @@ export function CartDrawer() {
                     <div className="p-3.5 rounded-2xl border border-neutral-100 bg-[#f8faf8] space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-base text-[#0c831f]">💳</span>
-                          <span className="text-xs font-black text-[#1c1c1c]">Payment Method</span>
+                          <CreditCard className="w-4 h-4 text-[#0c831f] stroke-[2.2]" />
+                          <span className="text-xs font-bold text-[#1c1c1c]">Payment Method</span>
                         </div>
                         <button
                           onClick={() => setPaymentMethod(paymentMethod === "COD" ? "UPI" : "COD")}
-                          className="text-xs font-black text-[#0c831f] hover:underline cursor-pointer"
+                          className="text-xs font-bold text-[#0c831f] hover:underline cursor-pointer"
                         >
                           Change ›
                         </button>
                       </div>
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e8f5e9] text-[#0c831f] text-xs font-black border border-[#0c831f]/20">
-                        <span>{paymentMethod === "COD" ? "💵" : "⚡"}</span>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e8f5e9] text-[#0c831f] text-xs font-bold border border-[#0c831f]/20">
+                        {paymentMethod === "COD" ? (
+                          <Banknote className="w-3.5 h-3.5" />
+                        ) : (
+                          <Zap className="w-3.5 h-3.5 fill-[#0c831f]" />
+                        )}
                         <span>{paymentMethod === "COD" ? "Cash on Delivery (COD)" : "Instant UPI / QR"}</span>
                       </div>
                     </div>
@@ -759,19 +767,22 @@ export function CartDrawer() {
           {step === "success" && (
             <div className="flex-1 flex flex-col justify-between p-6 text-center overflow-y-auto">
               <div className="my-auto space-y-4">
-                <div className="h-20 w-20 mx-auto rounded-full bg-[#e8f5e9] text-[#0c831f] flex items-center justify-center text-4xl shadow-inner animate-bounce">
-                  ✓
+                <div className="h-20 w-20 mx-auto rounded-full bg-[#e8f5e9] text-[#0c831f] flex items-center justify-center shadow-inner">
+                  <Check className="w-10 h-10 stroke-[3] text-[#0c831f]" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-[#1c1c1c]">Order Placed Successfully!</h3>
+                  <h3 className="text-xl font-bold text-[#1c1c1c]">Order Placed Successfully!</h3>
                   <p className="text-xs text-neutral-500 mt-1">
-                    Order ID: <span className="font-bold text-[#0c831f]">{confirmedOrderId}</span>
+                    Order ID: <span className="font-bold text-[#0c831f] font-mono">{confirmedOrderId}</span>
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-[#f8faf8] border border-neutral-200/80 text-left space-y-2 text-xs">
                   <div className="flex justify-between border-b pb-2 font-bold">
-                    <span>⚡ Delivery Time</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-[#0c831f]" />
+                      <span>Delivery Time</span>
+                    </span>
                     <span className="text-[#0c831f]">12-15 MINS</span>
                   </div>
                   <p className="text-neutral-600">Your order will be delivered to:</p>

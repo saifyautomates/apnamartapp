@@ -1,8 +1,9 @@
 import { getHomeRailsSafe } from "@/lib/resilient-catalog";
 import { getStoreOffers } from "@/lib/offers";
-import { HeroBanner, PromoCards, CategoryGrid, QuickFeatures, DealsRail } from "@/components/home";
+import { HeroBanner, PromoCards, CategoryGrid, DealsRail } from "@/components/home";
 import { FlashSaleBar } from "@/components/home/flash-sale-bar";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
+import { Leaf, ShieldCheck, Truck, Tag, MapPin, Phone, Clock } from "lucide-react";
 
 export default async function HomePage() {
   const [{ dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals, storeBanners }, storeOffers] =
@@ -28,10 +29,7 @@ export default async function HomePage() {
       {/* 1. Hero Banner Carousel with "Daily Essentials at Best Prices" (Matches Phone 1 Mockup) */}
       <HeroBanner banners={storeBanners} />
 
-      {/* 2. 4 Quick Value Badges: Fast Delivery, 100% Original, Best Prices, Easy Returns (Matches Phone 1 Mockup) */}
-      <QuickFeatures />
-
-      {/* 3. Shop by Category Section with 8 Tiles (Matches Phone 1 Mockup) */}
+      {/* 2. Shop by Category Section with 8 Tiles (Matches Phone 1 Mockup) */}
       <CategoryGrid />
 
       {/* 4. Today's Best Deals with Countdown Timer (Matches Phone 1 Mockup) */}
@@ -98,53 +96,93 @@ export default async function HomePage() {
       {/* Rail: Best Offers */}
       {discountDeals.length > 0 ? (
         <ProductCarousel
-          title="🔥 Best Offers & Deals"
+          title="Best Deals & Value Packs"
           seeAllHref="/category"
           items={discountDeals as unknown as VariantCardProps[]}
         />
       ) : null}
 
-      {/* 6. Four Central Mart Trust Badges (Matches Bottom of Poster Mockup) */}
+      {/* 6. Four Central Mart Trust Badges */}
       <section className="pt-4 pb-2 border-t border-neutral-100">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
-              🍃
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
+              <Leaf className="w-5 h-5 stroke-[2.2]" />
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">Farm Fresh Produce</p>
-              <p className="text-[10px] text-neutral-400 font-medium">Naturally Sourced</p>
+              <p className="text-xs font-bold text-[#1c1c1c]">Farm Fresh Produce</p>
+              <p className="text-[10px] text-neutral-500 font-medium">Direct Sourced</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
-              🛡️
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
+              <ShieldCheck className="w-5 h-5 stroke-[2.2]" />
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">100% Quality Assured</p>
-              <p className="text-[10px] text-neutral-400 font-medium">Carefully Inspected</p>
+              <p className="text-xs font-bold text-[#1c1c1c]">100% Quality Assured</p>
+              <p className="text-[10px] text-neutral-500 font-medium">Carefully Inspected</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
-              🛵
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
+              <Truck className="w-5 h-5 stroke-[2.2]" />
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">Same Day Delivery*</p>
-              <p className="text-[10px] text-[#0c831f] font-bold">⚡ 12-15 Mins in Kota</p>
+              <p className="text-xs font-bold text-[#1c1c1c]">Same Day Delivery</p>
+              <p className="text-[10px] text-[#0c831f] font-bold">12-15 Mins in Kota</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-lg">
-              🏷️
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
+              <Tag className="w-5 h-5 stroke-[2.2]" />
             </span>
             <div className="leading-tight">
-              <p className="text-xs font-black text-[#1c1c1c]">Exciting Offers & Deals</p>
-              <p className="text-[10px] text-neutral-400 font-medium">Best Prices Guaranteed</p>
+              <p className="text-xs font-bold text-[#1c1c1c]">Everyday Value</p>
+              <p className="text-[10px] text-neutral-500 font-medium">Best Prices Guaranteed</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Kota Local SEO Showcase (80 Feet Road Hub) */}
+      <section className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/30 p-5 sm:p-7 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0c831f] text-white">
+                <MapPin className="w-3.5 h-3.5 stroke-[2.5]" />
+              </span>
+              <h2 className="text-sm sm:text-base font-bold text-[#1c1c1c]">
+                Central Mart Darkstore &amp; Supermarket — 80 Feet Road, Kota
+              </h2>
+            </div>
+            <p className="text-xs text-neutral-600 leading-relaxed max-w-3xl">
+              Kota&apos;s leading online FMCG grocery store located at <strong>80 Feet Road</strong>. Delivering 100% genuine packaged staples (Atta, Rice, Dal), Amul &amp; Saras Dairy, snacks, beverages, cleaning &amp; personal care essentials with <strong>Same-Day Doorstep Delivery</strong> across Kota.
+            </p>
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-emerald-800 font-semibold">
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100/90 px-2 py-0.5 font-bold">
+                <Clock className="w-3 h-3 text-[#0c831f]" />
+                80 Feet Road (10-15 Min Delivery)
+              </span>
+              <span className="rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5">Talwandi</span>
+              <span className="rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5">Nayapura</span>
+              <span className="rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5">Vigyan Nagar</span>
+              <span className="rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5">Dadabari</span>
+              <span className="rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5">Mahaveer Nagar</span>
+              <span className="rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5">Kunhari &amp; Landmark City</span>
+              <span className="rounded-md bg-emerald-50 border border-emerald-200/60 px-2 py-0.5">Jawahar Nagar</span>
+            </div>
+          </div>
+          <div className="shrink-0 text-left md:text-right border-t md:border-t-0 md:border-l border-emerald-100 pt-3 md:pt-0 md:pl-5 space-y-1 text-xs text-neutral-600">
+            <p className="font-bold text-[#1c1c1c]">Store Timings: 8:00 AM – 10:00 PM</p>
+            <p className="text-[#0c831f] font-bold flex items-center md:justify-end gap-1.5">
+              <Phone className="w-3.5 h-3.5" />
+              <span>Helpline: +91 98290 12345</span>
+            </p>
+            <p className="text-[11px] text-neutral-500">80 Feet Road, Kota - 324005</p>
           </div>
         </div>
       </section>

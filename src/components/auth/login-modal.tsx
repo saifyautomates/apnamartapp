@@ -2,6 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { ensureCsrf } from "@/lib/api/client";
+import { createClient } from "@/lib/supabase/client";
+import {
+  Zap,
+  AlertCircle,
+  X,
+  Smartphone,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
+import Link from "next/link";
 
 export function openLoginModal() {
   if (typeof window !== "undefined") {
@@ -102,6 +116,27 @@ export function LoginModal() {
     }
   }
 
+  // Google OAuth via Supabase
+  async function handleGoogleLogin() {
+    setBusy(true);
+    setError("");
+    try {
+      const supabase = createClient();
+      const callbackUrl = `${window.location.origin}/auth/callback?next=/`;
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl,
+        },
+      });
+      if (oauthError) throw oauthError;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Google login failed";
+      setError(message);
+      setBusy(false);
+    }
+  }
+
   // 1-Click Instant Demo Login for Kota Customer
   async function handleInstantTestLogin() {
     setPhone("9876543210");
@@ -159,7 +194,7 @@ export function LoginModal() {
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5 bg-white">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f] text-sm font-black">
-              ⚡
+              <Zap className="w-4 h-4 fill-[#0c831f] text-[#0c831f]" />
             </span>
             <div>
               <h3 className="text-base font-black text-[#1c1c1c] leading-tight">
@@ -171,8 +206,9 @@ export function LoginModal() {
           <button
             onClick={() => setIsOpen(false)}
             className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition cursor-pointer"
+            aria-label="Close"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -180,7 +216,7 @@ export function LoginModal() {
         <div className="p-5 sm:p-6 space-y-4">
           {error ? (
             <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-600 flex items-center gap-2">
-              <span>⚠️</span>
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
               <span>{error}</span>
             </div>
           ) : null}
@@ -188,8 +224,9 @@ export function LoginModal() {
           {step === "phone" ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-[#1c1c1c] uppercase tracking-wider mb-1.5">
-                  Mobile Number
+                <label className="block text-xs font-black text-[#1c1c1c] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-[#0c831f]" />
+                  <span>Mobile Number</span>
                 </label>
                 <div className="flex rounded-xl border border-neutral-200 bg-[#fafafa] overflow-hidden focus-within:border-[#0c831f] focus-within:bg-white transition">
                   <span className="px-3.5 py-3 text-sm font-black text-neutral-500 border-r border-neutral-200 bg-neutral-100/60 select-none">
@@ -214,23 +251,71 @@ export function LoginModal() {
                 className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] disabled:opacity-50 text-white py-3 text-sm font-black transition active:scale-98 shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
                 {busy ? (
-                  <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
                 ) : (
-                  <span>Continue with OTP →</span>
+                  <>
+                    <span>Continue with OTP</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
 
-              {/* 1-Click Instant Demo Login Option */}
-              <div className="pt-2 border-t border-neutral-100 text-center">
+              {/* Continue with Google */}
+              <div className="relative py-1">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-neutral-200" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-bold text-neutral-400 bg-white px-2">
+                  <span>OR</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={busy}
+                className="w-full rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 text-[#1c1c1c] py-2.5 text-xs font-bold transition active:scale-98 cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              {/* 1-Click Instant Demo Login Option & Email Login Link */}
+              <div className="pt-2 border-t border-neutral-100 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={handleInstantTestLogin}
                   disabled={busy}
-                  className="w-full rounded-xl bg-neutral-100 hover:bg-neutral-200 text-[#1c1c1c] py-2.5 text-xs font-bold transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full rounded-xl bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 py-2.5 text-xs font-bold transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5 border border-emerald-200/60"
                 >
-                  <span>⚡</span>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                   <span>1-Click Test Customer Login (Instant)</span>
                 </button>
+
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="text-center text-[11px] font-bold text-neutral-500 hover:text-[#0c831f] transition"
+                >
+                  Sign in with Email &amp; Password →
+                </Link>
               </div>
             </form>
           ) : (
@@ -262,7 +347,9 @@ export function LoginModal() {
 
               {devOtp ? (
                 <div className="rounded-xl bg-[#e8f5e9] border border-[#0c831f]/20 p-2.5 text-xs text-[#0c831f] font-bold flex items-center justify-between">
-                  <span>Test OTP: <strong>{devOtp}</strong></span>
+                  <span>
+                    Test OTP: <strong>{devOtp}</strong>
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -281,9 +368,12 @@ export function LoginModal() {
                 className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] disabled:opacity-50 text-white py-3 text-sm font-black transition active:scale-98 shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
                 {busy ? (
-                  <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
                 ) : (
-                  <span>Verify &amp; Continue →</span>
+                  <>
+                    <span>Verify &amp; Continue</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </form>
@@ -295,4 +385,3 @@ export function LoginModal() {
 }
 
 export default LoginModal;
-

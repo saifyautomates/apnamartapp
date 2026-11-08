@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api } from "@/lib/api/client";
+import { ensureCsrf } from "@/lib/api/csrf";
 import { useRouter } from "next/navigation";
+import { CentralMartLogo } from "@/components/ui/logo";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -386,27 +388,443 @@ export function SettingsForm({ initial }: { initial: Record<string, unknown> }) 
   const { submit, error, done, busy } = useAdminForm("/api/admin/settings", "PUT");
   const store = (form.store as Record<string, unknown>) ?? {};
   const setStore = (k: string, v: unknown) => setForm({ ...form, store: { ...store, [k]: v } });
+
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const appIconInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingAppIcon, setUploadingAppIcon] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState("");
+
+  const logoUrl = String(store.logoUrl ?? "");
+  const appIconUrl = String(store.appIconUrl ?? "");
+  const storeName = String(store.name ?? "Central Mart");
+  const displayMode = (store.displayMode as "IMAGE_ONLY" | "IMAGE_AND_TEXT") ?? "IMAGE_ONLY";
+
+  async function handleFileUpload(file: File, target: "logo" | "appIcon") {
+    const isLogo = target === "logo";
+    if (isLogo) setUploadingLogo(true);
+    else setUploadingAppIcon(true);
+    setUploadMsg("");
+
+    try {
+      const token = await ensureCsrf();
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", isLogo ? "logos" : "icons");
+
+      const res = await fetch("/api/uploads", {
+        method: "POST",
+        headers: { "x-csrf-token": token },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        // Fallback to local Data URL preview if storage not configured
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === "string") {
+            setStore(isLogo ? "logoUrl" : "appIconUrl", reader.result);
+            setUploadMsg(`Loaded from device. Remember to click "Save settings" below.`);
+          }
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const json = await res.json();
+      if (json.data?.url) {
+        setStore(isLogo ? "logoUrl" : "appIconUrl", json.data.url);
+        setUploadMsg(`Uploaded successfully. Remember to click "Save settings" below.`);
+      }
+    } catch (e) {
+      setUploadMsg(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      if (isLogo) setUploadingLogo(false);
+      else setUploadingAppIcon(false);
+    }
+  }
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const ok = await submit({
+      store: form.store,
+      busy: form.busy,
+      delivery: form.delivery,
+      tax: form.tax,
+      payments: form.payments,
+      loyalty: form.loyalty,
+    });
+    if (ok) {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("store-settings-updated", { detail: form.store })
+        );
+      }
+    }
+  };
+
   return (
-    <form
-      className="grid gap-3 rounded-xl border border-adminline bg-white p-4 shadow-sm sm:grid-cols-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        submit({ store: form.store, busy: form.busy });
-      }}
-    >
-      <Field label="Store name"><input className={inputCls} value={String(store.name ?? "")} onChange={(e) => setStore("name", e.target.value)} /></Field>
-      <Field label="Phone"><input className={inputCls} value={String(store.phone ?? "")} onChange={(e) => setStore("phone", e.target.value)} /></Field>
-      <Field label="Email"><input className={inputCls} value={String(store.email ?? "")} onChange={(e) => setStore("email", e.target.value)} /></Field>
-      <Field label="GSTIN"><input className={inputCls} value={String(store.gstin ?? "")} onChange={(e) => setStore("gstin", e.target.value)} /></Field>
-      <Field label="Address"><input className={inputCls} value={String(store.address ?? "")} onChange={(e) => setStore("address", e.target.value)} /></Field>
-      <Field label="BUSY posting trigger">
-        <select className={inputCls} value={String((form.busy as Record<string, unknown>)?.postingTrigger ?? "OUT_FOR_DELIVERY")} onChange={(e) => setForm({ ...form, busy: { postingTrigger: e.target.value } })}>
-          {["ORDER_CONFIRMED", "PACKED", "OUT_FOR_DELIVERY", "DELIVERED"].map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
-      </Field>
-      <button disabled={busy} className="rounded-lg bg-admin px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:col-span-2">Save settings</button>
-      {error ? <p className="text-sm text-sale sm:col-span-2">{error}</p> : null}
-      {done ? <p className="text-sm text-brand-700 sm:col-span-2">{done}</p> : null}
+    <form className="space-y-6" onSubmit={handleFormSubmit}>
+      {/* 1. STORE LOGO & HEADER BRANDING */}
+      <div className="rounded-2xl border border-adminline bg-white p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-neutral-100 gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800 text-sm font-bold">
+                🏪
+              </span>
+              <h3 className="text-base font-bold text-neutral-900">Store Logo &amp; Header Branding</h3>
+            </div>
+            <p className="text-xs text-neutral-500 mt-1">
+              Shown in desktop navigation, mobile header, invoices, and confirmation emails.
+            </p>
+          </div>
+          {logoUrl ? (
+            <button
+              type="button"
+              onClick={() => setStore("logoUrl", "")}
+              className="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200 cursor-pointer self-start sm:self-auto"
+            >
+              Reset to Default SVG Logo
+            </button>
+          ) : (
+            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
+              Default Signature Brand Mark Active
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          {/* Controls */}
+          <div className="space-y-3">
+            <Field label="Store Logo Image URL (CDN / Static / Upload)">
+              <div className="flex gap-2">
+                <input
+                  className={inputCls}
+                  placeholder="https://... or /uploads/..."
+                  value={logoUrl}
+                  onChange={(e) => setStore("logoUrl", e.target.value)}
+                />
+                {logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setStore("logoUrl", "")}
+                    className="shrink-0 px-3 py-2 text-xs font-semibold text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </Field>
+
+            <div>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, "logo");
+                }}
+              />
+              <button
+                type="button"
+                disabled={uploadingLogo}
+                onClick={() => logoInputRef.current?.click()}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-100 hover:border-neutral-400 transition cursor-pointer disabled:opacity-50"
+              >
+                {uploadingLogo ? (
+                  <>
+                    <span className="animate-spin text-sm">⏳</span> Uploading logo...
+                  </>
+                ) : (
+                  <>
+                    <span>📁</span> Choose Logo from Device (PNG, SVG, WebP, JPEG)
+                  </>
+                )}
+              </button>
+            </div>
+
+            <Field label="Logo Display Mode">
+              <select
+                className={inputCls}
+                value={displayMode}
+                onChange={(e) => setStore("displayMode", e.target.value)}
+              >
+                <option value="IMAGE_ONLY">Banner Logo (Image replaces wordmark)</option>
+                <option value="IMAGE_AND_TEXT">Emblem + Store Name (Image beside name text)</option>
+              </select>
+            </Field>
+          </div>
+
+          {/* Live Previews */}
+          <div className="space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Live Header Previews</p>
+
+            {/* Desktop / Light Header Preview */}
+            <div className="rounded-xl border border-neutral-200 bg-white p-3 shadow-xs">
+              <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5">
+                Desktop Light Header
+              </div>
+              <div className="flex items-center min-h-[44px] px-3 py-2 rounded-lg bg-neutral-50 border border-neutral-200/60">
+                <CentralMartLogo
+                  logoUrl={logoUrl}
+                  storeName={storeName}
+                  displayMode={displayMode}
+                  theme="light"
+                  size="sm"
+                />
+              </div>
+            </div>
+
+            {/* Mobile / Green Header Preview */}
+            <div className="rounded-xl border border-emerald-900 bg-[#0a6833] p-3 shadow-xs">
+              <div className="text-[10px] font-bold text-emerald-200/70 uppercase tracking-wider mb-1.5">
+                Mobile Green Header (Phone Top Bar)
+              </div>
+              <div className="flex items-center min-h-[44px] px-3 py-2 rounded-lg bg-white/10 backdrop-blur-xs">
+                <CentralMartLogo
+                  logoUrl={logoUrl}
+                  storeName={storeName}
+                  displayMode={displayMode}
+                  theme="greenHeader"
+                  size="sm"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. APP LOGO & PWA LAUNCHER ICON */}
+      <div className="rounded-2xl border border-adminline bg-white p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-neutral-100 gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-800 text-sm font-bold">
+                📱
+              </span>
+              <h3 className="text-base font-bold text-neutral-900">App Logo &amp; PWA Launcher Icon</h3>
+            </div>
+            <p className="text-xs text-neutral-500 mt-1">
+              App tile icon on customer home screens (Android / iOS Add to Home Screen) and launch splash loader.
+            </p>
+          </div>
+          {appIconUrl ? (
+            <button
+              type="button"
+              onClick={() => setStore("appIconUrl", "")}
+              className="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200 cursor-pointer self-start sm:self-auto"
+            >
+              Reset to Default Central Mart Icon
+            </button>
+          ) : (
+            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
+              Default 512x512 Central Mart Icon Active
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          {/* Controls */}
+          <div className="space-y-3">
+            <Field label="App Icon Image URL (192x192 / 512x512 Square PNG)">
+              <div className="flex gap-2">
+                <input
+                  className={inputCls}
+                  placeholder="https://... or /uploads/..."
+                  value={appIconUrl}
+                  onChange={(e) => setStore("appIconUrl", e.target.value)}
+                />
+                {appIconUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setStore("appIconUrl", "")}
+                    className="shrink-0 px-3 py-2 text-xs font-semibold text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </Field>
+
+            <div>
+              <input
+                ref={appIconInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, "appIcon");
+                }}
+              />
+              <button
+                type="button"
+                disabled={uploadingAppIcon}
+                onClick={() => appIconInputRef.current?.click()}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 bg-neutral-50/80 px-4 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-100 hover:border-neutral-400 transition cursor-pointer disabled:opacity-50"
+              >
+                {uploadingAppIcon ? (
+                  <>
+                    <span className="animate-spin text-sm">⏳</span> Uploading app icon...
+                  </>
+                ) : (
+                  <>
+                    <span>📱</span> Choose App Icon from Device (Square PNG / WebP / JPEG)
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-[11px] text-neutral-400">
+              Tip: Upload a 512x512 square image with rich contrast so it looks crisp on high-DPI Android and iPhone home screens.
+            </p>
+          </div>
+
+          {/* Live Previews */}
+          <div className="space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">Live App Previews</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Home Screen Icon Tile */}
+              <div className="rounded-xl border border-neutral-200 bg-gradient-to-b from-neutral-100 to-neutral-200/60 p-3 text-center flex flex-col items-center justify-center">
+                <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2">
+                  Home Screen Tile
+                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={appIconUrl || "/icons/icon-192.png"}
+                  alt="App Icon"
+                  className="h-16 w-16 rounded-2xl object-contain drop-shadow-md"
+                />
+                <span className="text-[11px] font-bold text-neutral-800 mt-1.5 truncate max-w-[100px]">
+                  {storeName}
+                </span>
+              </div>
+
+              {/* Splash Loader Preview */}
+              <div className="rounded-xl border border-amber-300 bg-gradient-to-br from-[#f8cb46] to-[#f5b820] p-3 text-center flex flex-col items-center justify-center text-neutral-900 shadow-xs">
+                <div className="text-[10px] font-black text-amber-950/70 uppercase tracking-wider mb-2">
+                  Launch Splash Screen
+                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={appIconUrl || "/icons/icon-192.png"}
+                  alt="Splash Icon"
+                  className="h-12 w-12 rounded-xl object-contain drop-shadow-md mb-1"
+                />
+                <span className="text-xs font-black tracking-tight text-neutral-900 truncate">
+                  {storeName}
+                </span>
+                <div className="h-1 w-16 bg-emerald-700 rounded-full mt-2" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. STORE DETAILS & CONTACT */}
+      <div className="rounded-2xl border border-adminline bg-white p-5 shadow-sm">
+        <div className="pb-4 border-b border-neutral-100 mb-4">
+          <h3 className="text-base font-bold text-neutral-900">Store Information &amp; Settings</h3>
+          <p className="text-xs text-neutral-500 mt-0.5">
+            Basic store business details used across invoices and legal footers.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Store name">
+            <input
+              className={inputCls}
+              value={storeName}
+              onChange={(e) => setStore("name", e.target.value)}
+            />
+          </Field>
+          <Field label="Store Tagline">
+            <input
+              className={inputCls}
+              placeholder="e.g. India's Same-Day FMCG Grocery Store"
+              value={String(store.tagline ?? "")}
+              onChange={(e) => setStore("tagline", e.target.value)}
+            />
+          </Field>
+          <Field label="Phone">
+            <input
+              className={inputCls}
+              value={String(store.phone ?? "")}
+              onChange={(e) => setStore("phone", e.target.value)}
+            />
+          </Field>
+          <Field label="Email">
+            <input
+              className={inputCls}
+              value={String(store.email ?? "")}
+              onChange={(e) => setStore("email", e.target.value)}
+            />
+          </Field>
+          <Field label="GSTIN">
+            <input
+              className={inputCls}
+              value={String(store.gstin ?? "")}
+              onChange={(e) => setStore("gstin", e.target.value)}
+            />
+          </Field>
+          <Field label="Address">
+            <input
+              className={inputCls}
+              value={String(store.address ?? "")}
+              onChange={(e) => setStore("address", e.target.value)}
+            />
+          </Field>
+          <Field label="BUSY posting trigger">
+            <select
+              className={inputCls}
+              value={String(
+                (form.busy as Record<string, unknown>)?.postingTrigger ?? "OUT_FOR_DELIVERY"
+              )}
+              onChange={(e) =>
+                setForm({ ...form, busy: { postingTrigger: e.target.value } })
+              }
+            >
+              {["ORDER_CONFIRMED", "PACKED", "OUT_FOR_DELIVERY", "DELIVERED"].map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+      </div>
+
+      {/* FEEDBACK MESSAGES & SAVE BUTTON */}
+      {uploadMsg && (
+        <div className="rounded-xl bg-blue-50 border border-blue-200 px-4 py-2.5 text-xs text-blue-800 font-medium">
+          ℹ️ {uploadMsg}
+        </div>
+      )}
+      {error ? (
+        <div className="rounded-xl bg-rose-50 border border-rose-200 px-4 py-2.5 text-xs text-rose-800 font-medium">
+          ❌ {error}
+        </div>
+      ) : null}
+      {done ? (
+        <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-xs text-emerald-800 font-bold">
+          ✅ {done} All store logos, app icons, and branding settings have been updated across the entire platform.
+        </div>
+      ) : null}
+
+      <div className="flex items-center justify-end gap-3 pt-2">
+        <button
+          type="submit"
+          disabled={busy || uploadingLogo || uploadingAppIcon}
+          className="rounded-xl bg-[#0c831f] hover:bg-[#0a6833] text-white px-6 py-3 text-sm font-bold shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50"
+        >
+          {busy ? "Saving Settings..." : "Save Settings & Update Branding Everywhere"}
+        </button>
+      </div>
     </form>
   );
 }

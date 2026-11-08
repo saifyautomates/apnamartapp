@@ -3,6 +3,18 @@
 import { useEffect, useState, useMemo } from "react";
 import { StoreOffer } from "@/lib/offers";
 import { ensureCsrf } from "@/lib/api/client";
+import { Sparkles, Clock, Tag, Plus, Check, Trash2, RefreshCw, Target, Layers, ShoppingBag } from "lucide-react";
+
+const AVAILABLE_CATEGORIES = [
+  { slug: "dairy-eggs", name: "Dairy, Bread & Eggs" },
+  { slug: "staples", name: "Atta, Rice & Dal" },
+  { slug: "masala-oil", name: "Masala, Oil & Spices" },
+  { slug: "snacks-biscuits", name: "Snacks & Biscuits" },
+  { slug: "beverages", name: "Cold Drinks & Juices" },
+  { slug: "instant-food", name: "Instant & Frozen Food" },
+  { slug: "household-cleaning", name: "Cleaning & Household" },
+  { slug: "personal-care", name: "Personal Care" },
+];
 
 function CountdownDisplay({ endsAt, isActive }: { endsAt: string; isActive: boolean }) {
   const [timeLeft, setTimeLeft] = useState<{
@@ -70,6 +82,11 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
   const [autoApply, setAutoApply] = useState(false);
   const [themeGradient, setThemeGradient] = useState("from-[#b91c1c] via-[#c2410c] to-[#d97706]");
 
+  // Scope & Targeting Brain
+  const [targetType, setTargetType] = useState<"ALL" | "SPECIFIC_PRODUCTS" | "SPECIFIC_CATEGORIES">("ALL");
+  const [targetProductIds, setTargetProductIds] = useState<string>("");
+  const [targetCategorySlugs, setTargetCategorySlugs] = useState<string[]>([]);
+
   const refreshOffers = async () => {
     try {
       const res = await fetch("/api/admin/offers");
@@ -115,6 +132,15 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
           isActive: true,
           autoApply,
           bgGradient: themeGradient,
+          targetType,
+          targetProductIds:
+            targetType === "SPECIFIC_PRODUCTS"
+              ? targetProductIds
+                  .split(",")
+                  .map((s) => s.trim().toLowerCase())
+                  .filter(Boolean)
+              : [],
+          targetCategorySlugs: targetType === "SPECIFIC_CATEGORIES" ? targetCategorySlugs : [],
         }),
       });
 
@@ -210,7 +236,8 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
         <div className="lg:col-span-5 rounded-3xl border border-adminline bg-white p-6 shadow-xs space-y-5">
           <div className="flex items-center justify-between border-b border-adminline pb-3">
             <h2 className="text-base font-black text-ink flex items-center gap-2">
-              <span>➕ Create Flash Sale Offer</span>
+              <Plus className="w-4 h-4 text-brand-700" />
+              <span>Create Flash Sale Offer</span>
             </h2>
             <span className="text-xs text-muted font-mono">100% Admin Automated</span>
           </div>
@@ -327,8 +354,11 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
             {/* Countdown Timer Duration Presets */}
             <div>
               <label className="block text-xs font-black text-ink uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>⏱️ Live Countdown Timer Duration</span>
-                <span className="text-[11px] text-red-600 font-bold">Expires in {timerHours}h</span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-red-600" />
+                  <span>Live Countdown Timer Duration</span>
+                </span>
+                <span className="text-[11px] text-red-600 font-bold tabular-nums">Expires in {timerHours}h</span>
               </label>
 
               <div className="grid grid-cols-3 gap-2">
@@ -367,6 +397,91 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
                   className="w-full rounded-xl border border-adminline px-3 py-1.5 text-xs text-neutral-600 focus:border-brand-600 focus:outline-hidden"
                 />
               </div>
+            </div>
+
+            {/* Offer Targeting / Scope */}
+            <div className="rounded-2xl border border-neutral-200/80 bg-neutral-50/70 p-3.5 space-y-3">
+              <label className="block text-xs font-black text-ink uppercase tracking-wider flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-brand-700" />
+                <span>Target Audience &amp; Catalog Scope</span>
+              </label>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "ALL", label: "All Items", desc: "Cart-level" },
+                  { id: "SPECIFIC_PRODUCTS", label: "Products", desc: "Targeted SKUs" },
+                  { id: "SPECIFIC_CATEGORIES", label: "Categories", desc: "Category deals" },
+                ].map((scope) => (
+                  <button
+                    key={scope.id}
+                    type="button"
+                    onClick={() => setTargetType(scope.id as "ALL" | "SPECIFIC_PRODUCTS" | "SPECIFIC_CATEGORIES")}
+                    className={`py-2 px-2 text-center rounded-xl border transition cursor-pointer ${
+                      targetType === scope.id
+                        ? "bg-brand-700 text-white border-brand-700 shadow-xs"
+                        : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-300"
+                    }`}
+                  >
+                    <div className="text-xs font-black">{scope.label}</div>
+                    <div className={`text-[10px] ${targetType === scope.id ? "text-emerald-100" : "text-neutral-400"}`}>
+                      {scope.desc}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {targetType === "SPECIFIC_PRODUCTS" && (
+                <div className="space-y-1.5 pt-1">
+                  <label className="block text-[11px] font-bold text-neutral-600">
+                    Target Products (names or slugs, comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={targetProductIds}
+                    onChange={(e) => setTargetProductIds(e.target.value)}
+                    placeholder="e.g. parle-g, amul, milk, bread"
+                    className="w-full rounded-xl border border-adminline bg-white px-3 py-2 text-xs focus:border-brand-600 focus:outline-hidden"
+                  />
+                  <p className="text-[10px] text-neutral-500">
+                    Only matched products will receive instant discount badges, strike-through sale prices, and POS trade deduction.
+                  </p>
+                </div>
+              )}
+
+              {targetType === "SPECIFIC_CATEGORIES" && (
+                <div className="space-y-1.5 pt-1">
+                  <label className="block text-[11px] font-bold text-neutral-600">
+                    Select Eligible Categories
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto p-1 bg-white rounded-xl border border-neutral-200">
+                    {AVAILABLE_CATEGORIES.map((cat) => {
+                      const checked = targetCategorySlugs.includes(cat.slug);
+                      return (
+                        <label
+                          key={cat.slug}
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs cursor-pointer ${
+                            checked ? "bg-emerald-50 text-emerald-900 font-bold" : "text-neutral-600 hover:bg-neutral-50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setTargetCategorySlugs([...targetCategorySlugs, cat.slug]);
+                              } else {
+                                setTargetCategorySlugs(targetCategorySlugs.filter((s) => s !== cat.slug));
+                              }
+                            }}
+                            className="rounded text-brand-600 focus:ring-brand-500 h-3.5 w-3.5"
+                          />
+                          <span className="truncate">{cat.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Badge Text & Color Theme */}
@@ -418,9 +533,10 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] text-white font-black py-3 text-sm shadow-md transition active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+              className="w-full rounded-xl bg-[#0c831f] hover:bg-[#0a701a] text-white font-black py-3 text-sm shadow-md transition active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
-              {loading ? "Launching Offer..." : "🚀 Launch Flash Sale Offer Now"}
+              <Sparkles className="w-4 h-4" />
+              <span>{loading ? "Launching Offer..." : "Launch Flash Sale Offer Now"}</span>
             </button>
           </form>
         </div>
@@ -429,13 +545,15 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
         <div className="lg:col-span-7 rounded-3xl border border-adminline bg-white p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-adminline pb-3">
             <h2 className="text-base font-black text-ink flex items-center gap-2">
-              <span>📋 Active Store Offers & Flash Deals</span>
+              <Tag className="w-4 h-4 text-brand-700" />
+              <span>Active Store Offers &amp; Flash Deals</span>
             </h2>
             <button
               onClick={refreshOffers}
-              className="text-xs font-bold text-brand-700 hover:underline cursor-pointer"
+              className="text-xs font-bold text-brand-700 hover:underline cursor-pointer flex items-center gap-1"
             >
-              🔄 Refresh
+              <RefreshCw className="w-3 h-3" />
+              <span>Refresh</span>
             </button>
           </div>
 
@@ -443,7 +561,7 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
             <table className="w-full min-w-[580px] text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase font-black text-muted border-b border-adminline pb-2">
-                  <th className="py-2.5">Offer / Title</th>
+                  <th className="py-2.5">Offer / Scope</th>
                   <th>Discount</th>
                   <th>Min Order</th>
                   <th>Countdown Timer</th>
@@ -456,10 +574,25 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
                   <tr key={o.id} className="hover:bg-neutral-50/60 transition">
                     <td className="py-3 pr-2">
                       <div className="font-black text-[#1c1c1c] text-xs sm:text-sm">{o.title}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         <span className="font-mono text-[11px] font-bold text-[#0c831f] bg-[#e8f5e9] px-2 py-0.5 rounded-md">
                           {o.code}
                         </span>
+                        {o.targetType === "SPECIFIC_PRODUCTS" && (
+                          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                            Targeted Products ({o.targetProductIds?.length ?? 0})
+                          </span>
+                        )}
+                        {o.targetType === "SPECIFIC_CATEGORIES" && (
+                          <span className="text-[10px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">
+                            Targeted Categories ({o.targetCategorySlugs?.length ?? 0})
+                          </span>
+                        )}
+                        {(!o.targetType || o.targetType === "ALL") && (
+                          <span className="text-[10px] font-bold text-neutral-600 bg-neutral-100 px-1.5 py-0.5 rounded">
+                            Entire Catalog
+                          </span>
+                        )}
                         {o.autoApply && (
                           <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
                             Auto-apply
@@ -468,7 +601,7 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
                       </div>
                     </td>
 
-                    <td className="font-bold text-xs">
+                    <td className="font-bold text-xs tabular-nums">
                       {o.type === "PERCENT"
                         ? `${o.discountValue}% OFF`
                         : o.type === "FREE_DELIVERY"
@@ -476,7 +609,7 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
                           : `₹${o.discountValue} OFF`}
                     </td>
 
-                    <td className="font-medium text-xs text-neutral-600">
+                    <td className="font-medium text-xs text-neutral-600 tabular-nums">
                       ₹{o.minOrderValue}
                     </td>
 
@@ -487,23 +620,25 @@ export function AdminOffersClient({ initialOffers }: { initialOffers: StoreOffer
                     <td>
                       <button
                         onClick={() => handleToggleActive(o.id, o.isActive)}
-                        className={`text-[11px] font-black px-2.5 py-1 rounded-full border transition cursor-pointer ${
+                        className={`text-[11px] font-black px-2.5 py-1 rounded-full border transition cursor-pointer flex items-center gap-1.5 ${
                           o.isActive
                             ? "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100"
                             : "bg-neutral-100 text-neutral-500 border-neutral-200 hover:bg-neutral-200"
                         }`}
                       >
-                        {o.isActive ? "🟢 Active" : "⚪ Paused"}
+                        <span className={`h-2 w-2 rounded-full ${o.isActive ? "bg-emerald-600" : "bg-neutral-400"}`} />
+                        <span>{o.isActive ? "Active" : "Paused"}</span>
                       </button>
                     </td>
 
                     <td className="text-right">
                       <button
                         onClick={() => handleDelete(o.id)}
-                        className="text-xs text-red-600 hover:text-red-800 font-bold p-1 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                        className="text-xs text-red-600 hover:text-red-800 font-bold p-1 rounded-lg hover:bg-red-50 transition cursor-pointer inline-flex items-center gap-1"
                         title="Delete offer"
                       >
-                        🗑️ Delete
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
                       </button>
                     </td>
                   </tr>

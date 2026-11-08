@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useBranding } from "@/lib/branding-context";
 
 const DISMISS_KEY = "gcp_pwa_dismissed";
 const INSTALL_EVENT = "gcp:show-install";
@@ -84,6 +85,7 @@ export function PwaRegister() {
  */
 export function InstallBanner() {
   const pathname = usePathname();
+  const { appIconUrl, name } = useBranding();
   const [visible, setVisible] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
   const [ios, setIos] = useState(false);
@@ -142,14 +144,14 @@ export function InstallBanner() {
         <div className="flex items-center gap-2 min-w-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/icons/icon-192.png"
-            alt="Central Mart Logo"
+            src={appIconUrl || "/icons/icon-192.png"}
+            alt={`${name} Logo`}
             width="24"
             height="24"
-            className="h-6 w-6 shrink-0 rounded-lg object-contain shadow-xs ring-1 ring-white/40"
+            className="h-6 w-6 shrink-0 rounded-lg object-contain shadow-xs"
           />
           <p className="truncate text-[11px] sm:text-xs font-semibold">
-            <span className="hidden sm:inline font-bold">Install Central Mart App — </span>Fastest grocery delivery in Kota
+            <span className="hidden sm:inline font-bold">Install {name} App — </span>Fastest grocery delivery in Kota
           </p>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">

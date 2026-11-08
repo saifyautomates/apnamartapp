@@ -67,8 +67,11 @@ export function renderOrderConfirmationEmail(order: {
   totalPaise: number;
   deliveryAddress?: string | null;
   deliveryMinutes?: number;
+  logoUrl?: string;
+  storeName?: string;
   items: Array<{ name: string; qty: number; lineTotalPaise: number }>;
 }): string {
+  const storeName = order.storeName || "Central Mart";
   const totalRupees = (order.totalPaise / 100).toFixed(2);
   const itemsHtml = order.items
     .map(
@@ -90,14 +93,18 @@ export function renderOrderConfirmationEmail(order: {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Order Confirmed — Central Mart</title>
+    <title>Order Confirmed — ${storeName}</title>
   </head>
   <body style="margin: 0; padding: 0; background-color: #f7f9f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 30px auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
       <!-- Header -->
       <tr>
         <td style="background: linear-gradient(135deg, #0c831f, #0a6833); padding: 32px 28px; text-align: center; color: #ffffff;">
-          <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">CENTRAL MART</h1>
+          ${
+            order.logoUrl
+              ? `<img src="${order.logoUrl}" alt="${storeName}" style="max-height: 48px; max-width: 200px; object-fit: contain; margin-bottom: 8px; display: inline-block;" /><br/>`
+              : `<h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">${storeName.toUpperCase()}</h1>`
+          }
           <p style="margin: 6px 0 0 0; font-size: 13px; font-weight: 700; color: #fef08a; letter-spacing: 0.5px;">⚡ KOTA'S ONLINE FMCG SUPERMARKET</p>
         </td>
       </tr>
@@ -180,3 +187,4 @@ export function renderWelcomeEmail(name: string): string {
   </html>
   `;
 }
+

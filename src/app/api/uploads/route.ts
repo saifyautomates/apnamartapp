@@ -11,14 +11,24 @@ export const runtime = "nodejs";
 export const POST = handler(async (req: NextRequest) => {
   assertCsrf(req);
   const session = await requireAdmin(req);
-  requirePermission(session, "products:write");
+  const isOwner = session.roles?.includes("OWNER") || session.adminId === "admin-owner-default";
+  if (!isOwner) {
+    // Allow either products:write or settings:write
+    try {
+      requirePermission(session, "settings:write");
+    } catch {
+      requirePermission(session, "products:write");
+    }
+  }
   const form = await req.formData();
   const file = form.get("file") as File | null;
+  const folder = (form.get("folder") as string) || "products";
   if (!file) throw new Error("No file uploaded");
   validateUpload(file.type, file.size);
   const buffer = Buffer.from(await file.arrayBuffer());
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
-  const key = `products/${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
+  const safeFolder = folder.replace(/[^a-zA-Z0-9_-]/g, "");
+  const key = `${safeFolder || "uploads"}/${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
   const url = await getStorage().upload(key, buffer, file.type);
   return ok({ url, key });
 });

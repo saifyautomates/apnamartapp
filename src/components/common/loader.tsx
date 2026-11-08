@@ -1,11 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useBranding } from "@/lib/branding-context";
 
-export default function LaunchLoader({ storeName }: { storeName?: string; monogram?: string }) {
+export default function LaunchLoader({
+  storeName,
+  monogram,
+  logoUrl,
+  appIconUrl,
+}: {
+  storeName?: string;
+  monogram?: string;
+  logoUrl?: string;
+  appIconUrl?: string;
+}) {
+  const branding = useBranding();
   const [hidden, setHidden] = useState(false);
   const [removed, setRemoved] = useState(false);
   const [reduced, setReduced] = useState(false);
+
+  const activeIcon = appIconUrl || branding.appIconUrl || "/icons/icon-192.png";
+  const activeName = storeName || branding.name || "Central Mart";
+  const nameParts = activeName.split(" ");
+  const firstWord = nameParts[0] || "central";
+  const restWords = nameParts.slice(1).join(" ") || "mart";
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -40,22 +58,22 @@ export default function LaunchLoader({ storeName }: { storeName?: string; monogr
       }`}
     >
       <div className={`flex flex-col items-center ${reduced ? "" : "loader-pop"}`}>
-        {/* Authentic 3D Central Mart App Emblem */}
+        {/* Authentic 3D App Emblem */}
         <div className="relative mb-3 flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/icons/icon-192.png"
-            alt="Central Mart Logo"
+            src={activeIcon}
+            alt={`${activeName} Logo`}
             width="88"
             height="88"
-            className="h-20 w-20 sm:h-22 sm:w-22 rounded-3xl object-contain shadow-2xl ring-4 ring-white/60 transform hover:scale-105 transition-transform"
+            className="h-20 w-20 sm:h-22 sm:w-22 object-contain transform hover:scale-105 transition-transform"
           />
         </div>
 
         {/* Brand Wordmark */}
         <div className="text-3xl sm:text-4xl font-black tracking-tight font-sans">
-          <span className="text-[#1c1c1c]">central</span>
-          <span className="text-[#0c831f]">mart</span>
+          <span className="text-[#1c1c1c]">{firstWord.toLowerCase()}</span>
+          <span className="text-[#0c831f]">{restWords.toLowerCase()}</span>
         </div>
 
         <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#1c1c1c] text-white px-3.5 py-1 text-xs font-black uppercase tracking-wider shadow-sm">
@@ -64,7 +82,7 @@ export default function LaunchLoader({ storeName }: { storeName?: string; monogr
       </div>
 
       <p className={`mt-4 text-xs font-bold text-neutral-800 ${reduced ? "" : "loader-fade"}`}>
-        {storeName ?? "Central Mart"} · Same-Day FMCG Grocery Store
+        {activeName} · Same-Day FMCG Grocery Store
       </p>
 
       {/* Shimmer Bar */}
