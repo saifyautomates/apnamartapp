@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { formatPaise } from "@/lib/money";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
-import { openLoginModal } from "@/components/auth/login-modal";
 
 export function MobileBottomNav() {
   const pathname = usePathname() ?? "";
@@ -97,91 +96,121 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <div className="sm:hidden">
-      {/* Floating Cart Quick Banner (Pops above nav when 1+ items in cart) */}
+    <>
+      {/* DESKTOP Floating Cart Pill (Blinkit Web standard) */}
       {count > 0 && !pathname.startsWith("/checkout") ? (
-        <div className="fixed bottom-[calc(3.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-250 gpu-accel">
+        <div className="hidden sm:block fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom-4 duration-300">
           <button
             onClick={openCart}
-            className="w-full flex items-center justify-between bg-gradient-to-r from-[#0c831f] via-[#0d8e23] to-[#0a701a] text-white px-4 py-3 rounded-2xl shadow-2xl shadow-emerald-950/25 border border-emerald-400/30 transition active:scale-[0.98] cursor-pointer"
+            className="group flex items-center gap-3 bg-gradient-to-r from-[#0c831f] via-[#0d8e23] to-[#0a701a] text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-emerald-950/30 border border-emerald-400/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-base shadow-inner">
-                🛒
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#f8cb46] text-[#1c1c1c] text-[10px] font-black shadow-xs">
-                  {count}
-                </span>
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-lg shadow-inner">
+              🛒
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#f8cb46] text-[#1c1c1c] text-[10px] font-black shadow-xs">
+                {count}
               </span>
-              <div className="text-left leading-tight">
-                <p className="text-[11px] font-bold text-emerald-100 uppercase tracking-wide">
-                  {count} {count === 1 ? "item" : "items"} in cart
-                </p>
-                <p className="text-base font-black tracking-tight">{formatPaise(total)}</p>
-              </div>
             </div>
-            <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-white/20 hover:bg-white/30 px-3.5 py-2 rounded-xl transition">
+            <div className="text-left leading-tight pr-1">
+              <p className="text-[11px] font-bold text-emerald-100 uppercase tracking-wide">
+                {count} {count === 1 ? "item" : "items"}
+              </p>
+              <p className="text-base font-black tracking-tight">{formatPaise(total)}</p>
+            </div>
+            <div className="flex items-center gap-1 text-xs font-black uppercase tracking-wider bg-white/20 group-hover:bg-white/30 px-3 py-1.5 rounded-xl transition">
               <span>View Cart</span>
-              <span className="text-sm font-bold">→</span>
+              <span className="text-sm font-bold group-hover:translate-x-0.5 transition-transform">→</span>
             </div>
           </button>
         </div>
       ) : null}
 
-      {/* World-Class 5-Tab Mobile Navigation Dock (Matches Mockup) */}
-      <nav
-        aria-label="Mobile Navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] shadow-xl flex justify-around items-center select-none gpu-accel"
-      >
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const handleClick = (e: React.MouseEvent) => {
-            if (item.label === "Categories") {
-              e.preventDefault();
-              openCategoriesModal();
-            } else if (item.label === "Deals") {
-              e.preventDefault();
-              const dealsEl = document.getElementById("deals");
-              if (dealsEl) {
-                dealsEl.scrollIntoView({ behavior: "smooth" });
-              } else {
-                openSearchModal("deals");
-              }
-            } else if (item.label === "Home" && pathname === "/") {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-          };
-
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              onClick={handleClick}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all duration-150 active:scale-90 cursor-pointer ${
-                isActive ? "text-[#0c831f]" : "text-neutral-500 hover:text-neutral-800"
-              }`}
+      {/* MOBILE Floating Cart & Bottom Navigation Dock (< sm) */}
+      <div className="sm:hidden">
+        {/* Floating Cart Quick Banner (Pops above nav when 1+ items in cart) */}
+        {count > 0 && !pathname.startsWith("/checkout") ? (
+          <div className="fixed bottom-[calc(3.85rem+env(safe-area-inset-bottom,0px))] left-3 right-3 z-40 animate-in slide-in-from-bottom-3 duration-250 gpu-accel">
+            <button
+              onClick={openCart}
+              className="w-full flex items-center justify-between bg-gradient-to-r from-[#0c831f] via-[#0d8e23] to-[#0a701a] text-white px-4 py-3 rounded-2xl shadow-2xl shadow-emerald-950/25 border border-emerald-400/30 transition active:scale-[0.98] cursor-pointer"
             >
-              <div className="relative mb-0.5">
-                {item.icon}
-                {item.isCart && count > 0 && (
-                  <span className="absolute -top-1.5 -right-2 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white">
+              <div className="flex items-center gap-3">
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-base shadow-inner">
+                  🛒
+                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[#f8cb46] text-[#1c1c1c] text-[10px] font-black shadow-xs">
                     {count}
                   </span>
-                )}
+                </span>
+                <div className="text-left leading-tight">
+                  <p className="text-[11px] font-bold text-emerald-100 uppercase tracking-wide">
+                    {count} {count === 1 ? "item" : "items"} in cart
+                  </p>
+                  <p className="text-base font-black tracking-tight">{formatPaise(total)}</p>
+                </div>
               </div>
-              <span className={`text-[10px] leading-tight ${isActive ? "font-black" : "font-semibold"}`}>
-                {item.label}
-              </span>
-              {isActive ? (
-                <span className="h-1 w-1 rounded-full bg-[#0c831f] mt-0.5" />
-              ) : (
-                <span className="h-1 w-1 rounded-full bg-transparent mt-0.5" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
+              <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-white/20 hover:bg-white/30 px-3.5 py-2 rounded-xl transition">
+                <span>View Cart</span>
+                <span className="text-sm font-bold">→</span>
+              </div>
+            </button>
+          </div>
+        ) : null}
+
+        {/* World-Class 5-Tab Mobile Navigation Dock (Matches Mockup) */}
+        <nav
+          aria-label="Mobile Navigation"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] shadow-xl flex justify-around items-center select-none gpu-accel"
+        >
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            const handleClick = (e: React.MouseEvent) => {
+              if (item.label === "Categories") {
+                e.preventDefault();
+                openCategoriesModal();
+              } else if (item.label === "Deals") {
+                e.preventDefault();
+                const dealsEl = document.getElementById("deals");
+                if (dealsEl) {
+                  dealsEl.scrollIntoView({ behavior: "smooth" });
+                } else {
+                  openSearchModal("deals");
+                }
+              } else if (item.label === "Home" && pathname === "/") {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            };
+
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={handleClick}
+                className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl text-center transition-all duration-150 active:scale-90 cursor-pointer ${
+                  isActive ? "text-[#0c831f]" : "text-neutral-500 hover:text-neutral-800"
+                }`}
+              >
+                <div className="relative mb-0.5">
+                  {item.icon}
+                  {item.isCart && count > 0 && (
+                    <span className="absolute -top-1.5 -right-2 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white">
+                      {count}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] leading-tight ${isActive ? "font-black" : "font-semibold"}`}>
+                  {item.label}
+                </span>
+                {isActive ? (
+                  <span className="h-1 w-1 rounded-full bg-[#0c831f] mt-0.5" />
+                ) : (
+                  <span className="h-1 w-1 rounded-full bg-transparent mt-0.5" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+    </>
   );
 }
 

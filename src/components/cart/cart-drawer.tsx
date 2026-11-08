@@ -7,6 +7,7 @@ import { ProductImage } from "@/components/product/product-image";
 import { api, ensureCsrf } from "@/lib/api/client";
 import { useDelivery } from "@/lib/delivery-context";
 import { openLoginModal } from "@/components/auth/login-modal";
+import { GoogleMapPicker } from "@/components/location/google-map-picker";
 
 export interface CartLine {
   variantId: string;
@@ -57,6 +58,8 @@ export function CartDrawer() {
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "UPI">("COD");
   const [placingOrder, setPlacingOrder] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+
+  const [showMapPicker, setShowMapPicker] = useState(false);
 
   async function loadSession() {
     try {
@@ -289,6 +292,33 @@ export function CartDrawer() {
                   </div>
                 ) : null}
 
+                {/* Free Delivery Milestone Progress Bar (Blinkit Standard) */}
+                {cart && cart.lines.length > 0 && (
+                  <div className="rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50/80 border border-emerald-200/90 p-3 space-y-1.5 shadow-xs animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between text-xs font-black">
+                      <span className="text-emerald-950 flex items-center gap-1.5">
+                        <span className="text-sm">⚡</span>
+                        {subtotal >= 29900 ? (
+                          <span className="text-emerald-700">🎉 FREE Delivery Unlocked!</span>
+                        ) : (
+                          <span>
+                            Add <strong className="text-emerald-700 font-black">{formatPaise(29900 - subtotal)}</strong> more for FREE delivery
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[10px] text-emerald-800 bg-white border border-emerald-300 px-2 py-0.5 rounded-full font-bold shadow-xs">
+                        12-15 Mins
+                      </span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-emerald-100/80 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-[#0c831f] transition-all duration-500 ease-out"
+                        style={{ width: `${Math.min(100, Math.round((subtotal / 29900) * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Cart Items List (Matches Screen 3 Mockup) */}
                 {cart?.lines.map((line) => (
                   <div
@@ -374,10 +404,10 @@ export function CartDrawer() {
                           <span className="text-xs font-black text-[#1c1c1c]">Delivery Address</span>
                         </div>
                         <button
-                          onClick={() => setStep("address-edit")}
+                          onClick={() => setShowMapPicker(true)}
                           className="text-xs font-black text-[#0c831f] hover:underline cursor-pointer"
                         >
-                          Change ›
+                          Change Pin on Map ›
                         </button>
                       </div>
                       <p className="text-[11px] font-bold text-neutral-700 pl-5">
@@ -547,6 +577,9 @@ export function CartDrawer() {
           )}
         </div>
       </aside>
+
+      {/* Google Map Address Selector */}
+      <GoogleMapPicker isOpen={showMapPicker} onClose={() => setShowMapPicker(false)} />
     </div>
   );
 }

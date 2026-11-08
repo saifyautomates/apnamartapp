@@ -68,18 +68,22 @@ export function AddButton({
         setQty(prev); // Revert on actual network failure
         setError(e instanceof Error ? e.message : "Failed");
       }
-    }, 180);
+    }, 160);
   }
 
   if (qty <= 0) {
     return (
-      <div className={`relative ${className}`}>
+      <div className={`relative select-none ${className}`}>
         <button
-          onClick={() => setQuantity(1)}
-          className="w-full rounded-xl border-2 border-[#0c831f] bg-white hover:bg-[#e8f5e9] px-3 py-1.5 text-xs font-black text-[#0c831f] tracking-wider uppercase shadow-xs transition active:scale-90 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            setQuantity(1);
+          }}
+          className="group relative w-full overflow-hidden rounded-xl border-2 border-[#0c831f] bg-white hover:bg-emerald-50/70 px-3 py-1.5 text-xs font-black text-[#0c831f] tracking-wider uppercase shadow-[0_2px_8px_rgba(12,131,31,0.08)] hover:shadow-[0_4px_12px_rgba(12,131,31,0.18)] transition-all duration-200 active:scale-90 cursor-pointer flex items-center justify-center gap-1"
           aria-label="Add to cart"
         >
-          ADD
+          <span className="text-[11px] font-black text-[#0c831f]">ADD</span>
+          <span className="text-[#0c831f] font-bold text-sm leading-none -mt-0.5 group-hover:scale-125 transition-transform">+</span>
         </button>
         {error ? (
           <p className="absolute left-0 right-0 top-full mt-0.5 text-[10px] text-red-500 font-bold truncate">
@@ -91,20 +95,28 @@ export function AddButton({
   }
 
   return (
-    <div className={`relative ${className}`}>
-      <div className="flex items-center justify-between rounded-xl bg-[#0c831f] text-white shadow-xs">
+    <div className={`relative select-none ${className}`}>
+      <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-[#0c831f] via-[#0d8e23] to-[#0a701a] text-white shadow-[0_4px_12px_rgba(12,131,31,0.25)] ring-1 ring-emerald-400/40 animate-in zoom-in-95 duration-150">
         <button
           aria-label="Decrease quantity"
-          onClick={() => setQuantity(qty - 1)}
-          className="px-2.5 py-1 text-sm font-black hover:bg-[#0a701a] rounded-l-xl transition active:scale-90 cursor-pointer select-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            setQuantity(qty - 1);
+          }}
+          className="flex h-7 w-7 items-center justify-center text-sm font-black hover:bg-black/15 rounded-l-xl transition-all duration-150 active:scale-75 cursor-pointer"
         >
           −
         </button>
-        <span className="text-xs font-black px-1 min-w-5 text-center select-none">{qty}</span>
+        <span className="tabular-nums font-black text-xs px-1 min-w-[20px] text-center select-none">
+          {qty}
+        </span>
         <button
           aria-label="Increase quantity"
-          onClick={() => setQuantity(qty + 1)}
-          className="px-2.5 py-1 text-sm font-black hover:bg-[#0a701a] rounded-r-xl transition active:scale-90 cursor-pointer select-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            setQuantity(qty + 1);
+          }}
+          className="flex h-7 w-7 items-center justify-center text-sm font-black hover:bg-black/15 rounded-r-xl transition-all duration-150 active:scale-75 cursor-pointer"
         >
           +
         </button>
