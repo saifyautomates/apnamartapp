@@ -50,7 +50,7 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   };
 
   return (
-    <article className="group relative flex flex-col justify-between rounded-3xl border border-neutral-100 hover:border-emerald-200/90 bg-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 h-full">
+    <article className="group relative flex flex-col justify-between rounded-3xl border border-neutral-100/90 hover:border-emerald-300/80 bg-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_-8px_rgba(12,131,31,0.14)] hover:-translate-y-1 transition-all duration-300 h-full">
       {/* Top Media & Actions Row */}
       <div className="relative">
         <div className="flex items-center justify-between gap-1 w-full z-10">
@@ -88,17 +88,17 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
           </button>
         </div>
 
-        {/* Product Image with Smooth Studio Framing */}
+        {/* Product Image with Smooth Studio Pedestal Framing */}
         <a
           href={`/product/${product.slug}`}
           onClick={handleCardClick}
-          className="block h-28 sm:h-36 w-full overflow-hidden bg-gradient-to-b from-neutral-50/60 to-white rounded-2xl p-2 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+          className="block h-28 sm:h-36 w-full overflow-hidden bg-gradient-to-b from-neutral-50/80 via-emerald-50/15 to-white rounded-2xl p-2 my-1 flex items-center justify-center cursor-pointer active:scale-95 transition-all group-hover:bg-emerald-50/30"
           aria-label={product.name}
         >
           <ProductImage
             src={image}
             alt={product.name}
-            className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="h-full w-full object-contain group-hover:scale-108 transition-transform duration-300"
           />
         </a>
       </div>

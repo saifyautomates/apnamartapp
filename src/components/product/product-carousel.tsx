@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { BlinkitProductCard, VariantCardProps } from "./product-card";
 
@@ -8,19 +8,33 @@ export interface ProductCarouselProps {
   title: string;
   seeAllHref?: string;
   items: VariantCardProps[];
+  autoSlideInterval?: number; // ms between slides (default 3800)
 }
 
-export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselProps) {
+export function ProductCarousel({
+  title,
+  seeAllHref,
+  items,
+  autoSlideInterval = 3800,
+}: ProductCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollStart, setScrollStart] = useState(0);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
-  const checkScroll = () => {
+  const checkScroll = useCallback(() => {
     if (!scrollRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScrollLeft(scrollLeft > 10);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-  };
+    setCanScrollLeft(scrollLeft > 12);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 12);
+    const maxScroll = Math.max(1, scrollWidth - clientWidth);
+    setScrollProgress(Math.min(100, Math.max(0, (scrollLeft / maxScroll) * 100)));
+  }, []);
 
   useEffect(() => {
     checkScroll();
@@ -33,68 +47,151 @@ export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselPro
         window.removeEventListener("resize", checkScroll);
       };
     }
-  }, [items]);
+  }, [checkScroll, items]);
 
-  const scroll = (direction: "left" | "right") => {
+  const scrollByAmount = useCallback((amount: number) => {
     if (!scrollRef.current) return;
-    const scrollAmount = direction === "left" ? -460 : 460;
-    scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+  }, []);
+
+  // Smooth Auto-Slide on Desktop & Large screens
+  useEffect(() => {
+    // If user is actively hovering or dragging, pause auto-glide
+    if (isHovered || isDragging || items.length <= 3) return;
+
+    const timer = setInterval(() => {
+      if (!scrollRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+
+      // If reached near end, smoothly rewind to beginning
+      if (scrollLeft >= scrollWidth - clientWidth - 25) {
+        scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        // Step forward by 1 card (~210px) with smooth momentum
+        const step = window.innerWidth >= 1024 ? 220 : 175;
+        scrollRef.current.scrollBy({ left: step, behavior: "smooth" });
+      }
+    }, autoSlideInterval);
+
+    return () => clearInterval(timer);
+  }, [isHovered, isDragging, autoSlideInterval, items.length]);
+
+  // Desktop Mouse Drag / Swipe Implementation
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollStart(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    scrollRef.current.scrollLeft = scrollStart - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
   };
 
   if (!items || items.length === 0) return null;
 
   return (
-    <section className="relative my-6 sm:my-8">
-      {/* Header: Title and "View All ->" (Matches Mockup Screen 1) */}
+    <section
+      className="relative my-7 sm:my-10"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsDragging(false);
+      }}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setIsHovered(false)}
+    >
+      {/* Editorial Header */}
       <div className="flex items-center justify-between mb-3 px-1">
-        <h2 className="text-base sm:text-xl font-black text-[#1c1c1c] tracking-tight">{title}</h2>
-        {seeAllHref ? (
-          <Link
-            href={seeAllHref}
-            className="text-xs sm:text-sm font-bold text-[#0c831f] hover:text-[#0a701a] flex items-center gap-0.5 active:scale-95 transition cursor-pointer"
-          >
-            <span>View All</span>
-            <span className="text-xs">→</span>
-          </Link>
-        ) : null}
+        <div className="flex items-center gap-3">
+          <h2 className="text-base sm:text-xl font-black text-[#1c1c1c] tracking-tight">
+            {title}
+          </h2>
+
+          {/* Premium Auto-Glide Status Pill (Desktop only) */}
+          <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-100/80 border border-neutral-200/50 text-[10px] font-bold text-neutral-600 shadow-2xs select-none transition-all">
+            <span
+              className={`inline-block h-1.5 w-1.5 rounded-full transition-colors ${
+                isHovered ? "bg-amber-400" : "bg-emerald-500 animate-pulse"
+              }`}
+            />
+            <span>{isHovered ? "Paused on hover" : "Auto-glide"}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Progress Indicator Line */}
+          <div className="hidden md:block w-20 h-1 bg-neutral-100 rounded-full overflow-hidden mr-2">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300 rounded-full"
+              style={{ width: `${Math.max(15, scrollProgress)}%` }}
+            />
+          </div>
+
+          {seeAllHref ? (
+            <Link
+              href={seeAllHref}
+              className="group text-xs sm:text-sm font-black text-[#0c831f] hover:text-[#0a701a] flex items-center gap-1 active:scale-95 transition cursor-pointer"
+            >
+              <span>View All</span>
+              <span className="text-xs group-hover:translate-x-0.5 transition-transform">→</span>
+            </Link>
+          ) : null}
+        </div>
       </div>
 
-      {/* Carousel Container */}
-      <div className="relative group">
-        {/* Left Arrow Button */}
+      {/* Carousel Track Container */}
+      <div className="relative group/carousel">
+        {/* Left Arrow Button with Frosted Glassmorphism */}
         {canScrollLeft ? (
           <button
-            onClick={() => scroll("left")}
-            className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-neutral-200/90 flex items-center justify-center text-neutral-700 hover:bg-neutral-50 hover:shadow-lg transition active:scale-95 cursor-pointer"
-            aria-label="Scroll left"
+            onClick={() => scrollByAmount(-440)}
+            className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-10 sm:w-11 h-10 sm:h-11 rounded-full bg-white/95 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-neutral-200/80 flex items-center justify-center text-neutral-800 hover:text-emerald-700 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+            aria-label="Slide previous"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+            <svg className="w-5 h-5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
         ) : null}
 
-        {/* Scrollable Track with Native Touch Momentum */}
+        {/* Scrollable Track */}
         <div
           ref={scrollRef}
-          className="flex gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar py-1 px-1 scroll-touch-x"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUpOrLeave}
+          className={`flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar py-2 px-1 scroll-touch-x select-none ${
+            isDragging ? "cursor-grabbing" : "cursor-grab"
+          }`}
         >
           {items.map((item) => (
-            <div key={item.id} className="w-[155px] sm:w-[195px] shrink-0">
+            <div
+              key={item.id}
+              className="w-[155px] sm:w-[195px] shrink-0 transition-transform duration-300"
+            >
               <BlinkitProductCard v={item} />
             </div>
           ))}
         </div>
 
-        {/* Right Arrow Button (matches Blinkit floating circle) */}
+        {/* Right Arrow Button with Frosted Glassmorphism */}
         {canScrollRight ? (
           <button
-            onClick={() => scroll("right")}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white shadow-md border border-neutral-200/90 flex items-center justify-center text-neutral-700 hover:bg-neutral-50 hover:shadow-lg transition active:scale-95 cursor-pointer"
-            aria-label="Scroll right"
+            onClick={() => scrollByAmount(440)}
+            className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-10 sm:w-11 h-10 sm:h-11 rounded-full bg-white/95 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-neutral-200/80 flex items-center justify-center text-neutral-800 hover:text-emerald-700 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer"
+            aria-label="Slide next"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+            <svg className="w-5 h-5 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         ) : null}
@@ -104,4 +201,3 @@ export function ProductCarousel({ title, seeAllHref, items }: ProductCarouselPro
 }
 
 export default ProductCarousel;
-
