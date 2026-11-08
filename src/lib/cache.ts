@@ -25,31 +25,59 @@ class MemoryCache {
 
 class RedisCache {
   private client: Redis;
+  private memory = new MemoryCache();
+  private isAvailable = false;
+
   constructor(url: string) {
-    this.client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1 });
+    this.client = new Redis(url, {
+      lazyConnect: false,
+      maxRetriesPerRequest: 0,
+      connectTimeout: 300,
+      retryStrategy: () => null, // don't hang or retry indefinitely
+    });
+    this.client.on("connect", () => {
+      this.isAvailable = true;
+    });
+    this.client.on("ready", () => {
+      this.isAvailable = true;
+    });
     this.client.on("error", () => {
-      /* treated as miss; app keeps working */
+      this.isAvailable = false;
+    });
+    this.client.on("close", () => {
+      this.isAvailable = false;
     });
   }
+
   async get(key: string): Promise<string | null> {
+    if (!this.isAvailable) {
+      return this.memory.get(key);
+    }
     try {
       return await this.client.get(key);
     } catch {
-      return null;
+      this.isAvailable = false;
+      return this.memory.get(key);
     }
   }
+
   async set(key: string, value: string, ttlSeconds: number): Promise<void> {
+    await this.memory.set(key, value, ttlSeconds);
+    if (!this.isAvailable) return;
     try {
       await this.client.set(key, value, "EX", ttlSeconds);
     } catch {
-      /* ignore */
+      this.isAvailable = false;
     }
   }
+
   async del(key: string): Promise<void> {
+    await this.memory.del(key);
+    if (!this.isAvailable) return;
     try {
       await this.client.del(key);
     } catch {
-      /* ignore */
+      this.isAvailable = false;
     }
   }
 }

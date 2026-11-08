@@ -20,6 +20,7 @@ interface SuiteResult {
 
 const suites = [
   { name: "Supabase & Database CDC Realtime Sync", command: "npx tsx tests/verify-supabase-full-sync.ts" },
+  { name: "Production Search Engine & Trigram Synonyms", command: "npx tsx tests/verify-search-engine.ts" },
   { name: "10-Domain Comprehensive Production E2E Audit", command: "npx tsx tests/e2e-production-audit.ts" },
   { name: "Hardest Battle & Stress Attack Matrix", command: "npx tsx tests/hardest-battle-test.ts" },
   { name: "Platform Core Smoke Test Suite", command: "npx tsx tests/smoke.ts" },

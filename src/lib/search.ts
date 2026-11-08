@@ -1,11 +1,85 @@
 import { prisma, withDbTimeout } from "./prisma";
 import { FMCG_CATEGORIES } from "./fmcg-catalog";
+import { cachedJson } from "./cache";
 
 function slugify(text: string): string {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+export const FMCG_SYNONYMS: Record<string, string[]> = {
+  doodh: ["milk"],
+  dudh: ["milk"],
+  milk: ["doodh"],
+  tel: ["oil"],
+  tail: ["oil"],
+  oil: ["tel"],
+  namak: ["salt"],
+  salt: ["namak"],
+  chini: ["sugar"],
+  cheeni: ["sugar"],
+  shakkar: ["sugar"],
+  sugar: ["chini"],
+  chawal: ["rice", "basmati"],
+  rice: ["chawal"],
+  aata: ["atta", "flour"],
+  aatta: ["atta", "flour"],
+  gehu: ["atta", "wheat"],
+  flour: ["atta"],
+  atta: ["flour"],
+  daal: ["dal", "lentil", "toor", "moong"],
+  dal: ["daal", "lentil", "toor", "moong"],
+  sabun: ["soap", "detergent", "surf", "wash"],
+  soap: ["sabun", "wash"],
+  surf: ["detergent", "wash"],
+  detergent: ["surf", "wash"],
+  biskut: ["biscuit", "cookie"],
+  biscuit: ["biskut", "cookie"],
+  chai: ["tea"],
+  chaay: ["tea"],
+  patti: ["tea"],
+  tea: ["chai"],
+  makhan: ["butter"],
+  makkhan: ["butter"],
+  butter: ["makhan"],
+  anda: ["egg"],
+  ande: ["egg", "eggs"],
+  egg: ["anda"],
+  eggs: ["anda"],
+  mirch: ["chilli", "masala"],
+  mirchi: ["chilli", "masala"],
+  haldi: ["turmeric"],
+  dhaniya: ["coriander"],
+  jeera: ["cumin"],
+  paneer: ["cheese"],
+  dahi: ["curd", "yogurt"],
+  curd: ["dahi"],
+  ghee: ["butter", "desi"],
+  sooji: ["suji", "semolina"],
+  suji: ["sooji", "semolina"],
+  besan: ["gram flour"],
+  maida: ["refined flour"],
+  poha: ["flattened rice"],
+  pani: ["water", "bisleri"],
+  paani: ["water", "bisleri"],
+  colddrink: ["drink", "cola", "pepsi"],
+  chips: ["wafer", "snack", "lays"],
+};
+
+export function expandTokenSynonyms(token: string): string[] {
+  const t = token.toLowerCase();
+  const direct = FMCG_SYNONYMS[t] ?? [];
+  const prefixMatches: string[] = [];
+  if (t.length >= 3) {
+    for (const [key, syns] of Object.entries(FMCG_SYNONYMS)) {
+      if (key.startsWith(t) || t.startsWith(key)) {
+        prefixMatches.push(key, ...syns);
+      }
+    }
+  }
+  return Array.from(new Set([t, ...direct, ...prefixMatches]));
 }
 
 function searchFallbackFmcg(q: string, page = 1, pageSize = 20) {
@@ -16,13 +90,16 @@ function searchFallbackFmcg(q: string, page = 1, pageSize = 20) {
     for (const item of cat.items) {
       const isMatch =
         tokens.length === 0 ||
-        tokens.some(
-          (t) =>
-            item.name.toLowerCase().includes(t) ||
-            item.brand.toLowerCase().includes(t) ||
-            cat.name.toLowerCase().includes(t) ||
-            cat.slug.toLowerCase().includes(t)
-        );
+        tokens.some((tok) => {
+          const terms = expandTokenSynonyms(tok);
+          return terms.some(
+            (t) =>
+              item.name.toLowerCase().includes(t) ||
+              item.brand.toLowerCase().includes(t) ||
+              cat.name.toLowerCase().includes(t) ||
+              cat.slug.toLowerCase().includes(t)
+          );
+        });
 
       if (isMatch) {
         const prodSlug = slugify(item.name);
@@ -73,31 +150,34 @@ export function normalizeQuery(q: string): string[] {
 export function buildSearchWhere(q: string) {
   const tokens = normalizeQuery(q);
   if (tokens.length === 0) return {};
-  const tokenFilters = tokens.map((t) => ({
-    OR: [
-      { name: { contains: t, mode: "insensitive" as const } },
-      { sku: { contains: t, mode: "insensitive" as const } },
-      { barcode: { contains: t, mode: "insensitive" as const } },
-      { brand: { name: { contains: t, mode: "insensitive" as const } } },
-      { category: { name: { contains: t, mode: "insensitive" as const } } },
-      // Variant-level identifiers: a shopper typing a pack's printed SKU or
-      // barcode (e.g. DEMO-AMUL-TAAZA-TONED-MILK-500-ML) must find the product.
-      {
-        variants: {
-          some: {
-            OR: [
-              { sku: { contains: t, mode: "insensitive" as const } },
-              { barcode: { contains: t, mode: "insensitive" as const } },
-            ],
+  const tokenFilters = tokens.map((t) => {
+    const terms = expandTokenSynonyms(t);
+    return {
+      OR: terms.flatMap((term) => [
+        { name: { contains: term, mode: "insensitive" as const } },
+        { sku: { contains: term, mode: "insensitive" as const } },
+        { barcode: { contains: term, mode: "insensitive" as const } },
+        { brand: { name: { contains: term, mode: "insensitive" as const } } },
+        { category: { name: { contains: term, mode: "insensitive" as const } } },
+        // Variant-level identifiers: a shopper typing a pack's printed SKU or
+        // barcode (e.g. DEMO-AMUL-TAAZA-TONED-MILK-500-ML) must find the product.
+        {
+          variants: {
+            some: {
+              OR: [
+                { sku: { contains: term, mode: "insensitive" as const } },
+                { barcode: { contains: term, mode: "insensitive" as const } },
+              ],
+            },
           },
         },
-      },
-    ],
-  }));
+      ]),
+    };
+  });
   return { AND: tokenFilters };
 }
 
-export async function searchProducts(q: string, page = 1, pageSize = 20) {
+async function executeSearchProducts(q: string, page = 1, pageSize = 20) {
   try {
     const where = { isActive: true, onlineVisible: true, deletedAt: null, ...buildSearchWhere(q) };
     const [items, total] = await Promise.all([
@@ -142,6 +222,11 @@ export async function searchProducts(q: string, page = 1, pageSize = 20) {
   }
 }
 
+export async function searchProducts(q: string, page = 1, pageSize = 20) {
+  const cacheKey = `search:v1:${q.toLowerCase().trim()}:${page}:${pageSize}`;
+  return cachedJson(cacheKey, 30, () => executeSearchProducts(q, page, pageSize));
+}
+
 /**
  * pg_trgm word-similarity fallback. Per token, products whose name, brand
  * name, or variant SKU/barcode is word-similar (<% operator, default 0.3
@@ -165,7 +250,7 @@ export async function fuzzyProductIds(tokens: string[], limit = 100): Promise<st
         ORDER BY sim DESC
         LIMIT 100
       `,
-        250
+        1500
       );
       for (const r of rows) {
         const cur = scores.get(r.id) ?? { matched: 0, sim: 0 };
@@ -183,31 +268,33 @@ export async function fuzzyProductIds(tokens: string[], limit = 100): Promise<st
     .map(([id]) => id);
 }
 
-export async function autocomplete(q: string, limit = 10) {
+async function executeAutocomplete(q: string, limit = 10) {
   try {
     const tokens = normalizeQuery(q);
     if (tokens.length === 0) return [];
     const t = tokens[0];
+    const terms = expandTokenSynonyms(t);
     const products = await prisma.product.findMany({
       where: {
         isActive: true,
         onlineVisible: true,
         deletedAt: null,
-        OR: [
-          { name: { contains: t, mode: "insensitive" } },
-          { brand: { name: { contains: t, mode: "insensitive" } } },
-          { sku: { contains: t, mode: "insensitive" } },
+        OR: terms.flatMap((term) => [
+          { name: { contains: term, mode: "insensitive" as const } },
+          { brand: { name: { contains: term, mode: "insensitive" as const } } },
+          { category: { name: { contains: term, mode: "insensitive" as const } } },
+          { sku: { contains: term, mode: "insensitive" as const } },
           {
             variants: {
               some: {
                 OR: [
-                  { sku: { contains: t, mode: "insensitive" } },
-                  { barcode: { contains: t, mode: "insensitive" } },
+                  { sku: { contains: term, mode: "insensitive" as const } },
+                  { barcode: { contains: term, mode: "insensitive" as const } },
                 ],
               },
             },
           },
-        ],
+        ]),
       },
       select: { id: true, name: true, slug: true, brand: { select: { name: true } } },
       orderBy: [{ featured: "desc" }, { name: "asc" }],
@@ -228,4 +315,9 @@ export async function autocomplete(q: string, limit = 10) {
     const fb = searchFallbackFmcg(q, 1, limit);
     return fb.items.map((i) => ({ id: i.id, name: i.name, slug: i.slug, brand: i.brand }));
   }
+}
+
+export async function autocomplete(q: string, limit = 10) {
+  const cacheKey = `search:suggest:v1:${q.toLowerCase().trim()}:${limit}`;
+  return cachedJson(cacheKey, 60, () => executeAutocomplete(q, limit));
 }
