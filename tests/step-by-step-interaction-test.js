@@ -249,8 +249,13 @@ async function runOneByOneAudit() {
     // MODULE 4: PRODUCT DETAIL PAGE (PDP)
     // ==========================================
     console.log("\n>>> TESTING MODULE 4: PRODUCT DETAIL PAGE >>>");
-    // Ensure on Lay's Classic PDP
-    await page.goto(`${BASE_URL}/product/lays-classic-salted-potato-chips-52g`, { waitUntil: "networkidle2" });
+    // Ensure on real PDP
+    const sampleProduct = await prisma.product.findFirst({
+      where: { deletedAt: null, isActive: true },
+      include: { variants: true },
+    });
+    const sampleSlug = sampleProduct?.slug || "lay-s-india-s-magic-masala-potato-chips";
+    await page.goto(`${BASE_URL}/product/${sampleSlug}`, { waitUntil: "networkidle2" });
     await sleep(1500);
 
     // PDP-01: Wishlist Heart Toggle
@@ -289,25 +294,40 @@ async function runOneByOneAudit() {
     // MODULE 5: CART SYSTEM (EVERY SINGLE ACTION)
     // ==========================================
     console.log("\n>>> TESTING MODULE 5: CART SYSTEM >>>");
-    // Populate cart inside page context so browser cookies match
-    await page.evaluate(async () => {
-      await fetch("/api/cart?clearAll=true", { method: "DELETE" });
-      await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId: "a1000000-0000-0000-0000-000000000001", qty: 2 }),
-      });
-      await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId: "a2000000-0000-0000-0000-000000000002", qty: 1 }),
-      });
-      await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId: "a3000000-0000-0000-0000-000000000003", qty: 1 }),
-      });
+    // Fetch 3 real variants with positive stock
+    const testVariants = await prisma.productVariant.findMany({
+      where: {
+        isActive: true,
+        deletedAt: null,
+        product: { isActive: true, onlineVisible: true, deletedAt: null },
+        inventory: { availableQty: { gte: 5 } },
+      },
+      take: 3,
     });
+    const testVariantIds = testVariants.map((v) => v.id);
+
+    // Populate cart inside page context so browser cookies match
+    await page.evaluate(async (vIds) => {
+      const csrfRes = await fetch("/api/auth/csrf");
+      const csrfData = await csrfRes.json();
+      const csrfToken = csrfData.data?.csrfToken || "";
+
+      await fetch("/api/cart?clearAll=true", {
+        method: "DELETE",
+        headers: { "x-csrf-token": csrfToken },
+      });
+
+      for (const id of vIds) {
+        await fetch("/api/cart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+          },
+          body: JSON.stringify({ variantId: id, qty: 1 }),
+        });
+      }
+    }, testVariantIds);
 
     await page.goto(`${BASE_URL}/cart`, { waitUntil: "networkidle2" });
     await sleep(1500);
@@ -413,21 +433,33 @@ async function runOneByOneAudit() {
     // Refresh context and add real items to exceed ₹149 zone threshold directly for testUser
     await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
     await sleep(1000);
-    await page.evaluate(async (v1, v2) => {
-      const csrfRes = await fetch("/api/auth/csrf");
-      const csrfToken = (await csrfRes.json()).data?.csrfToken || "";
-
-      await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId: "a1000000-0000-0000-0000-000000000001", qty: 5 }),
-      });
-      await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId: "a2000000-0000-0000-0000-000000000002", qty: 2 }),
-      });
+    const checkoutVariants = await prisma.productVariant.findMany({
+      where: {
+        isActive: true,
+        deletedAt: null,
+        product: { isActive: true, onlineVisible: true, deletedAt: null },
+        inventory: { availableQty: { gte: 10 } },
+      },
+      take: 2,
     });
+    const chkVariantIds = checkoutVariants.map((v) => v.id);
+
+    await page.evaluate(async (vIds) => {
+      const csrfRes = await fetch("/api/auth/csrf");
+      const csrfData = await csrfRes.json();
+      const csrfToken = csrfData.data?.csrfToken || "";
+
+      for (const id of vIds) {
+        await fetch("/api/cart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": csrfToken,
+          },
+          body: JSON.stringify({ variantId: id, qty: 4 }),
+        });
+      }
+    }, chkVariantIds);
 
     await page.goto(`${BASE_URL}/checkout`, { waitUntil: "domcontentloaded" });
     await sleep(2500);
@@ -534,20 +566,20 @@ async function runOneByOneAudit() {
 
     const firstProduct = await prisma.product.findFirst({
       where: { deletedAt: null },
-      include: { variants: true },
+      include: { variants: { include: { inventory: true } } },
     });
 
     if (firstProduct && firstProduct.variants.length > 0) {
       const v = firstProduct.variants[0];
-      const initialStock = v.stock;
+      const initialStock = v.inventory?.availableQty || 0;
 
       // Find inline stock increment button for this variant
       const stockPlusBtn = await page.$(`button[data-variant-id='${v.id}'][data-action='inc'], button[title*='Add Stock']`);
       if (stockPlusBtn) {
         await stockPlusBtn.click();
         await sleep(1000);
-        const updatedV = await prisma.productVariant.findUnique({ where: { id: v.id } });
-        recordInteraction("ADM-01", "Admin Stock '+' Button", "Click", "PASS", `Stock adjusted from ${initialStock} to ${updatedV?.stock} in database`);
+        const updatedInv = await prisma.inventory.findUnique({ where: { variantId: v.id } });
+        recordInteraction("ADM-01", "Admin Stock '+' Button", "Click", "PASS", `Stock adjusted from ${initialStock} to ${updatedInv?.availableQty} in database`);
       } else {
         // Fallback test via Admin inventory adjust endpoint
         await fetch(`${BASE_URL}/api/admin/inventory/adjust`, {
@@ -558,8 +590,8 @@ async function runOneByOneAudit() {
           },
           body: JSON.stringify({ variantId: v.id, delta: 5, reason: "One-by-one verification test" }),
         });
-        const updatedV = await prisma.productVariant.findUnique({ where: { id: v.id } });
-        recordInteraction("ADM-01", "Admin Stock Adjust API", "Direct Call", "PASS", `Stock increased from ${initialStock} to ${updatedV?.stock}`);
+        const updatedInv = await prisma.inventory.findUnique({ where: { variantId: v.id } });
+        recordInteraction("ADM-01", "Admin Stock Adjust API", "Direct Call", "PASS", `Stock increased from ${initialStock} to ${updatedInv?.availableQty}`);
       }
     }
 

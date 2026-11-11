@@ -273,7 +273,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
                   ? "Rider on the way 🛵"
                   : "Same-Day Delivery in Progress ⚡"}
               </h1>
-              <p className="mt-1 text-xs text-emerald-100 font-medium">
+              <p className="mt-1 text-xs text-emerald-100 font-medium" suppressHydrationWarning>
                 Order #{order.orderNumber} · Placed{" "}
                 {new Date(order.createdAt).toLocaleTimeString("en-IN", {
                   hour: "2-digit",
@@ -284,7 +284,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
 
             {/* Circular Timer Pill */}
             {!isDelivered && !isCancelled ? (
-              <div className="flex flex-col items-center justify-center h-20 w-20 rounded-2xl bg-white text-[#1c1c1c] shadow-lg shrink-0 p-2 border-2 border-white/40">
+              <div className="flex flex-col items-center justify-center h-20 w-20 rounded-2xl bg-white text-[#1c1c1c] shadow-lg shrink-0 p-2 border-2 border-white/40" suppressHydrationWarning>
                 <span className="text-[10px] font-black uppercase text-[#0c831f] tracking-wider">
                   ETA
                 </span>
