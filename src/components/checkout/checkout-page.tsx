@@ -38,13 +38,13 @@ const KOTA_SLOTS = [
 ];
 
 export function CheckoutPageView() {
-  const { deliveryPromiseText, activeLocation } = useDelivery();
+  const { deliveryPromiseText, activeLocation, shoppingMode } = useDelivery();
   const router = useRouter();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [storeInfo, setStoreInfo] = useState<{ payments: Record<string, boolean>; pickup: { enabled?: boolean } } | null>(null);
   const [cartSummary, setCartSummary] = useState<{ subtotalPaise: number; lines: Array<{ qty: number }> } | null>(null);
-  const [mode, setMode] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
+  const [mode, setMode] = useState<"DELIVERY" | "PICKUP">(() => (shoppingMode === "PICKUP" ? "PICKUP" : "DELIVERY"));
   const [addressId, setAddressId] = useState("");
   const [pincode, setPincode] = useState("324005");
   const [slotId, setSlotId] = useState("slot-express");

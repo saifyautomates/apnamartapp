@@ -535,10 +535,15 @@ async function runOneByOneAudit() {
           const confirmCancelBtn = await page.$("button::-p-text('Confirm Cancellation')");
           if (confirmCancelBtn) {
             await page.evaluate((el) => el.click(), confirmCancelBtn);
-            await sleep(2000);
 
-            // Verify in Prisma DB
-            const cancelledDb = await prisma.order.findUnique({ where: { id: placedOrderId } });
+            // Poll for Prisma DB cancellation transaction commit
+            let cancelledDb = null;
+            for (let i = 0; i < 6; i++) {
+              await sleep(1000);
+              cancelledDb = await prisma.order.findUnique({ where: { id: placedOrderId } });
+              if (cancelledDb && cancelledDb.status === "CANCELLED") break;
+            }
+
             if (cancelledDb && cancelledDb.status === "CANCELLED") {
               recordInteraction("ORD-03", "Confirm Cancellation", "Click", "PASS", `Order ${placedOrderId} status updated to CANCELLED in DB & stock restored!`);
             } else {

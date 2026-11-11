@@ -85,7 +85,12 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
   const [mapMode, setMapMode] = useState<"gps" | "schematic">("gps");
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const prevStatusRef = useRef(initialOrder.status);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Remaining Seconds Calculator for delivery countdown
   const elapsedSeconds = useMemo(() => {
@@ -273,23 +278,28 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
                   ? "Rider on the way 🛵"
                   : "Same-Day Delivery in Progress ⚡"}
               </h1>
-              <p className="mt-1 text-xs text-emerald-100 font-medium" suppressHydrationWarning>
-                Order #{order.orderNumber} · Placed{" "}
-                {new Date(order.createdAt).toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+              <p className="mt-1 text-xs text-emerald-100 font-medium">
+                Order #{order.orderNumber}
+                {mounted ? (
+                  <span>
+                    {" · Placed "}
+                    {new Date(order.createdAt).toLocaleTimeString("en-IN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                ) : null}
               </p>
             </div>
 
             {/* Circular Timer Pill */}
             {!isDelivered && !isCancelled ? (
-              <div className="flex flex-col items-center justify-center h-20 w-20 rounded-2xl bg-white text-[#1c1c1c] shadow-lg shrink-0 p-2 border-2 border-white/40" suppressHydrationWarning>
+              <div className="flex flex-col items-center justify-center h-20 w-20 rounded-2xl bg-white text-[#1c1c1c] shadow-lg shrink-0 p-2 border-2 border-white/40">
                 <span className="text-[10px] font-black uppercase text-[#0c831f] tracking-wider">
                   ETA
                 </span>
                 <span className="text-xl font-black font-mono tracking-tight text-[#1c1c1c]">
-                  {formatCountdown(countdown)}
+                  {mounted ? formatCountdown(countdown) : "08:00"}
                 </span>
                 <span className="text-[9px] font-bold text-neutral-400">mins left</span>
               </div>

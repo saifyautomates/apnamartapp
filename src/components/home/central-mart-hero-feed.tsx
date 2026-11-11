@@ -6,6 +6,7 @@ import Image from "next/image";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
 import { Tag, Grid, RotateCcw, Heart, ArrowRight } from "lucide-react";
+import { ShoppingModeSelector } from "./shopping-mode-selector";
 
 export interface PopularCategoryItem {
   id: string;
@@ -63,6 +64,9 @@ const POPULAR_CATEGORIES: PopularCategoryItem[] = [
 export function CentralMartHeroFeed() {
   return (
     <div className="space-y-4">
+      {/* 0. Shopping Mode Selector: Home Delivery | Store Pickup | In-Store Shopping */}
+      <ShoppingModeSelector />
+
       {/* 1. Promo Card matching Mockup Screen 2 (Up to 50% OFF on FMCG Products) */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#042c16] via-[#064221] to-[#0a582c] p-5 sm:p-7 text-white shadow-lg border border-emerald-800/40">
         {/* Background Decorative Rings */}

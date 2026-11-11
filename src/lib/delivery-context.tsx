@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
 import type { DeliveryConfig, ZoneDeliveryRule } from "@/lib/settings";
 
+export type ShoppingMode = "DELIVERY" | "PICKUP" | "IN_STORE";
+
 export interface ActiveDeliveryLocation {
   pincode: string;
   zoneId?: string;
@@ -33,6 +35,8 @@ interface DeliveryContextValue {
   deliveryConfig: DeliveryConfig;
   activeLocation: ActiveDeliveryLocation;
   setActiveLocation: (loc: ActiveDeliveryLocation) => void;
+  shoppingMode: ShoppingMode;
+  setShoppingMode: (mode: ShoppingMode) => void;
   deliveryPromiseText: string;
   deliveryBadgeText: string;
   estimatedArrivalNotice: string;
@@ -69,6 +73,8 @@ const DeliveryContext = createContext<DeliveryContextValue>({
   deliveryConfig: DEFAULT_CONFIG,
   activeLocation: DEFAULT_LOCATION,
   setActiveLocation: () => {},
+  shoppingMode: "DELIVERY",
+  setShoppingMode: () => {},
   deliveryPromiseText: "Same Day Delivery",
   deliveryBadgeText: "⚡ Same Day Delivery",
   estimatedArrivalNotice: "Order before 7:00 PM for Same-Day Delivery",
@@ -93,6 +99,7 @@ export function DeliveryProvider({
   const [zones, setZones] = useState<DeliveryZoneItem[]>([]);
   const [zoneRules, setZoneRules] = useState<Record<string, ZoneDeliveryRule>>({});
   const [activeLocation, setActiveLocationState] = useState<ActiveDeliveryLocation>(DEFAULT_LOCATION);
+  const [shoppingMode, setShoppingModeState] = useState<ShoppingMode>("DELIVERY");
 
   const refreshSettings = async () => {
     try {
@@ -115,7 +122,7 @@ export function DeliveryProvider({
   };
 
   useEffect(() => {
-    // 1. Load active location from localStorage
+    // 1. Load active location and shopping mode from localStorage
     try {
       const saved = localStorage.getItem("centralmart_location");
       if (saved) {
@@ -123,6 +130,10 @@ export function DeliveryProvider({
         if (parsed?.pincode) {
           setActiveLocationState(parsed);
         }
+      }
+      const savedMode = localStorage.getItem("centralmart_shopping_mode") as ShoppingMode;
+      if (savedMode && ["DELIVERY", "PICKUP", "IN_STORE"].includes(savedMode)) {
+        setShoppingModeState(savedMode);
       }
     } catch {
       /* fallback */
@@ -138,14 +149,32 @@ export function DeliveryProvider({
         setActiveLocationState(customEvent.detail);
       }
     };
+    const onShoppingModeChanged = (e: Event) => {
+      const customEvent = e as CustomEvent<ShoppingMode>;
+      if (customEvent.detail && ["DELIVERY", "PICKUP", "IN_STORE"].includes(customEvent.detail)) {
+        setShoppingModeState(customEvent.detail);
+      }
+    };
     window.addEventListener("location-changed", onLocationChanged);
+    window.addEventListener("shopping-mode-changed", onShoppingModeChanged);
     window.addEventListener("delivery-settings-updated", refreshSettings);
 
     return () => {
       window.removeEventListener("location-changed", onLocationChanged);
+      window.removeEventListener("shopping-mode-changed", onShoppingModeChanged);
       window.removeEventListener("delivery-settings-updated", refreshSettings);
     };
   }, []);
+
+  const setShoppingMode = (mode: ShoppingMode) => {
+    setShoppingModeState(mode);
+    try {
+      localStorage.setItem("centralmart_shopping_mode", mode);
+      window.dispatchEvent(new CustomEvent("shopping-mode-changed", { detail: mode }));
+    } catch {
+      /* ignore */
+    }
+  };
 
   const setActiveLocation = (loc: ActiveDeliveryLocation) => {
     setActiveLocationState(loc);
@@ -219,6 +248,8 @@ export function DeliveryProvider({
         deliveryConfig,
         activeLocation,
         setActiveLocation,
+        shoppingMode,
+        setShoppingMode,
         deliveryPromiseText,
         deliveryBadgeText,
         estimatedArrivalNotice,

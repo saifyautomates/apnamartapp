@@ -290,18 +290,34 @@ export function ProductDetailView({
               Pack Size: <span className="font-bold text-[#1c1c1c]">{selected.packSize ?? selected.name}</span>
             </p>
 
-            {/* ETA Callout Card */}
-            <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/60 px-3.5 py-2.5 text-xs">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500 text-white font-black shadow-xs shrink-0">
-                <Zap className="w-4 h-4 fill-white" />
-              </span>
-              <div className="flex-1">
-                <p className="font-black text-[#1c1c1c]">
-                  Delivering in {deliveryPromiseText || "8-10 mins"}
-                </p>
-                <p className="text-[11px] text-neutral-600">
-                  To {activeLocation.address || activeLocation.zoneName || "Kota Central (80 Feet Road Hub)"}
-                </p>
+            {/* Dual Fulfillment Indicator: Doorstep Delivery + In-Store Shelf Availability */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/60 px-3.5 py-2.5 text-xs">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500 text-white font-black shadow-xs shrink-0">
+                  <Zap className="w-4 h-4 fill-white" />
+                </span>
+                <div className="flex-1 truncate">
+                  <p className="font-black text-[#1c1c1c]">
+                    Delivering in {deliveryPromiseText || "15–30 mins"}
+                  </p>
+                  <p className="text-[11px] text-neutral-600 truncate">
+                    To {activeLocation.address || activeLocation.zoneName || "Kota Central"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/60 px-3.5 py-2.5 text-xs">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#0c831f] text-white font-black shadow-xs shrink-0 text-sm">
+                  🏪
+                </span>
+                <div className="flex-1 truncate">
+                  <p className="font-black text-[#064221]">
+                    Store Pickup &amp; In-Store
+                  </p>
+                  <p className="text-[11px] text-emerald-800 font-semibold truncate">
+                    {inStock ? `In Stock at 80 Feet Rd (${selected.sellable} available)` : "Check next batch"}
+                  </p>
+                </div>
               </div>
             </div>
 
