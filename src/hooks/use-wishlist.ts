@@ -91,4 +91,3 @@ export function useWishlist(variantId?: string) {
 }
 
 export default useWishlist;
-

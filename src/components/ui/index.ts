@@ -6,5 +6,4 @@ export * from "./stat-card";
 export * from "./skeletons";
 export * from "./logo";
 export * from "./trust-card";
-export * from "./app-launch-splash";
 

@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Header from "@/components/header/header-server";
 import LaunchLoader from "@/components/loader";
-import { AppLaunchSplash } from "@/components/ui/app-launch-splash";
 import { PwaRegister } from "@/components/pwa";
 import SiteChrome from "@/components/layout/site-chrome";
 import { getAllSettings, type DeliveryConfig } from "@/lib/settings";
@@ -174,7 +173,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               logoUrl={branding.logoUrl}
               appIconUrl={branding.appIconUrl}
             />
-            <AppLaunchSplash />
             <PwaRegister />
             <SiteChrome header={<Header storeName={storeName} logoUrl={branding.logoUrl} />}>
               {children}

@@ -10,7 +10,7 @@ import { useDelivery } from "@/lib/delivery-context";
 import { openLoginModal } from "@/components/auth/login-modal";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
-import { MapPin, Zap, Settings, ChevronDown, Smartphone } from "lucide-react";
+import { MapPin, Zap, Settings, ChevronDown } from "lucide-react";
 
 export interface HeaderProps {
   storeName?: string;
@@ -141,16 +141,7 @@ export function BlinkitHeader({
           </div>
 
           {/* Desktop Actions */}
-          <div className="flex items-center gap-3 md:gap-4">
-            <Link
-              href="/app"
-              className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-[#0c831f] hover:text-white hover:border-[#0c831f] px-3 py-2 text-xs font-black text-[#0c831f] transition shadow-xs group"
-              title="Experience Central Mart Mobile App Simulator (iPhone 13)"
-            >
-              <Smartphone className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              <span className="hidden md:inline font-bold">App View</span>
-            </Link>
-
+          <div className="flex items-center gap-4 md:gap-5">
             <Link
               href="/admin"
               className="flex items-center gap-1.5 rounded-xl border border-neutral-200/90 bg-neutral-50 hover:bg-[#0c831f] hover:text-white hover:border-[#0c831f] px-3 py-2 text-xs font-black text-neutral-800 transition shadow-xs group"
