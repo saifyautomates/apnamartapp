@@ -6,7 +6,6 @@ import Image from "next/image";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
 import { Tag, Grid, RotateCcw, Heart, ArrowRight } from "lucide-react";
-import { CentralMartTrustCard } from "@/components/ui/trust-card";
 
 export interface PopularCategoryItem {
   id: string;
@@ -182,9 +181,6 @@ export function CentralMartHeroFeed() {
           </span>
         </Link>
       </div>
-
-      {/* 2.5 Exact 4-Badge Central Mart Trust Card (Matching User's Attached Image 1) */}
-      <CentralMartTrustCard />
 
       {/* 3. Popular Categories Section matching Mockup Screen 2 */}
       <section className="space-y-3 pt-1">

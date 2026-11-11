@@ -4,7 +4,6 @@ import { HeroBanner, PromoCards, CategoryGrid, DealsRail } from "@/components/ho
 import { FlashSaleBar } from "@/components/home/flash-sale-bar";
 import { CentralMartHeroFeed } from "@/components/home/central-mart-hero-feed";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
-import { CentralMartTrustCard } from "@/components/ui/trust-card";
 import { MapPin, Phone, Clock } from "lucide-react";
 
 export default async function HomePage() {
@@ -107,12 +106,7 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* 6. Exact 4 Central Mart Trust Badges (Matching Attached Image 1) */}
-      <section className="pt-2 pb-2">
-        <CentralMartTrustCard />
-      </section>
-
-      {/* 7. Kota Local SEO Showcase (80 Feet Road Hub) */}
+      {/* 6. Kota Local SEO Showcase (80 Feet Road Hub) */}
       <section className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/30 p-5 sm:p-7 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">

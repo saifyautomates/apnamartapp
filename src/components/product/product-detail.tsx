@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { AddButton } from "./add-button";
 import { ProductImage } from "./product-image";
 import { Price, Mrp, DiscountBadge, EtaBadge } from "@/components/ui";
-import { CentralMartTrustCard } from "@/components/ui/trust-card";
 import { discountPercent } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import { useDelivery } from "@/lib/delivery-context";
@@ -248,9 +247,6 @@ export function ProductDetailView({
               ))}
             </div>
           )}
-
-          {/* Exact 4-Badge Central Mart Trust Card (Matching User's Attached Image 1) */}
-          <CentralMartTrustCard className="mt-6 w-full" />
         </div>
 
         {/* Right Column: Product Hierarchy, Variant Picker, Pricing & Buy Actions */}
