@@ -169,7 +169,7 @@ export function ProductDetailView({
             onMouseEnter={() => setIsZoomed(true)}
             onMouseLeave={() => setIsZoomed(false)}
             onMouseMove={handleMouseMove}
-            className="relative w-full h-80 sm:h-96 rounded-3xl bg-gradient-to-b from-neutral-50/90 via-emerald-50/15 to-white border border-neutral-100 p-6 flex items-center justify-center overflow-hidden cursor-crosshair group select-none"
+            className="relative w-full h-80 sm:h-96 rounded-3xl bg-gradient-to-b from-[#fffbeb] via-[#fef3c7]/60 to-white border border-amber-100/60 p-6 flex items-center justify-center overflow-hidden cursor-crosshair group select-none"
           >
             {/* Top Badges */}
             <div className="absolute left-4 top-4 z-10 flex flex-col gap-1.5 items-start">
@@ -235,7 +235,7 @@ export function ProductDetailView({
                 <button
                   key={imgUrl}
                   onClick={() => setActiveImgIndex(idx)}
-                  className={`h-16 w-16 sm:h-18 sm:w-18 shrink-0 rounded-2xl border p-1 bg-white overflow-hidden transition cursor-pointer ${
+                  className={`h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl border p-1 bg-white overflow-hidden transition cursor-pointer ${
                     activeImgIndex === idx
                       ? "border-[#0c831f] ring-2 ring-[#e8f5e9] shadow-xs"
                       : "border-neutral-200 hover:border-neutral-300 opacity-75 hover:opacity-100"

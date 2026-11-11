@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SearchInput } from "./search-input";
 import { LocationModal } from "./location-modal";
 import { CartHeaderButton } from "./cart-button";
@@ -29,6 +30,8 @@ export function BlinkitHeader({
   customerName = null,
   isLoggedIn = false,
 }: HeaderProps) {
+  const pathname = usePathname() ?? "";
+  const isHome = pathname === "/";
   const [count, setCount] = useState(initialCount);
   const [total, setTotal] = useState(initialTotal);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -68,51 +71,59 @@ export function BlinkitHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-gradient-to-b from-[#032e16] via-[#063b1e] to-[#074724] sm:bg-white/95 sm:backdrop-blur-md sm:border-b sm:border-neutral-200/80 shadow-md sm:shadow-xs transition-colors">
+      <header
+        className={`sticky top-0 z-40 transition-colors ${
+          isHome
+            ? "bg-gradient-to-b from-[#032e16] via-[#063b1e] to-[#074724]"
+            : "hidden sm:block"
+        } sm:bg-white/95 sm:backdrop-blur-md sm:border-b sm:border-neutral-200/80 shadow-md sm:shadow-xs`}
+      >
         {/* Mobile Header (< sm) - Matches Phone Screen 2 Mockup */}
-        <div className="flex sm:hidden flex-col px-3.5 pt-2.5 pb-2.5 text-white gap-2">
-          {/* Top Row: Location on Left, Notification Bell on Right */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setLocationOpen(true)}
-              className="flex items-center gap-1.5 text-left text-white/90 hover:text-white transition cursor-pointer active:scale-95 group"
-            >
-              <MapPin className="w-3.5 h-3.5 text-[#a3e635] shrink-0" />
-              <div className="flex items-center gap-1">
-                <span className="text-[11px] font-bold text-white/95 tracking-tight">
-                  Deliver to {activeLocation.zoneName || "Kota, Rajasthan"}
-                </span>
-                <ChevronDown className="w-3 h-3 text-white/70 group-hover:text-white transition-transform" />
-              </div>
-            </button>
-
-            {/* Notification Bell with Red Badge "2" */}
-            <div className="flex items-center gap-2">
+        {isHome && (
+          <div className="flex sm:hidden flex-col px-3.5 pt-2.5 pb-2.5 text-white gap-2">
+            {/* Top Row: Location on Left, Notification Bell on Right */}
+            <div className="flex items-center justify-between">
               <button
-                onClick={openLoginModal}
-                className="relative flex h-8 w-8 items-center justify-center rounded-xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
-                aria-label="Notifications"
+                onClick={() => setLocationOpen(true)}
+                className="flex items-center gap-1.5 text-left text-white/90 hover:text-white transition cursor-pointer active:scale-95 group"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 px-0.5 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black ring-2 ring-[#063b1e]">
-                  2
-                </span>
+                <MapPin className="w-3.5 h-3.5 text-[#a3e635] shrink-0" />
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-bold text-white/95 tracking-tight">
+                    Deliver to {activeLocation.zoneName || "Kota, Rajasthan"}
+                  </span>
+                  <ChevronDown className="w-3 h-3 text-white/70 group-hover:text-white transition-transform" />
+                </div>
               </button>
+
+              {/* Notification Bell with Red Badge "2" */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={openLoginModal}
+                  className="relative flex h-8 w-8 items-center justify-center rounded-xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
+                  aria-label="Notifications"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 px-0.5 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black ring-2 ring-[#063b1e]">
+                    2
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Centered Brand Wordmark & Speed Cart Emblem */}
+            <div className="flex justify-center items-center py-0.5">
+              <CentralMartLogo theme="greenHeader" logoUrl={logoUrl} storeName={storeName} />
+            </div>
+
+            {/* Search Bar with Mic Icon */}
+            <div className="pt-0.5">
+              <SearchInput />
             </div>
           </div>
-
-          {/* Centered Brand Wordmark & Speed Cart Emblem */}
-          <div className="flex justify-center items-center py-0.5">
-            <CentralMartLogo theme="greenHeader" logoUrl={logoUrl} storeName={storeName} />
-          </div>
-
-          {/* Search Bar with Mic Icon */}
-          <div className="pt-0.5">
-            <SearchInput />
-          </div>
-        </div>
+        )}
 
         {/* Desktop Header Row (>= sm) */}
         <div className="hidden sm:flex mx-auto max-w-7xl items-center justify-between gap-3 px-6 py-3">

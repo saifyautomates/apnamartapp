@@ -92,27 +92,29 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
           >
             {product.name}
           </Link>
-          <div className="mt-1 flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-neutral-500 bg-neutral-100/70 px-1.5 py-0.5 rounded-md">
+          <div className="mt-0.5">
+            <span className="text-[11px] font-medium text-neutral-400">
               {packSize}
             </span>
-            {pct > 0 ? (
-              <span className="text-[10px] font-black text-rose-600">
-                {pct}% OFF
-              </span>
-            ) : null}
           </div>
         </div>
 
-        {/* Pricing & Add Button Row */}
-        <div className="mt-2.5 flex items-center justify-between gap-2 pt-2 border-t border-neutral-100">
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm sm:text-base font-bold tabular-nums text-[#1c1c1c]">
-              {formatPaise(price)}
-            </span>
-            {v.mrpPaise > price ? (
-              <span className="text-[10px] text-neutral-400 line-through tabular-nums font-normal">
-                {formatPaise(v.mrpPaise)}
+        {/* Pricing & Add Button Row (Matches Mockup Screen 4) */}
+        <div className="mt-2 flex items-center justify-between gap-1.5 pt-1.5 border-t border-neutral-100">
+          <div className="flex flex-col leading-tight min-w-0">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span className="text-sm sm:text-base font-black tabular-nums text-[#1c1c1c]">
+                {formatPaise(price)}
+              </span>
+              {v.mrpPaise > price ? (
+                <span className="text-[10px] text-neutral-400 line-through tabular-nums font-medium">
+                  {formatPaise(v.mrpPaise)}
+                </span>
+              ) : null}
+            </div>
+            {pct > 0 ? (
+              <span className="text-[9px] font-black text-[#0c831f] bg-emerald-50 px-1 py-0.2 rounded-sm w-fit mt-0.5">
+                {pct}% OFF
               </span>
             ) : null}
           </div>

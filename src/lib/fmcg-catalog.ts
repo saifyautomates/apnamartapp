@@ -110,6 +110,7 @@ export const FMCG_CATEGORIES: FmcgCategoryTemplate[] = [
     brands: ["Lay's", "Kurkure", "Haldiram's", "Bikaji", "Bingo", "Doritos", "Act II"],
     imagePrefix: "snacks",
     items: [
+      { name: "Lay's Classic Salted Potato Chips", brand: "Lay's", sub: "Chips & Crisps", variants: [{ pack: "52 g", mrp: 25, selling: 20, stock: 500 }, { pack: "115 g", mrp: 50, selling: 45, stock: 250 }] },
       { name: "Lay's India's Magic Masala Potato Chips", brand: "Lay's", sub: "Chips & Crisps", variants: [{ pack: "50 g", mrp: 20, selling: 20, stock: 300 }, { pack: "115 g", mrp: 50, selling: 48, stock: 180 }] },
       { name: "Lay's American Style Cream & Onion Chips", brand: "Lay's", sub: "Chips & Crisps", variants: [{ pack: "50 g", mrp: 20, selling: 20, stock: 280 }, { pack: "115 g", mrp: 50, selling: 48, stock: 170 }] },
       { name: "Lay's Spanish Tomato Tango Chips", brand: "Lay's", sub: "Chips & Crisps", variants: [{ pack: "50 g", mrp: 20, selling: 20, stock: 240 }] },

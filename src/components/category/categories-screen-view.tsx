@@ -106,49 +106,66 @@ export function CategoriesScreenView({
 
   return (
     <div className="max-w-4xl mx-auto space-y-4 pb-12">
-      {/* Top Header matching Mockup Screen 3: "← Categories" + Search Icon */}
-      <div className="flex items-center justify-between py-2 border-b border-neutral-100">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-base font-black text-[#1c1c1c] hover:text-[#0c831f] transition cursor-pointer active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
-          <span>Categories</span>
-        </button>
+      {/* Mobile Top Header matching Mockup Screen 3: "← Categories" + Search Input */}
+      <div className="sm:hidden -mx-3 -mt-2.5 bg-gradient-to-b from-[#032e16] via-[#063b1e] to-[#074724] text-white px-4 pt-3.5 pb-4 space-y-3 shadow-md rounded-b-3xl">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-base font-black text-white hover:text-[#a3e635] transition cursor-pointer active:scale-95"
+          >
+            <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
+            <span>Categories</span>
+          </button>
+          <button
+            onClick={() => {
+              const input = document.getElementById("category-search-input-mobile");
+              input?.focus();
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition cursor-pointer"
+            aria-label="Search"
+          >
+            <Search className="w-4 h-4 stroke-[2.4]" />
+          </button>
+        </div>
 
-        <button
-          onClick={() => {
-            const input = document.getElementById("category-search-input");
-            input?.focus();
-          }}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 hover:text-[#0c831f] hover:bg-neutral-200 transition cursor-pointer"
-          aria-label="Focus search categories"
-        >
-          <Search className="w-4 h-4 stroke-[2.4]" />
-        </button>
+        {/* Search Input Box: "Search categories..." */}
+        <div className="relative">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
+            <Search className="w-4 h-4" />
+          </span>
+          <input
+            id="category-search-input-mobile"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search categories..."
+            className="w-full rounded-2xl border border-white/20 bg-white text-xs text-[#1c1c1c] font-medium placeholder-neutral-400 pl-10 pr-4 py-2.5 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition shadow-sm"
+          />
+        </div>
       </div>
 
-      {/* Search Input Box: "Search categories..." */}
-      <div className="relative">
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
-          <Search className="w-4 h-4" />
-        </span>
-        <input
-          id="category-search-input"
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search categories..."
-          className="w-full rounded-2xl border border-neutral-200/90 bg-neutral-50/60 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition shadow-xs"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400 hover:text-neutral-700"
-          >
-            Clear
-          </button>
-        )}
+      {/* Desktop Header Row (>= sm) */}
+      <div className="hidden sm:flex items-center justify-between py-2 border-b border-neutral-100">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-lg font-black text-[#1c1c1c] hover:text-[#0c831f] transition cursor-pointer active:scale-95"
+        >
+          <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
+          <span>All Categories</span>
+        </button>
+
+        <div className="relative w-72">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
+            <Search className="w-4 h-4" />
+          </span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search categories..."
+            className="w-full rounded-2xl border border-neutral-200 bg-neutral-50/60 pl-10 pr-4 py-2 text-xs text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition shadow-xs"
+          />
+        </div>
       </div>
 
       {/* 3-Column Clean Card Grid (Screen 3 Mockup) */}

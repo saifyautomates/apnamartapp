@@ -1,7 +1,6 @@
 import { getHomeRailsSafe } from "@/lib/resilient-catalog";
 import { getStoreOffers } from "@/lib/offers";
-import { HeroBanner, PromoCards, CategoryGrid, DealsRail } from "@/components/home";
-import { FlashSaleBar } from "@/components/home/flash-sale-bar";
+import { DealsRail } from "@/components/home";
 import { CentralMartHeroFeed } from "@/components/home/central-mart-hero-feed";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
 import { MapPin, Phone, Clock } from "lucide-react";
@@ -22,24 +21,13 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-12">
-      {/* 0. Central Mart Hero Showcase (Matches Mockup Screen 2: Promo Banner, 4 Circles, Trust Card, Popular Categories) */}
+      {/* 1. Central Mart Hero Showcase (Matches Mockup Screen 2: Promo Banner, 4 Action Tiles, Popular Categories) */}
       <CentralMartHeroFeed />
 
-      {/* 0.1 Live Ticking Flash Sale Announcement Bar */}
-      {storeOffers && storeOffers.length > 0 ? (
-        <FlashSaleBar initialOffers={storeOffers} />
-      ) : null}
-
-      {/* 1. Hero Banner Carousel with "Daily Essentials at Best Prices" (Matches Phone 1 Mockup) */}
-      <HeroBanner banners={storeBanners} />
-
-      {/* 2. Shop by Category Section with 8 Tiles (Matches Phone 1 Mockup) */}
-      <CategoryGrid />
-
-      {/* 4. Today's Best Deals with Countdown Timer (Matches Phone 1 Mockup) */}
+      {/* 2. Today's Best Deals with Countdown Timer (Screen 2 FMCG Deals) */}
       <DealsRail items={discountDeals.length > 0 ? (discountDeals as unknown as VariantCardProps[]) : (popularItems as unknown as VariantCardProps[])} />
 
-      {/* 5. Popular Products Grid / Carousel with Bestseller & Heart Wishlist (Matches Screen 1 Mockup) */}
+      {/* 3. Popular Products Grid / Carousel with Bestseller Badge & Wishlist */}
       {popularItems.length > 0 ? (
         <ProductCarousel
           title="Popular Products"
@@ -48,23 +36,11 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* 4. Three Promotional Cards Row (Savings & Flash Deals) */}
-      <PromoCards />
-
-      {/* 5. Category Product Rails */}
-      {/* Rail: Dairy, Bread & Eggs */}
-      {dairyItems.length > 0 ? (
-        <ProductCarousel
-          title="Dairy, Bread & Eggs"
-          seeAllHref="/category/dairy-eggs"
-          items={dairyItems as unknown as VariantCardProps[]}
-        />
-      ) : null}
-
+      {/* 4. Category Product Rails */}
       {/* Rail: Snacks & Munchies */}
       {snackItems.length > 0 ? (
         <ProductCarousel
-          title="Snacks & Munchies"
+          title="Snacks &amp; Namkeen"
           seeAllHref="/category/snacks"
           items={snackItems as unknown as VariantCardProps[]}
         />
@@ -73,16 +49,25 @@ export default async function HomePage() {
       {/* Rail: Cold Drinks & Juices */}
       {drinkItems.length > 0 ? (
         <ProductCarousel
-          title="Cold Drinks & Juices"
+          title="Cold Drinks &amp; Beverages"
           seeAllHref="/category/cold-drinks"
           items={drinkItems as unknown as VariantCardProps[]}
+        />
+      ) : null}
+
+      {/* Rail: Dairy, Bread & Eggs */}
+      {dairyItems.length > 0 ? (
+        <ProductCarousel
+          title="Dairy &amp; Breakfast"
+          seeAllHref="/category/dairy-eggs"
+          items={dairyItems as unknown as VariantCardProps[]}
         />
       ) : null}
 
       {/* Rail: Atta, Rice & Dal */}
       {stapleItems.length > 0 ? (
         <ProductCarousel
-          title="Atta, Rice & Dal"
+          title="Staples, Atta &amp; Dal"
           seeAllHref="/category/staples"
           items={stapleItems as unknown as VariantCardProps[]}
         />
@@ -91,7 +76,7 @@ export default async function HomePage() {
       {/* Rail: Personal Care & Household */}
       {personalCareItems.length > 0 ? (
         <ProductCarousel
-          title="Personal Care & Household"
+          title="Personal Care &amp; Household"
           seeAllHref="/category/personal-care"
           items={personalCareItems as unknown as VariantCardProps[]}
         />

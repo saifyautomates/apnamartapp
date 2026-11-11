@@ -50,7 +50,7 @@ export function CategoryHeaderClient({ categoryName }: CategoryHeaderClientProps
   };
 
   return (
-    <div className="sm:hidden -mx-4 -mt-4 bg-gradient-to-r from-[#032e16] via-[#063b1e] to-[#074724] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md">
+    <div className="sm:hidden -mx-3 -mt-2.5 bg-gradient-to-r from-[#032e16] via-[#063b1e] to-[#074724] text-white px-4 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-md rounded-b-2xl">
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={() => router.back()}

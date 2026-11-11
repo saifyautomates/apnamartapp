@@ -131,11 +131,11 @@ export function AddButton({
             e.stopPropagation();
             setQuantity(1);
           }}
-          className="group relative w-full overflow-hidden rounded-xl border-2 border-[#0c831f] bg-white hover:bg-emerald-50/70 px-3 py-1.5 text-xs font-black text-[#0c831f] tracking-wider uppercase shadow-[0_2px_8px_rgba(12,131,31,0.08)] hover:shadow-[0_4px_12px_rgba(12,131,31,0.18)] transition-all duration-200 active:scale-90 cursor-pointer flex items-center justify-center gap-1"
+          className="group relative w-full overflow-hidden rounded-xl border border-[#0c831f] bg-white hover:bg-emerald-50/70 px-2.5 py-1 text-xs font-black text-[#0c831f] transition-all duration-200 active:scale-90 cursor-pointer flex items-center justify-center gap-1 shadow-xs"
           aria-label="Add to cart"
         >
-          <span className="text-[11px] font-black text-[#0c831f]">ADD</span>
           <span className="text-[#0c831f] font-bold text-sm leading-none -mt-0.5 group-hover:scale-125 transition-transform">+</span>
+          <span className="text-xs font-bold text-[#0c831f]">Add</span>
         </button>
         {error ? (
           <p className="absolute left-0 right-0 top-full mt-0.5 text-[10px] text-red-500 font-bold truncate">
