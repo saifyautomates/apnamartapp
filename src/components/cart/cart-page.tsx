@@ -94,12 +94,35 @@ export function CartPageView() {
       }
     }
 
+    // Instant 0ms Optimistic UI calculation
+    setCart((prev) => {
+      if (!prev) return null;
+      let newLines = prev.lines.map((l) =>
+        l.variantId === variantId
+          ? { ...l, qty, lineTotalPaise: l.unitPricePaise * qty }
+          : l
+      );
+      if (qty <= 0) {
+        newLines = newLines.filter((l) => l.variantId !== variantId);
+      }
+      const newSubtotal = newLines.reduce((sum, l) => sum + (l.lineTotalPaise || l.unitPricePaise * l.qty), 0);
+      const newCount = newLines.reduce((sum, l) => sum + l.qty, 0);
+      return {
+        ...prev,
+        lines: newLines,
+        subtotalPaise: newSubtotal,
+        totalPaise: newSubtotal + (prev.deliveryPaise || 0) + (prev.handlingPaise || 0),
+        count: newCount,
+      };
+    });
+
     try {
       await api("/api/cart", { method: "POST", body: JSON.stringify({ variantId, qty }) });
       await load();
       window.dispatchEvent(new Event("cart-updated"));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
+      await load(); // rollback on failure
     } finally {
       setBusy(false);
     }

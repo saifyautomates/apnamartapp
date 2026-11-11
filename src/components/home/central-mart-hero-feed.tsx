@@ -81,13 +81,19 @@ export function CentralMartHeroFeed() {
             <p className="text-xs sm:text-sm font-bold text-white/95 leading-tight">
               on FMCG Products
             </p>
-            <div className="pt-1.5">
+            <div className="pt-1.5 flex items-center gap-2 flex-wrap">
               <Link
                 href="/category"
                 className="inline-flex items-center gap-1.5 rounded-full bg-[#16a34a] hover:bg-[#15803d] px-4 py-2 text-xs sm:text-sm font-black text-white shadow-md active:scale-95 transition cursor-pointer"
               >
                 <span>Shop Now</span>
                 <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link
+                href="/app"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm font-bold text-white border border-white/25 active:scale-95 transition cursor-pointer"
+              >
+                <span>📱 App View</span>
               </Link>
             </div>
           </div>

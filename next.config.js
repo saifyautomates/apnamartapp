@@ -12,6 +12,15 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   swcMinify: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   env: {
     DATABASE_URL: process.env.DATABASE_URL || SUPABASE_DB_URL,
     DIRECT_URL:

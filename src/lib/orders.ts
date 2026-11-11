@@ -308,7 +308,7 @@ export async function checkout(input: CheckoutInput) {
               throw badRequest(`Minimum order for this zone is ₹${(zone.minOrderPaise / 100).toFixed(0)}`);
             }
             deliveryChargePaise = zone.freeThresholdPaise != null && subtotalPaise >= zone.freeThresholdPaise ? 0 : zone.deliveryChargePaise;
-            if (input.deliverySlotId) {
+            if (input.deliverySlotId && input.deliverySlotId !== "slot-express") {
               const slot = await tx.deliverySlot.findUnique({ where: { id: input.deliverySlotId } });
               if (!slot || !slot.isActive) throw badRequest("Delivery slot is not available");
               const dayStart = new Date();

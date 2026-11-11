@@ -313,7 +313,7 @@ export function CheckoutPageView() {
         body: JSON.stringify({
           addressId: mode === "DELIVERY" ? addressId || undefined : undefined,
           deliveryMethod: mode,
-          deliverySlotId: mode === "DELIVERY" ? slotId || undefined : undefined,
+          deliverySlotId: mode === "DELIVERY" && slotId && slotId !== "slot-express" ? slotId : undefined,
           paymentMethod,
           couponCode: couponApplied ? couponCode : undefined,
           loyaltyPoints: loyaltyPoints || undefined,
@@ -323,11 +323,15 @@ export function CheckoutPageView() {
       const orderId = data.orderId;
       if (!orderId) throw new Error("Checkout did not return an order");
       window.dispatchEvent(new Event("cart-updated"));
-      if (paymentMethod === "COD") {
-        router.push(`/orders/${orderId}`);
-      } else {
-        router.push(`/checkout/mock-pay?orderId=${orderId}&method=${paymentMethod}`);
-      }
+      const targetUrl = paymentMethod === "COD"
+        ? `/orders/${orderId}`
+        : `/checkout/mock-pay?orderId=${orderId}&method=${paymentMethod}`;
+      router.push(targetUrl);
+      setTimeout(() => {
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/orders/")) {
+          window.location.href = targetUrl;
+        }
+      }, 500);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Checkout failed");
     } finally {
@@ -840,6 +844,7 @@ export function CheckoutPageView() {
 
             {/* Primary Action Button */}
             <button
+              id="place-order-btn"
               onClick={placeOrder}
               disabled={placing || (mode === "DELIVERY" && !addressId && addresses.length === 0)}
               className="w-full rounded-2xl bg-gradient-to-r from-[#0c831f] to-emerald-700 hover:from-[#0a701a] hover:to-emerald-800 py-4 text-center text-sm font-black text-white shadow-lg transition active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"

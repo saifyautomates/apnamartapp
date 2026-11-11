@@ -168,7 +168,7 @@ export function OrdersScreenView({
                   <h4 className="text-sm font-black text-[#1c1c1c] leading-tight">
                     Order #{o.orderNumber}
                   </h4>
-                  <p className="text-xs font-medium text-neutral-400 mt-0.5">
+                  <p suppressHydrationWarning className="text-xs font-medium text-neutral-400 mt-0.5">
                     {formatOrderTime(o.createdAt)}
                   </p>
                   <p className="text-xs font-bold mt-1">

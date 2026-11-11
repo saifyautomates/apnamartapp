@@ -324,7 +324,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: AdminOrder[] })
                         <div className="font-black text-neutral-900 flex items-center gap-1.5">
                           <span>{order.orderNumber}</span>
                         </div>
-                        <div className="text-[10px] text-neutral-400 mt-0.5">{dateStr}</div>
+                        <div suppressHydrationWarning className="text-[10px] text-neutral-400 mt-0.5">{dateStr}</div>
                       </td>
 
                       {/* Customer */}

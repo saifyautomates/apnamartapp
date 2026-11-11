@@ -34,6 +34,10 @@ if (!process.env.NEXT_PUBLIC_BASE_URL) {
   process.env.NEXT_PUBLIC_BASE_URL = "https://apnamartapp.vercel.app";
 }
 
+if (!process.env.NEXT_CPU_COUNT) {
+  process.env.NEXT_CPU_COUNT = "1";
+}
+
 console.log("[Vercel-Build] Running prisma generate with Supabase environment...");
 execSync("npx prisma generate", { stdio: "inherit", env: process.env });
 

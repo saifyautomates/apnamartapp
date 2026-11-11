@@ -140,6 +140,12 @@ export function CartDrawer() {
     window.addEventListener("cart-updated", handleCartUpdated);
     window.addEventListener("auth-updated", loadSession);
 
+    const handleWindowMessage = (e: MessageEvent) => {
+      if (e.data?.type === "OPEN_CART") handleOpen();
+      if (e.data?.type === "CLOSE_CART") handleClose();
+    };
+    window.addEventListener("message", handleWindowMessage);
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
@@ -150,6 +156,7 @@ export function CartDrawer() {
       window.removeEventListener("close-cart", handleClose);
       window.removeEventListener("cart-updated", handleCartUpdated);
       window.removeEventListener("auth-updated", loadSession);
+      window.removeEventListener("message", handleWindowMessage);
       window.removeEventListener("keydown", onKeyDown);
     };
   }, []);

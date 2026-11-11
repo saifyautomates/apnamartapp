@@ -67,6 +67,29 @@ export function useCart() {
   const updateItem = useCallback(
     async (variantId: string, qty: number) => {
       setLoading(true);
+      // Optimistic 0ms calculation
+      setCart((prev) => {
+        const lines = prev.items || [];
+        let newLines = lines.map((l) =>
+          l.variantId === variantId
+            ? { ...l, qty, lineTotalPaise: l.unitPricePaise * qty }
+            : l
+        );
+        if (qty <= 0) {
+          newLines = newLines.filter((l) => l.variantId !== variantId);
+        }
+        const newSubtotal = newLines.reduce((sum, l) => sum + ((l.lineTotalPaise ?? l.unitPricePaise * l.qty)), 0);
+        const newCount = newLines.reduce((sum, l) => sum + l.qty, 0);
+        return {
+          ...prev,
+          items: newLines,
+          lines: newLines,
+          subtotalPaise: newSubtotal,
+          totalPaise: newSubtotal + prev.deliveryPaise,
+          count: newCount,
+        };
+      });
+
       try {
         if (qty <= 0) {
           const res = await api<any>(`/api/cart?variantId=${encodeURIComponent(variantId)}`, {
@@ -81,6 +104,9 @@ export function useCart() {
           window.dispatchEvent(new CustomEvent("cart-updated", { detail: res }));
         }
         await fetchCart();
+      } catch (err) {
+        await fetchCart(); // rollback on failure
+        throw err;
       } finally {
         setLoading(false);
       }

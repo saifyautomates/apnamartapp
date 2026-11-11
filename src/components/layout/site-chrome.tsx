@@ -22,7 +22,9 @@ export function SiteChrome({
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
-  if (pathname.startsWith("/admin")) return <>{children}</>;
+  if (pathname.startsWith("/admin") || pathname === "/app" || pathname.startsWith("/app/")) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fcfcfc]">
