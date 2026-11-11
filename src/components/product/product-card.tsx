@@ -28,32 +28,24 @@ export interface VariantCardProps {
 
 export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
   const { isWishlisted, toggleWishlist } = useWishlist(v.id);
-  const { deliveryBadgeText, shoppingMode } = useDelivery();
+  const { deliveryBadgeText } = useDelivery();
   const product = v.product;
   const price = effectivePrice(v as never);
   const pct = discountPercent(v.mrpPaise, price);
   const image = product.images?.[0]?.url ?? `/images/products/${product.slug}.jpg`;
   const sellable = v.inventory ? v.inventory.availableQty - v.inventory.reservedQty : 0;
   const inStock = sellable > 0;
-  const isLowStock = inStock && sellable <= 5;
   const packSize = v.packSize || "1 pack";
-  const brandName = product.brand?.name || "Central Mart";
 
   return (
     <article className="group relative flex flex-col justify-between rounded-3xl border border-neutral-100/90 hover:border-emerald-300/80 bg-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_-8px_rgba(12,131,31,0.14)] hover:-translate-y-1 transition-all duration-300 h-full">
       {/* Top Media & Actions Row */}
       <div className="relative">
         <div className="flex items-center justify-between gap-1 w-full z-10">
-          {/* Fulfillment Indicator matching Shopping Mode */}
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700 text-white px-2 py-0.5 text-[9px] font-bold tracking-tight shadow-xs">
+          {/* Bestseller Badge with Refined Vector Sparkle */}
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700 text-white px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-tight shadow-xs">
             <Sparkles className="w-2.5 h-2.5 fill-white/80" />
-            <span>
-              {shoppingMode === "DELIVERY"
-                ? "15–30m"
-                : shoppingMode === "PICKUP"
-                ? "Store Stock"
-                : "Aisle Stock"}
-            </span>
+            <span>Bestseller</span>
           </span>
 
           {/* Wishlist Heart Icon */}
@@ -93,11 +85,6 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
       {/* Product Details */}
       <div className="mt-1 flex-1 flex flex-col justify-between">
         <div>
-          {/* Brand Name */}
-          <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider block truncate">
-            {brandName}
-          </span>
-
           <Link
             href={`/product/${product.slug}`}
             prefetch={true}
@@ -105,19 +92,13 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
           >
             {product.name}
           </Link>
-
-          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+          <div className="mt-1 flex items-center gap-1.5">
             <span className="text-[11px] font-semibold text-neutral-500 bg-neutral-100/70 px-1.5 py-0.5 rounded-md">
               {packSize}
             </span>
             {pct > 0 ? (
               <span className="text-[10px] font-black text-rose-600">
                 {pct}% OFF
-              </span>
-            ) : null}
-            {isLowStock ? (
-              <span className="text-[9px] font-black text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200/60">
-                Only {sellable} left
               </span>
             ) : null}
           </div>

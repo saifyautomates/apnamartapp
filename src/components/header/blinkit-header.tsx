@@ -10,9 +10,7 @@ import { useDelivery } from "@/lib/delivery-context";
 import { openLoginModal } from "@/components/auth/login-modal";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
-import { ShoppingModeModal } from "@/components/store/shopping-mode-modal";
-import { InStoreScannerModal } from "@/components/store/in-store-scanner-modal";
-import { MapPin, Zap, Settings, ChevronDown, Store, QrCode } from "lucide-react";
+import { MapPin, Zap, Settings, ChevronDown, Smartphone } from "lucide-react";
 
 export interface HeaderProps {
   storeName?: string;
@@ -34,10 +32,8 @@ export function BlinkitHeader({
   const [count, setCount] = useState(initialCount);
   const [total, setTotal] = useState(initialTotal);
   const [locationOpen, setLocationOpen] = useState(false);
-  const [shoppingModeModalOpen, setShoppingModeModalOpen] = useState(false);
-  const [scannerModalOpen, setScannerModalOpen] = useState(false);
 
-  const { deliveryPromiseText, activeLocation, setActiveLocation, zones, shoppingMode } = useDelivery();
+  const { deliveryPromiseText, activeLocation, setActiveLocation, zones } = useDelivery();
 
   const refreshCart = async (e?: Event) => {
     const detail = (e as CustomEvent)?.detail;
@@ -78,35 +74,20 @@ export function BlinkitHeader({
           {/* Top Row: Location on Left, Notification Bell on Right */}
           <div className="flex items-center justify-between">
             <button
-              onClick={() => setShoppingModeModalOpen(true)}
-              className="flex items-center gap-1.5 text-left text-white/90 hover:text-white transition cursor-pointer active:scale-95 group max-w-[70%]"
+              onClick={() => setLocationOpen(true)}
+              className="flex items-center gap-1.5 text-left text-white/90 hover:text-white transition cursor-pointer active:scale-95 group"
             >
               <MapPin className="w-3.5 h-3.5 text-[#a3e635] shrink-0" />
-              <div className="flex items-center gap-1.5 truncate">
-                <span className="text-[11px] font-bold text-white/95 tracking-tight truncate">
-                  {shoppingMode === "DELIVERY"
-                    ? `Deliver to ${activeLocation.zoneName || "Kota"}`
-                    : shoppingMode === "PICKUP"
-                    ? "Store Pickup (80 Ft Rd)"
-                    : "In-Store Scan & Go"}
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] font-bold text-white/95 tracking-tight">
+                  Deliver to {activeLocation.zoneName || "Kota, Rajasthan"}
                 </span>
-                <span className="text-[9px] font-black bg-white/20 text-[#a3e635] px-1.5 py-0.2 rounded shrink-0">
-                  {shoppingMode === "DELIVERY" ? "15-30m" : shoppingMode === "PICKUP" ? "Pickup" : "Store"}
-                </span>
-                <ChevronDown className="w-3 h-3 text-white/70 group-hover:text-white transition-transform shrink-0" />
+                <ChevronDown className="w-3 h-3 text-white/70 group-hover:text-white transition-transform" />
               </div>
             </button>
 
-            {/* In-Store Scanner Shortcut & Notification Bell */}
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setScannerModalOpen(true)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-[#a3e635] transition cursor-pointer active:scale-90"
-                title="Scan Barcode at 80 Feet Road Store"
-                aria-label="Scan Product Barcode"
-              >
-                <QrCode className="w-4 h-4" />
-              </button>
+            {/* Notification Bell with Red Badge "2" */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={openLoginModal}
                 className="relative flex h-8 w-8 items-center justify-center rounded-xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
@@ -161,24 +142,14 @@ export function BlinkitHeader({
 
           {/* Desktop Actions */}
           <div className="flex items-center gap-3 md:gap-4">
-            {/* Hybrid Shopping Mode Switcher Pill */}
-            <button
-              onClick={() => setShoppingModeModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-[#0c831f] hover:text-white hover:border-[#0c831f] px-3 py-2 text-xs font-black text-[#0c831f] transition shadow-xs group cursor-pointer active:scale-95"
-              title="Switch between Home Delivery, Store Pickup, or In-Store Shopping"
+            <Link
+              href="/app"
+              className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-[#0c831f] hover:text-white hover:border-[#0c831f] px-3 py-2 text-xs font-black text-[#0c831f] transition shadow-xs group"
+              title="Experience Central Mart Mobile App Simulator (iPhone 13)"
             >
-              <span className="h-2 w-2 rounded-full bg-[#0c831f] group-hover:bg-white animate-pulse" />
-              <span className="hidden md:inline font-bold">
-                {shoppingMode === "DELIVERY"
-                  ? "⚡ 15–30m Delivery"
-                  : shoppingMode === "PICKUP"
-                  ? "🏬 Store Pickup"
-                  : "🛒 In-Store Scan"}
-              </span>
-              <span className="md:hidden font-bold">
-                {shoppingMode === "DELIVERY" ? "⚡ Delivery" : shoppingMode === "PICKUP" ? "🏬 Pickup" : "🛒 Scan"}
-              </span>
-            </button>
+              <Smartphone className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              <span className="hidden md:inline font-bold">App View</span>
+            </Link>
 
             <Link
               href="/admin"
@@ -217,19 +188,6 @@ export function BlinkitHeader({
       <LocationModal
         isOpen={locationOpen}
         onClose={() => setLocationOpen(false)}
-      />
-
-      {/* Screen 3: Hybrid Shopping Mode Selector Modal */}
-      <ShoppingModeModal
-        isOpen={shoppingModeModalOpen}
-        onClose={() => setShoppingModeModalOpen(false)}
-        onOpenScanner={() => setScannerModalOpen(true)}
-      />
-
-      {/* In-Store Barcode Scanner & Aisle Finder Modal */}
-      <InStoreScannerModal
-        isOpen={scannerModalOpen}
-        onClose={() => setScannerModalOpen(false)}
       />
     </>
   );
