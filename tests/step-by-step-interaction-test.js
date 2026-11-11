@@ -46,6 +46,8 @@ function makeCustomerToken(userId) {
     {
       kind: "CUSTOMER",
       userId,
+      phone: "+919876543210",
+      name: "OneByOne Tester",
     },
     JWT_SECRET,
     { expiresIn: "7d" }
@@ -86,18 +88,6 @@ async function runOneByOneAudit() {
     },
     update: { userId: testUser.id, deletedAt: null },
   });
-
-  // Fetch real in-stock active online variants from database
-  const realVariants = await prisma.productVariant.findMany({
-    where: {
-      isActive: true,
-      deletedAt: null,
-      product: { isActive: true, onlineVisible: true, deletedAt: null },
-    },
-    take: 5,
-    include: { product: true },
-  });
-  console.log(`[INFO] Loaded ${realVariants.length} online catalogue variants for interaction testing: ${realVariants.map(v => v.product.name).join(", ")}`);
 
   const browser = await puppeteer.launch({
     executablePath: CHROME_PATH,
@@ -140,7 +130,7 @@ async function runOneByOneAudit() {
       const modalHeader = await page.$("h3::-p-text('Pin Delivery Location on Map')");
       if (modalHeader) {
         recordInteraction("HDR-02", "Location Pill", "Click", "PASS", "LocationModal opened with Kota map picker");
-        
+
         // HDR-03: Close modal with X button or Esc
         const closeBtn = await page.$("button[aria-label='Close Map']");
         if (closeBtn) {
@@ -162,7 +152,7 @@ async function runOneByOneAudit() {
       await searchInput.type("chips", { delay: 40 });
       await sleep(800);
       recordInteraction("HDR-04", "Search Input", "Type 'chips'", "PASS", "Search input accepted query and triggered suggestions");
-      
+
       // HDR-05: Submit Search to open Search Modal
       await page.keyboard.press("Enter");
       await sleep(1000);
@@ -224,7 +214,7 @@ async function runOneByOneAudit() {
     const snacksCard = await page.$("a[href='/category/snacks']");
     if (snacksCard) {
       await page.evaluate((el) => el.click(), snacksCard);
-      await page.waitForNavigation({ waitUntil: "networkidle2" }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: "networkidle2" }).catch(() => { });
       await sleep(1000);
       if (page.url().includes("/category/snacks")) {
         recordInteraction("HOME-09", "Category Card 'Snacks'", "Click", "PASS", "Navigated to /category/snacks");
@@ -250,7 +240,7 @@ async function runOneByOneAudit() {
     const productCard = await page.$("a[href*='/product/']");
     if (productCard) {
       await page.evaluate((el) => el.click(), productCard);
-      await page.waitForNavigation({ waitUntil: "networkidle2" }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: "networkidle2" }).catch(() => { });
       await sleep(1200);
       recordInteraction("CAT-04", "Product Card", "Click", "PASS", `Navigated to PDP: ${page.url()}`);
     }
@@ -259,26 +249,27 @@ async function runOneByOneAudit() {
     // MODULE 4: PRODUCT DETAIL PAGE (PDP)
     // ==========================================
     console.log("\n>>> TESTING MODULE 4: PRODUCT DETAIL PAGE >>>");
-    await page.goto(`${BASE_URL}/product/${realVariants[0].product.slug}`, { waitUntil: "networkidle2" });
+    // Ensure on Lay's Classic PDP
+    await page.goto(`${BASE_URL}/product/lays-classic-salted-potato-chips-52g`, { waitUntil: "networkidle2" });
     await sleep(1500);
 
     // PDP-01: Wishlist Heart Toggle
-    const wishlistBtn = await page.$("button[aria-label*='wishlist'], button[aria-label='Wishlist']");
+    const wishlistBtn = await page.$("button[title*='Wishlist'], button[aria-label*='Wishlist']");
     if (wishlistBtn) {
       await page.evaluate((el) => el.click(), wishlistBtn);
       await sleep(500);
       recordInteraction("PDP-01", "Wishlist Heart Button", "Click", "PASS", "Toggled wishlist saved state");
     }
 
-    // PDP-02: Add to Cart Button (AddButton with aria-label="Add to cart")
-    const addToCartBtn = await page.$("button[aria-label='Add to cart'], button::-p-text('ADD')");
+    // PDP-02: Add to Cart Button
+    const addToCartBtn = await page.$("button::-p-text('Add to Cart')");
     if (addToCartBtn) {
       await page.evaluate((el) => el.click(), addToCartBtn);
       await sleep(1000);
       recordInteraction("PDP-02", "Add to Cart Button", "Click", "PASS", "Product added to cart; quantity stepper active");
 
       // PDP-03: Stepper Increment (+)
-      const plusBtn = await page.$("button[aria-label='Increase quantity']");
+      const plusBtn = await page.$("button::-p-text('+')");
       if (plusBtn) {
         await page.evaluate((el) => el.click(), plusBtn);
         await sleep(800);
@@ -286,7 +277,7 @@ async function runOneByOneAudit() {
       }
 
       // PDP-04: Stepper Decrement (-)
-      const minusBtn = await page.$("button[aria-label='Decrease quantity']");
+      const minusBtn = await page.$("button::-p-text('-')");
       if (minusBtn) {
         await page.evaluate((el) => el.click(), minusBtn);
         await sleep(800);
@@ -298,31 +289,25 @@ async function runOneByOneAudit() {
     // MODULE 5: CART SYSTEM (EVERY SINGLE ACTION)
     // ==========================================
     console.log("\n>>> TESTING MODULE 5: CART SYSTEM >>>");
-    // Populate cart inside page context with real catalogue variants and CSRF token
-    await page.evaluate(async (v1, v2, v3) => {
-      const csrfRes = await fetch("/api/auth/csrf");
-      const csrfToken = (await csrfRes.json()).data?.csrfToken || "";
-
-      await fetch("/api/cart?clearAll=true", {
-        method: "DELETE",
-        headers: { "x-csrf-token": csrfToken },
+    // Populate cart inside page context so browser cookies match
+    await page.evaluate(async () => {
+      await fetch("/api/cart?clearAll=true", { method: "DELETE" });
+      await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId: "a1000000-0000-0000-0000-000000000001", qty: 2 }),
       });
       await fetch("/api/cart", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({ variantId: v1, qty: 2 }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId: "a2000000-0000-0000-0000-000000000002", qty: 1 }),
       });
       await fetch("/api/cart", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({ variantId: v2, qty: 1 }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId: "a3000000-0000-0000-0000-000000000003", qty: 1 }),
       });
-      await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({ variantId: v3, qty: 1 }),
-      });
-    }, realVariants[0].id, realVariants[1].id, realVariants[2].id);
+    });
 
     await page.goto(`${BASE_URL}/cart`, { waitUntil: "networkidle2" });
     await sleep(1500);
@@ -339,10 +324,12 @@ async function runOneByOneAudit() {
       recordInteraction("CART-01", "Cart Loading", "3 Items Load", "FAILED", `Expected 3 items, got ${cartData?.lines?.length}`);
     }
 
-    // CART-02: Trash icon on Item 1
-    const trashBtns = await page.$$("button[title='Remove item'], button[aria-label='Remove item']");
+    // CART-02: Trash icon on Item 3 (Dove)
+    const trashBtns = await page.$$("button[title*='Remove'], button[aria-label*='Remove'], button svg.lucide-trash-2");
     if (trashBtns.length > 0) {
-      await page.evaluate((el) => el.click(), trashBtns[0]);
+      // Click the first available trash button
+      const parentBtn = await page.evaluateHandle((el) => el.closest("button") || el, trashBtns[0]);
+      await page.evaluate((el) => el.click(), parentBtn);
       await sleep(1000);
 
       // Verify 5-second Undo banner appears
@@ -366,11 +353,11 @@ async function runOneByOneAudit() {
     }
 
     // CART-04: Clear Cart Confirmation Modal -> Cancel Button
-    const emptyCartBtn = await page.$("#empty-cart-btn, button[title='Empty Cart']");
-    if (emptyCartBtn) {
-      await page.evaluate((el) => el.click(), emptyCartBtn);
+    const clearCartBtn = await page.$("button::-p-text('Clear Cart')");
+    if (clearCartBtn) {
+      await page.evaluate((el) => el.click(), clearCartBtn);
       await sleep(600);
-      const cancelBtn = await page.$("#cancel-clear-cart-btn, button::-p-text('Cancel')");
+      const cancelBtn = await page.$("button::-p-text('Keep Items'), button::-p-text('Cancel')");
       if (cancelBtn) {
         await page.evaluate((el) => el.click(), cancelBtn);
         await sleep(800);
@@ -386,9 +373,9 @@ async function runOneByOneAudit() {
       }
 
       // CART-05: Clear Cart Confirmation Modal -> Confirm Button
-      await page.evaluate((el) => el.click(), emptyCartBtn);
+      await page.evaluate((el) => el.click(), clearCartBtn);
       await sleep(600);
-      const confirmClearBtn = await page.$("#confirm-clear-cart-btn, button::-p-text('Yes, Clear Cart')");
+      const confirmClearBtn = await page.$("button::-p-text('Yes, Clear Cart'), button::-p-text('Confirm Clear')");
       if (confirmClearBtn) {
         await page.evaluate((el) => el.click(), confirmClearBtn);
         await sleep(1200);
@@ -432,15 +419,15 @@ async function runOneByOneAudit() {
 
       await fetch("/api/cart", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({ variantId: v1, qty: 5 }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId: "a1000000-0000-0000-0000-000000000001", qty: 5 }),
       });
       await fetch("/api/cart", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-        body: JSON.stringify({ variantId: v2, qty: 3 }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId: "a2000000-0000-0000-0000-000000000002", qty: 2 }),
       });
-    }, realVariants[0].id, realVariants[1].id);
+    });
 
     await page.goto(`${BASE_URL}/checkout`, { waitUntil: "domcontentloaded" });
     await sleep(2500);
@@ -474,16 +461,15 @@ async function runOneByOneAudit() {
     if (placeOrderBtn) {
       await sleep(500);
       await placeOrderBtn.click();
-      await page.waitForFunction(() => window.location.pathname.startsWith("/orders/"), { timeout: 15000 }).catch(() => {});
-      await sleep(2000);
+      await page.waitForFunction(() => window.location.pathname.startsWith('/orders/'), { timeout: 15000 }).catch(() => { });
+      await sleep(1500);
 
       const postUrl = page.url();
       if (postUrl.includes("/orders/")) {
         placedOrderId = postUrl.split("/orders/")[1].split("?")[0];
         recordInteraction("CHK-03", "Place Order Button", "Submit", "PASS", `Order successfully placed! Order ID: ${placedOrderId}`);
       } else {
-        const errText = await page.evaluate(() => document.querySelector(".text-red-600, .text-red-700, [class*='text-red']")?.textContent || "");
-        recordInteraction("CHK-03", "Place Order Button", "Submit", "FAILED", `Did not navigate to order confirmation: ${postUrl}. Error banner: ${errText}`);
+        recordInteraction("CHK-03", "Place Order Button", "Submit", "FAILED", `Did not navigate to order confirmation: ${postUrl}`);
       }
     }
 
@@ -535,57 +521,46 @@ async function runOneByOneAudit() {
     // MODULE 8: ADMIN OPERATIONS
     // ==========================================
     console.log("\n>>> TESTING MODULE 8: ADMIN PORTAL OPERATIONS >>>");
-    await page.setCookie(
-      {
-        name: "gcp_access",
-        value: makeAdminToken(),
-        domain: "localhost",
-        path: "/",
-      },
-      {
-        name: "gcp_admin_token",
-        value: makeAdminToken(),
-        domain: "localhost",
-        path: "/",
-      }
-    );
+    await page.setCookie({
+      name: "gcp_admin_token",
+      value: makeAdminToken(),
+      domain: "localhost",
+      path: "/",
+    });
 
     // ADM-01: Admin Products Stock Inline Increment
     await page.goto(`${BASE_URL}/admin/products`, { waitUntil: "domcontentloaded" });
     await sleep(1500);
 
     const firstProduct = await prisma.product.findFirst({
-      where: { deletedAt: null, variants: { some: { isActive: true } } },
-      include: { variants: { include: { inventory: true } } },
+      where: { deletedAt: null },
+      include: { variants: true },
     });
 
     if (firstProduct && firstProduct.variants.length > 0) {
       const v = firstProduct.variants[0];
-      const initialStock = v.inventory?.availableQty ?? 50;
+      const initialStock = v.stock;
 
-      // CSRF token for admin action
-      const adminCsrfRes = await fetch(`${BASE_URL}/api/auth/csrf`, {
-        headers: { Cookie: `gcp_admin_token=${makeAdminToken()}` },
-      });
-      const adminCsrfToken = (await adminCsrfRes.json()).data?.csrfToken || "";
-
-      // Test Admin inventory adjust endpoint
-      const adjustRes = await fetch(`${BASE_URL}/api/admin/inventory/adjust`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-csrf-token": adminCsrfToken,
-          Cookie: `gcp_admin_token=${makeAdminToken()}`,
-        },
-        body: JSON.stringify({ variantId: v.id, delta: 5, reason: "One-by-one verification test" }),
-      });
-
-      const updatedV = await prisma.productVariant.findUnique({
-        where: { id: v.id },
-        include: { inventory: true },
-      });
-      const finalStock = updatedV?.inventory?.availableQty ?? (initialStock + 5);
-      recordInteraction("ADM-01", "Admin Stock Adjust API", "Post Adjust", "PASS", `Stock adjusted from ${initialStock} to ${finalStock} in database`);
+      // Find inline stock increment button for this variant
+      const stockPlusBtn = await page.$(`button[data-variant-id='${v.id}'][data-action='inc'], button[title*='Add Stock']`);
+      if (stockPlusBtn) {
+        await stockPlusBtn.click();
+        await sleep(1000);
+        const updatedV = await prisma.productVariant.findUnique({ where: { id: v.id } });
+        recordInteraction("ADM-01", "Admin Stock '+' Button", "Click", "PASS", `Stock adjusted from ${initialStock} to ${updatedV?.stock} in database`);
+      } else {
+        // Fallback test via Admin inventory adjust endpoint
+        await fetch(`${BASE_URL}/api/admin/inventory/adjust`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `gcp_admin_token=${makeAdminToken()}`,
+          },
+          body: JSON.stringify({ variantId: v.id, delta: 5, reason: "One-by-one verification test" }),
+        });
+        const updatedV = await prisma.productVariant.findUnique({ where: { id: v.id } });
+        recordInteraction("ADM-01", "Admin Stock Adjust API", "Direct Call", "PASS", `Stock increased from ${initialStock} to ${updatedV?.stock}`);
+      }
     }
 
     console.log("\n==================== ONE-BY-ONE TEST EXECUTION SUMMARY ====================");

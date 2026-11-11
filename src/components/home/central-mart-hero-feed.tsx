@@ -1,11 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { openCategoriesModal } from "@/components/category/category-drawer";
 import { openSearchModal } from "@/components/search/search-modal";
-import { Tag, Grid, RotateCcw, Heart, ArrowRight } from "lucide-react";
+import { useDelivery, ShoppingMode } from "@/lib/delivery-context";
+import { ShoppingModeModal } from "@/components/store/shopping-mode-modal";
+import { InStoreScannerModal } from "@/components/store/in-store-scanner-modal";
+import {
+  Tag,
+  Grid,
+  RotateCcw,
+  Heart,
+  ArrowRight,
+  Zap,
+  Store,
+  QrCode,
+  MapPin,
+  Clock,
+  Sparkles,
+} from "lucide-react";
 import { CentralMartTrustCard } from "@/components/ui/trust-card";
 
 export interface PopularCategoryItem {
@@ -62,8 +77,110 @@ const POPULAR_CATEGORIES: PopularCategoryItem[] = [
 ];
 
 export function CentralMartHeroFeed() {
+  const { shoppingMode, setShoppingMode, storeInfo, activeLocation } = useDelivery();
+  const [modeModalOpen, setModeModalOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
+      {/* 0. Screen 3: Hybrid Shopping Mode 3-Pill Switcher */}
+      <div className="rounded-2xl bg-white p-1.5 border border-neutral-200/90 shadow-xs flex items-center justify-between gap-1">
+        <button
+          type="button"
+          onClick={() => setShoppingMode("DELIVERY")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 ${
+            shoppingMode === "DELIVERY"
+              ? "bg-[#0c831f] text-white shadow-xs"
+              : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+          }`}
+        >
+          <Zap className={`w-3.5 h-3.5 ${shoppingMode === "DELIVERY" ? "fill-white" : "text-[#0c831f]"}`} />
+          <span>15–30m Delivery</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShoppingMode("PICKUP")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 ${
+            shoppingMode === "PICKUP"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+          }`}
+        >
+          <Store className="w-3.5 h-3.5" />
+          <span>Store Pickup</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setShoppingMode("IN_STORE");
+            setScannerOpen(true);
+          }}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 ${
+            shoppingMode === "IN_STORE"
+              ? "bg-indigo-600 text-white shadow-xs"
+              : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+          }`}
+        >
+          <QrCode className="w-3.5 h-3.5" />
+          <span>In-Store Scan</span>
+        </button>
+      </div>
+
+      {/* 0.1 In-Store Shopping Mode Callout Banner */}
+      {shoppingMode === "IN_STORE" && (
+        <div className="rounded-2xl bg-indigo-50 border border-indigo-200 p-3.5 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white text-base">
+              🛒
+            </span>
+            <div>
+              <p className="text-xs font-black text-indigo-950">
+                In-Store Shopping at 80 Feet Road Flagship Store
+              </p>
+              <p className="text-[11px] text-indigo-700 font-medium">
+                Scan product barcodes on shelves to check live price &amp; build your in-store bag.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setScannerOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shadow-xs transition cursor-pointer shrink-0"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span>Scan Barcode</span>
+          </button>
+        </div>
+      )}
+
+      {/* 0.2 Store Pickup Callout Banner */}
+      {shoppingMode === "PICKUP" && (
+        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 flex items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-600 text-white text-base">
+              🏬
+            </span>
+            <div>
+              <p className="text-xs font-black text-amber-950">
+                Store Pickup Active: Central Mart 80 Feet Road, Kota
+              </p>
+              <p className="text-[11px] text-amber-700 font-medium">
+                Collect your order at store counter in 15 mins. Zero delivery &amp; packing charges.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setModeModalOpen(true)}
+            className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shadow-xs transition cursor-pointer shrink-0"
+          >
+            Store Details
+          </button>
+        </div>
+      )}
+
       {/* 1. Promo Card matching Mockup Screen 2 (Up to 50% OFF on FMCG Products) */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#042c16] via-[#064221] to-[#0a582c] p-5 sm:p-7 text-white shadow-lg border border-emerald-800/40">
         {/* Background Decorative Rings */}
@@ -225,6 +342,19 @@ export function CentralMartHeroFeed() {
           ))}
         </div>
       </section>
+
+      {/* Screen 3: Hybrid Shopping Mode Selector Modal */}
+      <ShoppingModeModal
+        isOpen={modeModalOpen}
+        onClose={() => setModeModalOpen(false)}
+        onOpenScanner={() => setScannerOpen(true)}
+      />
+
+      {/* In-Store Barcode Scanner Modal */}
+      <InStoreScannerModal
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+      />
     </div>
   );
 }

@@ -308,7 +308,8 @@ export async function checkout(input: CheckoutInput) {
               throw badRequest(`Minimum order for this zone is ₹${(zone.minOrderPaise / 100).toFixed(0)}`);
             }
             deliveryChargePaise = zone.freeThresholdPaise != null && subtotalPaise >= zone.freeThresholdPaise ? 0 : zone.deliveryChargePaise;
-            if (input.deliverySlotId && input.deliverySlotId !== "slot-express") {
+            const isVirtualSlot = !input.deliverySlotId || input.deliverySlotId.startsWith("slot-") || input.deliverySlotId.startsWith("pickup-");
+            if (input.deliverySlotId && !isVirtualSlot) {
               const slot = await tx.deliverySlot.findUnique({ where: { id: input.deliverySlotId } });
               if (!slot || !slot.isActive) throw badRequest("Delivery slot is not available");
               const dayStart = new Date();
@@ -319,6 +320,8 @@ export async function checkout(input: CheckoutInput) {
               if (booked >= slot.maxOrdersPerDay) throw badRequest("Delivery slot is full");
             }
           }
+
+          const isVirtualSlot = !input.deliverySlotId || input.deliverySlotId.startsWith("slot-") || input.deliverySlotId.startsWith("pickup-");
 
           // Coupon (server-side, inside the transaction).
           let couponId: string | null = null;
@@ -337,7 +340,7 @@ export async function checkout(input: CheckoutInput) {
               addressId: input.addressId ?? null,
               addressSnapshot: addressSnapshot ? JSON.parse(JSON.stringify(addressSnapshot)) : undefined,
               deliveryMethod: input.deliveryMethod,
-              deliverySlotId: input.deliverySlotId ?? null,
+              deliverySlotId: (input.deliverySlotId && !isVirtualSlot) ? input.deliverySlotId : null,
               deliveryChargePaise,
               subtotalPaise,
               discountPaise: couponDiscount,

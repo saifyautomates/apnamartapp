@@ -54,6 +54,15 @@ const STEPS = [
   { key: "DELIVERED", label: "Delivered at Doorstep", sub: "Enjoy your fresh groceries!", icon: "🎉" },
 ];
 
+const PICKUP_STEPS = [
+  { key: "PLACED", label: "Order Placed", sub: "Received at 80 Feet Road Flagship Store", icon: "📝" },
+  { key: "CONFIRMED", label: "Confirmed", sub: "Store inventory allocated", icon: "⚡" },
+  { key: "PREPARING", label: "Packing at Store", sub: "Items being bagged from shelves", icon: "📦" },
+  { key: "PACKED", label: "Ready at Pickup Desk", sub: "Show verification code to collect", icon: "🛍️" },
+  { key: "OUT_FOR_DELIVERY", label: "Ready for Pickup", sub: "Waiting at 80 Feet Road desk", icon: "🏬" },
+  { key: "DELIVERED", label: "Collected", sub: "Thank you for shopping at Central Mart!", icon: "🎉" },
+];
+
 function playChime() {
   try {
     const AudioContext =
@@ -98,12 +107,15 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
   const isDelivered = order.status === "DELIVERED";
   const isCancelled = order.status === "CANCELLED";
   const isOutForDelivery = order.status === "OUT_FOR_DELIVERY";
+  const isPickup = order.deliveryMethod === "PICKUP";
+
+  const activeSteps = isPickup ? PICKUP_STEPS : STEPS;
 
   // Step Index
   const currentStepIndex = useMemo(() => {
-    const idx = STEPS.findIndex((s) => s.key === order.status);
+    const idx = activeSteps.findIndex((s) => s.key === order.status);
     return idx === -1 ? 0 : idx;
-  }, [order.status]);
+  }, [order.status, activeSteps]);
 
   // Live Timer Interval
   useEffect(() => {
@@ -266,15 +278,19 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
               </span>
               <h1 className="mt-2 text-2xl sm:text-3xl font-black text-white tracking-tight">
                 {isDelivered
-                  ? "Order Delivered! 🎉"
+                  ? isPickup ? "Order Collected! 🎉" : "Order Delivered! 🎉"
                   : isCancelled
                   ? "Order Cancelled"
+                  : isPickup
+                  ? order.status === "OUT_FOR_DELIVERY" || order.status === "PACKED"
+                    ? "Ready for Pickup at Store 🏬"
+                    : "Packing at 80 Feet Road Store 🛍️"
                   : isOutForDelivery
-                  ? "Rider on the way 🛵"
-                  : "Same-Day Delivery in Progress ⚡"}
+                  ? "Your order is on the way! 🛵"
+                  : "Express Delivery in Progress ⚡"}
               </h1>
               <p className="mt-1 text-xs text-emerald-100 font-medium">
-                Order #{order.orderNumber} · Placed{" "}
+                Order #{order.orderNumber} · {isPickup ? "Store Pickup (80 Ft Rd)" : "Doorstep Delivery"} · Placed{" "}
                 {new Date(order.createdAt).toLocaleTimeString("en-IN", {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -286,17 +302,19 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
             {!isDelivered && !isCancelled ? (
               <div className="flex flex-col items-center justify-center h-20 w-20 rounded-2xl bg-white text-[#1c1c1c] shadow-lg shrink-0 p-2 border-2 border-white/40">
                 <span className="text-[10px] font-black uppercase text-[#0c831f] tracking-wider">
-                  ETA
+                  {isPickup ? "Ready in" : "Arriving"}
                 </span>
                 <span className="text-xl font-black font-mono tracking-tight text-[#1c1c1c]">
                   {formatCountdown(countdown)}
                 </span>
-                <span className="text-[9px] font-bold text-neutral-400">mins left</span>
+                <span className="text-[9px] font-bold text-neutral-400">mins</span>
               </div>
             ) : isDelivered ? (
               <div className="flex flex-col items-center justify-center h-20 w-20 rounded-2xl bg-white text-[#0c831f] shadow-lg shrink-0 p-2">
                 <span className="text-2xl">✅</span>
-                <span className="text-[10px] font-black uppercase tracking-wider mt-1">Delivered</span>
+                <span className="text-[10px] font-black uppercase tracking-wider mt-1">
+                  {isPickup ? "Collected" : "Delivered"}
+                </span>
               </div>
             ) : null}
           </div>
@@ -305,7 +323,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
           {!isCancelled ? (
             <div className="mt-5">
               <div className="flex justify-between text-[11px] font-bold text-emerald-100 mb-1.5">
-                <span>{STEPS[currentStepIndex].label}</span>
+                <span>{activeSteps[currentStepIndex].label}</span>
                 <span>{progressPct}% Completed</span>
               </div>
               <div className="h-2.5 w-full overflow-hidden rounded-full bg-black/25">
@@ -449,99 +467,138 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
           </div>
         )}
 
-        {/* 3. Delivery Partner Profile Card with AI Chat & Call */}
+        {/* 3. Delivery Partner Profile Card (Express Delivery) OR Store Pickup Desk Card */}
         {!isCancelled && !isDelivered && (
-          <div className="p-5 border-b border-neutral-100 bg-white">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-              <div className="flex items-center gap-3.5">
-                <div className="relative">
-                  <div className="h-13 w-13 rounded-2xl bg-gradient-to-tr from-[#0c831f] to-[#16a34a] flex items-center justify-center text-white text-xl font-black shadow-md ring-2 ring-emerald-500/20">
-                    👨‍🦱
+          isPickup ? (
+            <div className="p-5 border-b border-neutral-100 bg-amber-50/50">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                <div className="flex items-center gap-3.5">
+                  <div className="h-13 w-13 rounded-2xl bg-amber-600 flex items-center justify-center text-white text-2xl shadow-md ring-2 ring-amber-500/20 shrink-0">
+                    🏬
                   </div>
-                  <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-black">
-                    ✓
-                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-black text-[#1c1c1c]">
+                        Central Mart Flagship Supermarket
+                      </h3>
+                      <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-900 border border-amber-300">
+                        Counter Pickup
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-600 font-semibold mt-0.5">
+                      80 Feet Road, Kota, Rajasthan · Counter No. 01 (Instant Collection)
+                    </p>
+                    <p className="text-[11px] text-[#0c831f] font-black mt-1">
+                      Pickup Code: <span className="font-mono bg-white px-2 py-0.5 rounded border border-neutral-200">CM-PICK-{order.orderNumber.replace(/[^0-9]/g, "").slice(-4) || "8821"}</span>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-black text-[#1c1c1c]">
-                      {order.delivery?.assignedTo || "Ramesh Kumar"}
-                    </h3>
-                    <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-black text-amber-700 border border-amber-200/60">
-                      ⭐ 4.9
+
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <a
+                    href="tel:+919876543210"
+                    className="flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2.5 text-xs font-black transition active:scale-95 cursor-pointer shrink-0"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>Call Store</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-5 border-b border-neutral-100 bg-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                <div className="flex items-center gap-3.5">
+                  <div className="relative">
+                    <div className="h-13 w-13 rounded-2xl bg-gradient-to-tr from-[#0c831f] to-[#16a34a] flex items-center justify-center text-white text-xl font-black shadow-md ring-2 ring-emerald-500/20">
+                      👨‍🦱
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-black">
+                      ✓
                     </span>
                   </div>
-                  <p className="text-[11px] text-neutral-500 font-semibold mt-0.5">
-                    Central Mart Express Rider · Ather 450X (RJ-20-CM-8821)
-                  </p>
-                  <p className="text-[10px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
-                    <span>🛡️</span> 100% Vaccinated · Temperature 98.2°F · Thermal Cooler Bag
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-black text-[#1c1c1c]">
+                        {order.delivery?.assignedTo || "Rohit Kumar"}
+                      </h3>
+                      <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-black text-amber-700 border border-amber-200/60">
+                        ⭐ 4.9
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-500 font-semibold mt-0.5">
+                      +91 98765 43210 · Central Mart Express Delivery Partner
+                    </p>
+                    <p className="text-[10px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
+                      <span>🛡️</span> 100% Vaccinated · Temperature 98.2°F · Thermal Insulated Bag
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons: Chat with Rider & Call Rider */}
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button
+                    onClick={() => setIsChatOpen(true)}
+                    className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0c831f] to-[#16a34a] hover:from-[#0a701a] hover:to-[#15803d] text-white px-3.5 py-2.5 text-xs font-black shadow-md transition active:scale-95 cursor-pointer shrink-0"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Chat with Rider</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#f8cb46] animate-ping" />
+                  </button>
+
+                  <a
+                    href="tel:+919876543210"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0c831f] hover:bg-[#0a701a] text-white transition active:scale-90 cursor-pointer shadow-md"
+                    title="Call Rohit Kumar"
+                    aria-label="Call Rohit Kumar"
+                  >
+                    <Phone className="w-4 h-4 fill-white" />
+                  </a>
                 </div>
               </div>
 
-              {/* Action Buttons: Chat with Rider & Call Rider */}
-              <div className="flex items-center gap-2 self-end sm:self-auto">
-                <button
-                  onClick={() => setIsChatOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0c831f] to-[#16a34a] hover:from-[#0a701a] hover:to-[#15803d] text-white px-3.5 py-2.5 text-xs font-black shadow-md transition active:scale-95 cursor-pointer shrink-0"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Chat with Rider</span>
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#f8cb46] animate-ping" />
-                </button>
-
-                <a
-                  href="tel:+919876543210"
-                  className="flex items-center gap-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 px-3.5 py-2.5 text-xs font-black transition active:scale-95 cursor-pointer shrink-0"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Call</span>
-                </a>
+              {/* Quick Delivery Instructions Chips */}
+              <div className="mt-4 pt-3 border-t border-neutral-100">
+                <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block mb-2">
+                  Quick Rider Instructions
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "🔔 Ring the bell",
+                    "🚪 Leave at door",
+                    "📞 Call upon arrival",
+                    "🛡️ Leave with security",
+                    "💬 Ask via AI Chat",
+                  ].map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => {
+                        if (chip === "💬 Ask via AI Chat") {
+                          setIsChatOpen(true);
+                        } else {
+                          setActiveDeliveryNote(chip);
+                          setNoteSent(true);
+                          setTimeout(() => setNoteSent(false), 3000);
+                        }
+                      }}
+                      className={`rounded-xl px-2.5 py-1.5 text-xs font-bold transition cursor-pointer border ${
+                        activeDeliveryNote === chip
+                          ? "bg-[#0c831f] text-white border-[#0c831f]"
+                          : "bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border-neutral-200"
+                      }`}
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+                {noteSent ? (
+                  <p className="mt-1.5 text-[11px] font-bold text-[#0c831f] animate-fade-in">
+                    ✓ Instruction shared with rider!
+                  </p>
+                ) : null}
               </div>
             </div>
-
-            {/* Quick Delivery Instructions Chips */}
-            <div className="mt-4 pt-3 border-t border-neutral-100">
-              <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block mb-2">
-                Quick Rider Instructions
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  "🔔 Ring the bell",
-                  "🚪 Leave at door",
-                  "📞 Call upon arrival",
-                  "🛡️ Leave with security",
-                  "💬 Ask via AI Chat",
-                ].map((chip) => (
-                  <button
-                    key={chip}
-                    onClick={() => {
-                      if (chip === "💬 Ask via AI Chat") {
-                        setIsChatOpen(true);
-                      } else {
-                        setActiveDeliveryNote(chip);
-                        setNoteSent(true);
-                        setTimeout(() => setNoteSent(false), 3000);
-                      }
-                    }}
-                    className={`rounded-xl px-2.5 py-1.5 text-xs font-bold transition cursor-pointer border ${
-                      activeDeliveryNote === chip
-                        ? "bg-[#0c831f] text-white border-[#0c831f]"
-                        : "bg-neutral-50 hover:bg-neutral-100 text-neutral-700 border-neutral-200"
-                    }`}
-                  >
-                    {chip}
-                  </button>
-                ))}
-              </div>
-              {noteSent ? (
-                <p className="mt-1.5 text-[11px] font-bold text-[#0c831f] animate-fade-in">
-                  ✓ Instruction shared with rider!
-                </p>
-              ) : null}
-            </div>
-          </div>
+          )
         )}
 
         {/* 4. Live Vertical Stepper */}
@@ -551,7 +608,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
               Order Milestones
             </h3>
             <div className="space-y-4">
-              {STEPS.map((step, i) => {
+              {activeSteps.map((step, i) => {
                 const isPassed = i <= currentStepIndex;
                 const isCurrent = i === currentStepIndex;
                 return (
@@ -568,7 +625,7 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
                       >
                         {step.icon}
                       </div>
-                      {i < STEPS.length - 1 ? (
+                      {i < activeSteps.length - 1 ? (
                         <div
                           className={`w-0.5 h-6 my-1 transition-colors ${
                             i < currentStepIndex ? "bg-[#0c831f]" : "bg-neutral-200"

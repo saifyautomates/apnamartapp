@@ -38,13 +38,13 @@ const KOTA_SLOTS = [
 ];
 
 export function CheckoutPageView() {
-  const { deliveryPromiseText, activeLocation } = useDelivery();
+  const { deliveryPromiseText, activeLocation, shoppingMode, storeInfo: flagshipStore } = useDelivery();
   const router = useRouter();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [storeInfo, setStoreInfo] = useState<{ payments: Record<string, boolean>; pickup: { enabled?: boolean } } | null>(null);
   const [cartSummary, setCartSummary] = useState<{ subtotalPaise: number; lines: Array<{ qty: number }> } | null>(null);
-  const [mode, setMode] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
+  const [mode, setMode] = useState<"DELIVERY" | "PICKUP">(() => (shoppingMode === "PICKUP" ? "PICKUP" : "DELIVERY"));
   const [addressId, setAddressId] = useState("");
   const [pincode, setPincode] = useState("324005");
   const [slotId, setSlotId] = useState("slot-express");
@@ -298,7 +298,7 @@ export function CheckoutPageView() {
   };
 
   const subtotal = cartSummary?.subtotalPaise || 0;
-  const deliveryFee = subtotal >= 19900 ? 0 : 2500;
+  const deliveryFee = mode === "PICKUP" || subtotal >= 19900 ? 0 : 2500;
   const handlingFee = 200; // ₹2
   const finalTotal = Math.max(0, subtotal + (deliveryFee === 0 ? 0 : deliveryFee) + handlingFee - discountPaise);
 
@@ -628,6 +628,78 @@ export function CheckoutPageView() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* 2. Store Pickup Details if mode === "PICKUP" */}
+          {mode === "PICKUP" ? (
+            <div className="rounded-3xl border border-amber-200/90 bg-white p-5 shadow-xs space-y-4">
+              <div>
+                <h3 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="text-amber-600">🏪</span>
+                  <span>2. Store Pickup Location &amp; Timing</span>
+                </h3>
+                <p className="text-[11px] text-neutral-500">
+                  Collect your packed groceries directly from our flagship counter
+                </p>
+              </div>
+
+              {/* Store Details Card */}
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-black text-[#1c1c1c]">
+                    Central Mart Flagship Supermarket
+                  </h4>
+                  <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                    Ready in 15 mins
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-600 leading-snug">
+                  80 Feet Road, Near Nayapura &amp; CAD Circle, Opp. City Mall Extension, Kota, Rajasthan - 324001
+                </p>
+                <div className="flex items-center gap-4 text-[11px] font-semibold text-neutral-500 pt-1 border-t border-amber-200/60">
+                  <span className="text-emerald-700">🕒 Open 7:00 AM – 11:00 PM Daily</span>
+                  <span>📞 +91 98765 43210</span>
+                </div>
+              </div>
+
+              {/* Pickup Time Selection */}
+              <div className="space-y-2 pt-1">
+                <label className="text-[11px] font-black uppercase text-neutral-500 tracking-wider">
+                  Select Pickup Time Window
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: "pickup-instant", label: "Instant Pickup (Ready in 15 mins)", badge: "Fastest" },
+                    { id: "pickup-eve", label: "Today Evening (6:00 PM – 8:00 PM)", badge: "Evening" },
+                    { id: "pickup-morn", label: "Tomorrow Morning (8:00 AM – 10:00 AM)", badge: "Morning" },
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSlotId(s.id)}
+                      className={`p-2.5 rounded-xl border text-left transition cursor-pointer text-xs ${
+                        slotId === s.id
+                          ? "border-amber-600 bg-amber-50/80 font-bold text-amber-900 ring-1 ring-amber-500"
+                          : "border-neutral-200 text-neutral-700 hover:border-neutral-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-[11px] text-amber-800">{s.badge}</span>
+                        {slotId === s.id ? <span className="text-amber-700 font-bold">✓</span> : null}
+                      </div>
+                      <p className="text-[11px] leading-tight mt-1 text-neutral-600">
+                        {s.label}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
+                <span>🎉</span>
+                <span>Store Pickup orders incur ZERO delivery fees and ZERO packing charges!</span>
               </div>
             </div>
           ) : null}

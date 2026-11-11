@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import { Price, EtaBadge } from "@/components/ui";
 import Link from "next/link";
+import { Package, Heart, Tag, QrCode, Phone, MessageSquare, MapPin } from "lucide-react";
+import { InStoreScannerModal } from "@/components/store/in-store-scanner-modal";
 
 type Address = {
   id: string;
@@ -27,6 +29,7 @@ export function AccountPageView() {
   const [newAddr, setNewAddr] = useState({ label: "Home", name: "", phone: "", line1: "", line2: "", city: "", state: "", pincode: "" });
   const [needLogin, setNeedLogin] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -117,11 +120,61 @@ export function AccountPageView() {
         <EtaBadge minutes={8} className="px-3 py-1 text-xs" />
       </div>
 
-      {error ? (
-        <p className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-xs font-bold text-red-600">
-          {error}
-        </p>
-      ) : null}
+      {/* Quick Action Navigation Buttons */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        <Link
+          href="/orders"
+          className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-xs hover:border-[#0c831f] transition cursor-pointer active:scale-95"
+        >
+          <div className="h-9 w-9 rounded-xl bg-emerald-50 text-[#0c831f] flex items-center justify-center shrink-0">
+            <Package className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-[#1c1c1c]">My Orders</p>
+            <p className="text-[10px] text-neutral-400 font-medium">History &amp; Track</p>
+          </div>
+        </Link>
+
+        <Link
+          href="/wishlist"
+          className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-xs hover:border-[#0c831f] transition cursor-pointer active:scale-95"
+        >
+          <div className="h-9 w-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+            <Heart className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-[#1c1c1c]">Wishlist</p>
+            <p className="text-[10px] text-neutral-400 font-medium">Saved FMCG</p>
+          </div>
+        </Link>
+
+        <Link
+          href="/#deals"
+          className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-xs hover:border-[#0c831f] transition cursor-pointer active:scale-95"
+        >
+          <div className="h-9 w-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+            <Tag className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-[#1c1c1c]">Coupons</p>
+            <p className="text-[10px] text-neutral-400 font-medium">50% Off Offers</p>
+          </div>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setScannerOpen(true)}
+          className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-neutral-200/80 shadow-xs hover:border-[#0c831f] transition cursor-pointer active:scale-95 text-left"
+        >
+          <div className="h-9 w-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <QrCode className="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-[#1c1c1c]">Scan &amp; Go</p>
+            <p className="text-[10px] text-neutral-400 font-medium">In-Store Barcode</p>
+          </div>
+        </button>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Profile Card */}
@@ -262,6 +315,52 @@ export function AccountPageView() {
           </div>
         </section>
 
+        {/* Customer Support & Flagship Store Info */}
+        <section className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-xs space-y-3 lg:col-span-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider flex items-center gap-1.5">
+              <span>🎧</span> 24×7 Central Mart Support &amp; Store Location
+            </h2>
+            <span className="text-[11px] font-bold text-[#0c831f] bg-emerald-50 px-2 py-0.5 rounded-full">
+              Open 7 AM – 11 PM
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div className="space-y-1">
+              <p className="text-xs font-black text-[#1c1c1c] flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-[#0c831f]" />
+                <span>Central Mart Flagship Supermarket</span>
+              </p>
+              <p className="text-[11px] text-neutral-500 font-medium">
+                80 Feet Road, Near Central Circle, Kota, Rajasthan - 324007
+              </p>
+              <p className="text-[11px] text-neutral-500 font-medium">
+                Helpline: <strong className="text-neutral-800">+91 98765 43210</strong> (Phone &amp; WhatsApp)
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href="https://wa.me/919876543210"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>WhatsApp Us</span>
+              </a>
+              <a
+                href="tel:+919876543210"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-black shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                <span>Call Store</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* Store Admin Quick Tile */}
         <div className="lg:col-span-2 rounded-2xl border border-neutral-200 bg-gradient-to-r from-neutral-900 to-neutral-800 p-4 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-3">
@@ -291,6 +390,11 @@ export function AccountPageView() {
           </button>
         </div>
       </div>
+      {/* In-Store Barcode Scanner Modal */}
+      <InStoreScannerModal
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+      />
     </div>
   );
 }

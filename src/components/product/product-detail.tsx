@@ -294,18 +294,36 @@ export function ProductDetailView({
               Pack Size: <span className="font-bold text-[#1c1c1c]">{selected.packSize ?? selected.name}</span>
             </p>
 
-            {/* ETA Callout Card */}
-            <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/60 px-3.5 py-2.5 text-xs">
-              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500 text-white font-black shadow-xs shrink-0">
-                <Zap className="w-4 h-4 fill-white" />
-              </span>
-              <div className="flex-1">
-                <p className="font-black text-[#1c1c1c]">
-                  Delivering in {deliveryPromiseText || "8-10 mins"}
-                </p>
-                <p className="text-[11px] text-neutral-600">
-                  To {activeLocation.address || activeLocation.zoneName || "Kota Central (80 Feet Road Hub)"}
-                </p>
+            {/* Dual Fulfillment ETA & Physical Store Availability Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Online Doorstep Delivery (15-30 Mins) */}
+              <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/60 px-3.5 py-2.5 text-xs">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#0c831f] text-white font-black shadow-xs shrink-0">
+                  <Zap className="w-4 h-4 fill-white" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-[#1c1c1c] truncate">
+                    15–30 Mins Express Delivery
+                  </p>
+                  <p className="text-[11px] text-neutral-600 truncate">
+                    To {activeLocation.address || activeLocation.zoneName || "Kota Central (80 Feet Road Hub)"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Physical Store Availability (80 Feet Road Supermarket) */}
+              <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/60 px-3.5 py-2.5 text-xs">
+                <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-600 text-white font-black shadow-xs shrink-0">
+                  <Award className="w-4 h-4" />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-[#1c1c1c] truncate">
+                    In Store · 80 Feet Road Supermarket
+                  </p>
+                  <p className="text-[11px] text-amber-800 font-medium truncate">
+                    Available on shelf &amp; 15-min Store Pickup
+                  </p>
+                </div>
               </div>
             </div>
 
