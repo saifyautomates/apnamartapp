@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { formatPaise } from "@/lib/money";
 import { ProductImage } from "@/components/product/product-image";
@@ -8,7 +8,7 @@ import { api, ensureCsrf } from "@/lib/api/client";
 import { useDelivery } from "@/lib/delivery-context";
 import { openLoginModal } from "@/components/auth/login-modal";
 import { GoogleMapPicker } from "@/components/location/google-map-picker";
-import { ShoppingBag, Zap, Tag, MapPin, CreditCard, Banknote, Clock, Check, Sparkles, X } from "lucide-react";
+import { ShoppingBag, Zap, Tag, MapPin, CreditCard, Banknote, Clock, Check, Sparkles, X, Trash2 } from "lucide-react";
 
 export interface CartLine {
   variantId: string;
@@ -54,6 +54,13 @@ export function CartDrawer() {
   const [availableOffers, setAvailableOffers] = useState<any[]>([]);
   const [showCouponBox, setShowCouponBox] = useState(false);
   const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [removedItemUndo, setRemovedItemUndo] = useState<{
+    variantId: string;
+    name: string;
+    qty: number;
+  } | null>(null);
+  const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Customer & Address state
   const [sessionUser, setSessionUser] = useState<UserSession | null>(null);
@@ -156,6 +163,22 @@ export function CartDrawer() {
       }
     }
 
+    // Capture removed item for 5-second undo toast
+    if (nextQty <= 0 && cart?.lines) {
+      const target = cart.lines.find((l) => l.variantId === variantId);
+      if (target) {
+        if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+        setRemovedItemUndo({
+          variantId,
+          name: target.name,
+          qty: target.qty,
+        });
+        undoTimeoutRef.current = setTimeout(() => {
+          setRemovedItemUndo(null);
+        }, 5000);
+      }
+    }
+
     // Instant 0ms Optimistic UI calculation
     setCart((prev) => {
       if (!prev) return null;
@@ -186,6 +209,31 @@ export function CartDrawer() {
       window.dispatchEvent(new CustomEvent("cart-updated", { detail: data }));
     } catch {
       loadCart();
+    }
+  }
+
+  async function handleUndoRemove() {
+    if (!removedItemUndo) return;
+    const item = removedItemUndo;
+    setRemovedItemUndo(null);
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    await updateQty(item.variantId, item.qty);
+  }
+
+  async function handleConfirmClearCart() {
+    setShowClearConfirm(false);
+    try {
+      const data = await api<CartDetail>("/api/cart?clearAll=true", { method: "DELETE" });
+      setCart(data);
+      window.dispatchEvent(new CustomEvent("cart-updated", { detail: data }));
+    } catch {
+      if (cart?.lines) {
+        for (const line of cart.lines) {
+          await api("/api/cart", { method: "POST", body: JSON.stringify({ variantId: line.variantId, qty: 0 }) });
+        }
+      }
+      loadCart();
+      window.dispatchEvent(new Event("cart-updated"));
     }
   }
 
@@ -349,15 +397,28 @@ export function CartDrawer() {
               </h2>
             </div>
 
-            <button
-              onClick={() => setOpen(false)}
-              className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 transition cursor-pointer"
-              aria-label="Close"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-2">
+              {cart && cart.lines.length > 0 && (
+                <button
+                  id="drawer-empty-cart-btn"
+                  onClick={() => setShowClearConfirm(true)}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer active:scale-90"
+                  title="Clear Cart"
+                  aria-label="Clear Cart"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 transition cursor-pointer"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* MAIN CART VIEW (Matches Screen 3 Mockup) */}
@@ -808,6 +869,71 @@ export function CartDrawer() {
             </div>
           )}
         </div>
+
+        {/* Clear Cart Confirmation Modal */}
+        {showClearConfirm && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+            <div className="w-full max-w-xs rounded-3xl bg-white p-5 shadow-2xl border border-neutral-100 space-y-3.5 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                <Trash2 className="w-6 h-6 stroke-[2]" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-[#1c1c1c]">Clear your cart?</h3>
+                <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                  Remove all {cart?.count ?? 0} items from your cart?
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <button
+                  id="drawer-cancel-clear-btn"
+                  type="button"
+                  onClick={() => setShowClearConfirm(false)}
+                  className="w-full py-2 rounded-xl border border-neutral-200 text-xs font-bold text-neutral-700 hover:bg-neutral-50 active:scale-95 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  id="drawer-confirm-clear-btn"
+                  type="button"
+                  onClick={handleConfirmClearCart}
+                  className="w-full py-2 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-xs active:scale-95 transition cursor-pointer"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Undo Toast */}
+        {removedItemUndo && (
+          <div
+            id="drawer-undo-toast"
+            className="absolute bottom-4 inset-x-4 z-50 flex items-center justify-between gap-3 rounded-2xl bg-[#1c1c1c] text-white px-4 py-3 shadow-2xl border border-white/10 animate-in slide-in-from-bottom-2 duration-200"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs">🗑️</span>
+              <span className="text-xs font-medium truncate">
+                Removed <strong>{removedItemUndo.name}</strong>
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                id="drawer-undo-btn"
+                onClick={handleUndoRemove}
+                className="text-xs font-black text-[#a3e635] hover:underline uppercase tracking-wide cursor-pointer active:scale-95 bg-white/10 px-2.5 py-0.5 rounded-md"
+              >
+                Undo
+              </button>
+              <button
+                onClick={() => setRemovedItemUndo(null)}
+                className="text-neutral-400 hover:text-white p-0.5 text-xs font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* Google Map Address Selector */}

@@ -130,6 +130,7 @@ export async function getCartDetail(cartId: string) {
   return {
     cartId: cart.id,
     lines,
+    items: lines,
     subtotalPaise,
     mrpTotalPaise,
     savingsPaise: Math.max(0, mrpTotalPaise - subtotalPaise),

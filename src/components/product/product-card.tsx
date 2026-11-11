@@ -7,6 +7,7 @@ import { formatPaise } from "@/lib/money";
 import { ProductImage } from "./product-image";
 import { AddButton } from "./add-button";
 import { useDelivery } from "@/lib/delivery-context";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { Sparkles, Heart } from "lucide-react";
 
 export interface VariantCardProps {
@@ -26,7 +27,7 @@ export interface VariantCardProps {
 }
 
 export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
-  const [wishlisted, setWishlisted] = useState(false);
+  const { isWishlisted, toggleWishlist } = useWishlist(v.id);
   const { deliveryBadgeText } = useDelivery();
   const product = v.product;
   const price = effectivePrice(v as never);
@@ -53,14 +54,14 @@ export function BlinkitProductCard({ v }: { v: VariantCardProps }) {
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              setWishlisted(!wishlisted);
+              toggleWishlist();
             }}
             className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-50 hover:bg-rose-50 text-neutral-400 hover:text-rose-500 transition cursor-pointer active:scale-90"
             aria-label="Add to wishlist"
           >
             <Heart
               className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                wishlisted ? "fill-rose-500 text-rose-500 scale-110" : "text-neutral-400 group-hover:text-neutral-600"
+                isWishlisted ? "fill-rose-500 text-rose-500 scale-110" : "text-neutral-400 group-hover:text-neutral-600"
               }`}
             />
           </button>

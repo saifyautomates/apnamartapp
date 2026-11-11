@@ -57,6 +57,7 @@ export function BlinkitHeader({
   };
 
   useEffect(() => {
+    refreshCart();
     window.addEventListener("cart-updated", refreshCart);
     return () => window.removeEventListener("cart-updated", refreshCart);
   }, []);

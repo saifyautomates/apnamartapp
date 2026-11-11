@@ -170,8 +170,8 @@ export function CentralMartHeroFeed() {
         </Link>
 
         {/* Action 4: Wishlist */}
-        <button
-          onClick={() => openSearchModal("bestseller popular")}
+        <Link
+          href="/wishlist"
           className="group flex flex-col items-center justify-center p-2.5 sm:p-3.5 rounded-2xl bg-white border border-neutral-100 shadow-xs hover:border-emerald-300 hover:shadow-sm transition active:scale-95 cursor-pointer"
         >
           <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-[#0c831f] mb-1.5 group-hover:scale-105 transition">
@@ -180,7 +180,7 @@ export function CentralMartHeroFeed() {
           <span className="text-[11px] sm:text-xs font-black text-neutral-800 tracking-tight">
             Wishlist
           </span>
-        </button>
+        </Link>
       </div>
 
       {/* 2.5 Exact 4-Badge Central Mart Trust Card (Matching User's Attached Image 1) */}

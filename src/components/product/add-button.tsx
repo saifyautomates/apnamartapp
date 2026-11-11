@@ -57,14 +57,28 @@ export function AddButton({
   useEffect(() => {
     setQty(initialQty);
     pendingQtyRef.current = initialQty;
-  }, [initialQty]);
+
+    // Check cached cart if initialQty is 0
+    if (initialQty === 0 && typeof window !== "undefined" && (window as any).__centralMartCart?.lines) {
+      const lines = (window as any).__centralMartCart.lines as Array<{ variantId: string; qty: number }>;
+      const found = lines.find((l) => l.variantId === variantId);
+      if (found) {
+        setQty(found.qty);
+        pendingQtyRef.current = found.qty;
+      }
+    }
+  }, [initialQty, variantId]);
 
   // Keep all button instances synchronized with cart state
   useEffect(() => {
     const handleCartUpdate = (e: Event) => {
       const customEvent = e as CustomEvent<{ lines?: Array<{ variantId: string; qty: number }> }>;
-      if (customEvent.detail?.lines) {
-        const found = customEvent.detail.lines.find((l) => l.variantId === variantId);
+      if (customEvent.detail && typeof customEvent.detail === "object") {
+        (window as any).__centralMartCart = customEvent.detail;
+      }
+      const lines = customEvent.detail?.lines || (typeof window !== "undefined" ? (window as any).__centralMartCart?.lines : null);
+      if (lines) {
+        const found = lines.find((l: any) => l.variantId === variantId);
         const serverQty = found ? found.qty : 0;
         setQty(serverQty);
         pendingQtyRef.current = serverQty;

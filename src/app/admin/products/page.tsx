@@ -4,6 +4,7 @@ import { formatPaise } from "@/lib/money";
 import { ProductForm } from "@/components/admin-ui";
 import { AdminCard, AdminPageHeader } from "@/components/admin-display";
 import { BarcodeProductLister } from "@/components/admin/barcode-product-lister";
+import { ProductRowActions } from "@/components/admin/product-row-actions";
 import Link from "next/link";
 import { FMCG_CATEGORIES } from "@/lib/fmcg-catalog";
 import { getFallbackCategories } from "@/lib/resilient-catalog";
@@ -179,6 +180,7 @@ export default async function AdminProductsPage({
                 <th>Price</th>
                 <th>Sellable / Available</th>
                 <th>Online</th>
+                <th className="text-right pr-2">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
@@ -221,6 +223,13 @@ export default async function AdminProductsPage({
                         >
                           {p.onlineVisible && p.isActive ? "Active" : "Hidden"}
                         </span>
+                      </td>
+                      <td className="py-3 text-right pr-2">
+                        <ProductRowActions
+                          productId={p.id}
+                          variantId={v.id}
+                          currentStock={available}
+                        />
                       </td>
                     </tr>
                   );

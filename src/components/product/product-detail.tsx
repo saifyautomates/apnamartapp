@@ -9,6 +9,7 @@ import { CentralMartTrustCard } from "@/components/ui/trust-card";
 import { discountPercent } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import { useDelivery } from "@/lib/delivery-context";
+import { useWishlist } from "@/hooks/use-wishlist";
 import {
   Zap,
   Tag,
@@ -59,7 +60,7 @@ export function ProductDetailView({
   const { deliveryPromiseText, activeLocation } = useDelivery();
   const [selected, setSelected] = useState<VariantDetail>(variants[0] || {} as VariantDetail);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
-  const [wishlisted, setWishlisted] = useState(false);
+  const { isWishlisted, toggleWishlist } = useWishlist(selected?.id);
   const [copied, setCopied] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
@@ -151,11 +152,11 @@ export function ProductDetailView({
         </span>
 
         <button
-          onClick={() => setWishlisted(!wishlisted)}
+          onClick={() => toggleWishlist()}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 hover:text-rose-500 transition cursor-pointer active:scale-90"
           aria-label="Wishlist"
         >
-          <Heart className={`w-5 h-5 ${wishlisted ? "fill-rose-500 text-rose-500" : "text-neutral-500"}`} />
+          <Heart className={`w-5 h-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-neutral-500"}`} />
         </button>
       </div>
 
@@ -195,14 +196,14 @@ export function ProductDetailView({
 
               <button
                 type="button"
-                onClick={() => setWishlisted(!wishlisted)}
+                onClick={() => toggleWishlist()}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 hover:bg-white text-neutral-600 hover:text-rose-500 shadow-sm border border-neutral-200/60 transition cursor-pointer active:scale-90"
                 aria-label="Add to wishlist"
                 title="Save to wishlist"
               >
                 <Heart
                   className={`w-4 h-4 transition-transform duration-200 ${
-                    wishlisted ? "fill-rose-500 text-rose-500 scale-110" : "text-neutral-500"
+                    isWishlisted ? "fill-rose-500 text-rose-500 scale-110" : "text-neutral-500"
                   }`}
                 />
               </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { ProductImage } from "@/components/product/product-image";
@@ -45,6 +45,13 @@ export function CartPageView() {
   const [couponApplied, setCouponApplied] = useState(false);
   const [discountPaise, setDiscountPaise] = useState(0);
   const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [removedItemUndo, setRemovedItemUndo] = useState<{
+    variantId: string;
+    name: string;
+    qty: number;
+  } | null>(null);
+  const undoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { deliveryPromiseText, estimatedArrivalNotice, deliveryConfig } = useDelivery();
 
@@ -70,6 +77,23 @@ export function CartPageView() {
   async function setQty(variantId: string, qty: number) {
     setBusy(true);
     setError("");
+
+    // Capture removed item for 5-second undo toast
+    if (qty <= 0 && cart?.lines) {
+      const target = cart.lines.find((l) => l.variantId === variantId);
+      if (target) {
+        if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+        setRemovedItemUndo({
+          variantId,
+          name: target.name,
+          qty: target.qty,
+        });
+        undoTimeoutRef.current = setTimeout(() => {
+          setRemovedItemUndo(null);
+        }, 5000);
+      }
+    }
+
     try {
       await api("/api/cart", { method: "POST", body: JSON.stringify({ variantId, qty }) });
       await load();
@@ -81,17 +105,30 @@ export function CartPageView() {
     }
   }
 
-  async function clearCart() {
-    if (!cart?.lines) return;
+  async function handleUndoRemove() {
+    if (!removedItemUndo) return;
+    const item = removedItemUndo;
+    setRemovedItemUndo(null);
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    await setQty(item.variantId, item.qty);
+  }
+
+  async function handleConfirmClearCart() {
     setBusy(true);
+    setShowClearConfirm(false);
     try {
-      for (const line of cart.lines) {
-        await api("/api/cart", { method: "POST", body: JSON.stringify({ variantId: line.variantId, qty: 0 }) });
-      }
+      await api("/api/cart?clearAll=true", { method: "DELETE" });
       await load();
       window.dispatchEvent(new Event("cart-updated"));
     } catch {
-      /* ignore */
+      // Robust fallback: delete items
+      if (cart?.lines) {
+        for (const line of cart.lines) {
+          await api("/api/cart", { method: "POST", body: JSON.stringify({ variantId: line.variantId, qty: 0 }) });
+        }
+        await load();
+        window.dispatchEvent(new Event("cart-updated"));
+      }
     } finally {
       setBusy(false);
     }
@@ -209,7 +246,8 @@ export function CartPageView() {
 
         {cart && cart.lines.length > 0 && (
           <button
-            onClick={clearCart}
+            id="empty-cart-btn"
+            onClick={() => setShowClearConfirm(true)}
             disabled={busy}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer active:scale-90"
             title="Empty Cart"
@@ -480,6 +518,73 @@ export function CartPageView() {
           </div>
         </div>
       </div>
+
+      {/* Clear Cart Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-neutral-100 space-y-4 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+              <Trash2 className="w-7 h-7 stroke-[2]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-[#1c1c1c]">Clear your cart?</h3>
+              <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                Are you sure you want to remove all {cart.count} {cart.count === 1 ? "item" : "items"} from your cart? This cannot be undone.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                id="cancel-clear-cart-btn"
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="w-full py-2.5 rounded-xl border border-neutral-200 text-xs font-bold text-neutral-700 hover:bg-neutral-50 active:scale-95 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                id="confirm-clear-cart-btn"
+                type="button"
+                onClick={handleConfirmClearCart}
+                disabled={busy}
+                className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-xs active:scale-95 transition cursor-pointer"
+              >
+                {busy ? "Clearing..." : "Yes, Clear Cart"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5-Second Undo Removal Toast */}
+      {removedItemUndo && (
+        <div
+          id="undo-toast"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between gap-4 rounded-2xl bg-[#1c1c1c] text-white px-5 py-3.5 shadow-2xl border border-white/10 animate-in slide-in-from-bottom-4 duration-200 max-w-md w-[92%] sm:w-auto"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="text-sm">🗑️</span>
+            <span className="text-xs font-medium truncate">
+              Removed <strong>{removedItemUndo.name}</strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              id="undo-cart-removal-btn"
+              onClick={handleUndoRemove}
+              className="text-xs font-black text-[#a3e635] hover:underline uppercase tracking-wide cursor-pointer active:scale-95 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg transition"
+            >
+              Undo
+            </button>
+            <button
+              onClick={() => setRemovedItemUndo(null)}
+              className="text-neutral-400 hover:text-white p-1 cursor-pointer text-sm font-bold"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
