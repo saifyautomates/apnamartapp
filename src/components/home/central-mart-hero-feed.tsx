@@ -89,12 +89,6 @@ export function CentralMartHeroFeed() {
                 <span>Shop Now</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-              <Link
-                href="/app"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md px-3.5 py-2 text-xs sm:text-sm font-bold text-white border border-white/25 active:scale-95 transition cursor-pointer"
-              >
-                <span>📱 App View</span>
-              </Link>
             </div>
           </div>
 
