@@ -62,6 +62,11 @@ export const POST = handler(async (req: NextRequest) => {
   const existing = await prisma.cartItem.findUnique({
     where: { cartId_variantId: { cartId: cart.id, variantId: targetVariantId } },
   });
+
+  if (body.qty < 0 || (!existing && body.qty === 0)) {
+    throw badRequest("Quantity must be at least 1");
+  }
+
   if (existing) {
     if (qty === 0) {
       await prisma.cartItem.delete({ where: { id: existing.id } });

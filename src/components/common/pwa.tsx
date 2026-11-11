@@ -48,8 +48,15 @@ export function PwaRegister() {
       .catch(() => {
         /* offline or unsupported — app still works without the worker */
       });
-    // A new controller means the update was applied: reload once to pick it up.
-    const onControllerChange = () => window.location.reload();
+    // A new controller means an update was applied: reload only when updating an existing controller
+    let refreshing = false;
+    const onControllerChange = () => {
+      if (refreshing) return;
+      // Do not reload on initial service worker installation
+      if (!navigator.serviceWorker.controller) return;
+      refreshing = true;
+      window.location.reload();
+    };
     navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
     return () => {
       cancelled = true;

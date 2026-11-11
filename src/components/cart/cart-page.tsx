@@ -80,7 +80,7 @@ export function CartPageView() {
 
   if (loading) return <CartSkeleton />;
 
-  if (!cart || cart.lines.length === 0) {
+  if (!cart || !cart.lines || cart.lines.length === 0) {
     return (
       <div className="max-w-xl mx-auto py-8">
         <EmptyState

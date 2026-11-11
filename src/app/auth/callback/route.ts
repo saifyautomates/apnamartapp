@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { signAccess, signRefresh, setSessionCookies, storeRefreshToken } from "@/lib/auth";
+import {
+  signAccess,
+  signRefresh,
+  setSessionCookies,
+  storeRefreshToken,
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+  LOGGED_IN_COOKIE,
+  cookieOpts,
+} from "@/lib/auth";
 import { mergeGuestCart } from "@/lib/cart";
 
 export const runtime = "nodejs";
@@ -63,10 +72,12 @@ export async function GET(request: NextRequest) {
       }
 
       // Set platform session cookies
-      const access = signAccess({ kind: "CUSTOMER", userId: user.id });
-      const refresh = signRefresh({ userId: user.id });
-      await storeRefreshToken({ userId: user.id }, refresh);
-      setSessionCookies(access, refresh);
+      let finalAccess = signAccess({ kind: "CUSTOMER", userId: user.id });
+      let finalRefresh = signRefresh({ userId: user.id });
+      await storeRefreshToken({ userId: user.id }, finalRefresh);
+      setSessionCookies(finalAccess, finalRefresh);
+
+      let targetUrl = next;
 
       // Check if this authenticated email is an AdminUser (e.g., jackxparrowww@gmail.com)
       if (email) {
@@ -83,16 +94,28 @@ export async function GET(request: NextRequest) {
             })
           ).map((r) => r.role.name);
 
-          const adminAccess = signAccess({ kind: "ADMIN", adminId: admin.id, roles, permissions });
-          const adminRefresh = signRefresh({ adminId: admin.id });
-          await storeRefreshToken({ adminId: admin.id }, adminRefresh);
-          setSessionCookies(adminAccess, adminRefresh);
+          finalAccess = signAccess({ kind: "ADMIN", adminId: admin.id, roles, permissions });
+          finalRefresh = signRefresh({ adminId: admin.id });
+          await storeRefreshToken({ adminId: admin.id }, finalRefresh);
+          setSessionCookies(finalAccess, finalRefresh);
 
           // If standard root redirect was requested, navigate directly to Admin Dashboard
-          const adminNext = next === "/" ? "/admin" : next;
-          return NextResponse.redirect(new URL(adminNext, requestUrl.origin));
+          targetUrl = next === "/" ? "/admin" : next;
         }
       }
+
+      const res = NextResponse.redirect(new URL(targetUrl, requestUrl.origin));
+      // Explicitly attach cookies to redirect response for proxy & cross-origin safety
+      res.cookies.set(ACCESS_COOKIE, finalAccess, cookieOpts(60 * 15));
+      res.cookies.set(REFRESH_COOKIE, finalRefresh, { ...cookieOpts(60 * 60 * 24 * 7), path: "/api/auth/refresh" });
+      res.cookies.set(LOGGED_IN_COOKIE, "1", {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+        httpOnly: false,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production" && !requestUrl.origin.includes("localhost"),
+      });
+      return res;
     }
   }
 

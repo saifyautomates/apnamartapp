@@ -4,6 +4,38 @@ import { ProductImage } from "@/components/product";
 import { getFallbackCategories } from "@/lib/resilient-catalog";
 import { Zap } from "lucide-react";
 
+const CATEGORY_MAP: Record<string, string> = {
+  "baby-care": "/images/categories/baby-care-cat.jpg",
+  "personal-care": "/images/categories/personal-care-cat.jpg",
+  "pet-care": "/images/categories/pet-care-cat.jpg",
+  "dairy-eggs": "/images/categories/dairy-bread.jpg",
+  "dairy": "/images/categories/dairy-bread.jpg",
+  "staples": "/images/categories/atta-rice-dal.jpg",
+  "cooking-essentials": "/images/categories/masala-oil.jpg",
+  "masala-oil": "/images/categories/masala-oil.jpg",
+  "packaged-instant-foods": "/images/categories/breakfast-instant.jpg",
+  "breakfast": "/images/categories/breakfast-instant.jpg",
+  "snacks": "/images/categories/snacks-munchies.jpg",
+  "snacks-munchies": "/images/categories/snacks-munchies.jpg",
+  "sweet-tooth": "/images/categories/sweet-tooth.jpg",
+  "tea-coffee": "/images/categories/tea-coffee.jpg",
+  "beverages": "/images/categories/cold-drinks.jpg",
+  "cold-drinks": "/images/categories/cold-drinks.jpg",
+  "cleaning-essentials": "/images/categories/cleaning-essentials.jpg",
+  "household": "/images/categories/household.jpg",
+  "pharma-wellness": "/images/categories/pharma-wellness.jpg",
+  "chicken-meat": "/images/categories/chicken-meat.jpg",
+  "fruits-vegetables": "/images/categories/fruits-vegetables.jpg",
+  "sauces-spreads": "/images/categories/sauces-spreads.jpg",
+  "organic-healthy": "/images/categories/organic-healthy.jpg",
+  "home-office": "/images/categories/home-office.jpg",
+  "paan-corner": "/images/categories/paan-corner.jpg",
+};
+
+function getCategoryImg(slug: string) {
+  return CATEGORY_MAP[slug] || `/images/categories/${slug}.jpg`;
+}
+
 export default async function CategoriesPage() {
   let categories: Array<{
     id: string;
@@ -45,7 +77,7 @@ export default async function CategoriesPage() {
 
       <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         {categories.map((c) => {
-          const img = `/images/categories/${c.slug}.jpg`;
+          const img = getCategoryImg(c.slug);
           return (
             <div
               key={c.id}

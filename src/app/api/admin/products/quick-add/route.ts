@@ -31,6 +31,42 @@ export const POST = handler(async (req: NextRequest) => {
     return ok({ error: "Barcode, Product Name, and Category are required." }, 400);
   }
 
+  // Validate Category ID to prevent foreign key P2003 crashes
+  let validCategoryId = categoryId;
+  const cat = await prisma.category.findUnique({
+    where: { id: categoryId },
+    select: { id: true },
+  });
+  if (!cat) {
+    const fallbackCat = await prisma.category.findFirst({ select: { id: true } });
+    if (fallbackCat) {
+      validCategoryId = fallbackCat.id;
+    } else {
+      return ok({ error: "Selected category does not exist in the database." }, 400);
+    }
+  }
+
+  const cleanBarcode = barcode.trim();
+  const cleanSku = `SKU-${cleanBarcode}`;
+
+  // Check for duplicate barcode or SKU in catalogue to prevent 500 unique constraint crash
+  const existingVariant = await prisma.productVariant.findFirst({
+    where: {
+      OR: [{ barcode: cleanBarcode }, { sku: cleanSku }],
+    },
+    include: { product: { select: { name: true } } },
+  });
+
+  if (existingVariant) {
+    return ok(
+      {
+        error: `Barcode "${cleanBarcode}" is already assigned to "${existingVariant.product?.name ?? "Existing Item"} (${existingVariant.name})".`,
+        code: "DUPLICATE_BARCODE",
+      },
+      409
+    );
+  }
+
   // 1. Resolve or create Brand
   let brandId: string | null = null;
   if (brandName) {
@@ -51,8 +87,7 @@ export const POST = handler(async (req: NextRequest) => {
     }
   }
 
-  // 2. Generate clean SKU and Slug
-  const cleanSku = `SKU-${barcode.trim()}`;
+  // 2. Generate clean Slug & Price values
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now().toString(36);
 
   const parsedMrp = Math.max(100, parseInt(mrpPaise, 10) || 5000);
@@ -60,7 +95,9 @@ export const POST = handler(async (req: NextRequest) => {
   const parsedStock = Math.max(0, parseInt(initialStock, 10) || 24);
 
   // 3. Atomically create Product, Variant, Inventory, and Price
-  const created = await prisma.$transaction(async (tx) => {
+  let created: { product: any; variant: any };
+  try {
+    created = await prisma.$transaction(async (tx) => {
     const product = await tx.product.create({
       data: {
         internalId: `INT-${Date.now()}`,
@@ -70,7 +107,7 @@ export const POST = handler(async (req: NextRequest) => {
         shortName: name.trim().slice(0, 40),
         slug,
         brandId,
-        categoryId,
+        categoryId: validCategoryId,
         description: `Fresh grocery product: ${name.trim()} (${packSize || "Standard"}). Fast delivery in 10 minutes.`,
         hsnSac: hsnSac || "21069099",
         gstBps: gstBps ? parseInt(gstBps, 10) : 500,
@@ -121,6 +158,27 @@ export const POST = handler(async (req: NextRequest) => {
 
     return { product, variant };
   });
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      return ok(
+        {
+          error: `Unique constraint conflict: Barcode "${cleanBarcode}" or SKU already exists in catalogue.`,
+          code: "DUPLICATE_BARCODE",
+        },
+        409
+      );
+    }
+    if (err?.code === "P2003") {
+      return ok(
+        {
+          error: "Foreign key validation failed: Selected category does not exist.",
+          code: "INVALID_CATEGORY",
+        },
+        400
+      );
+    }
+    throw err;
+  }
 
   // 4. Invalidate metrics cache so dashboard updates
   await cache.del("admin:dashboard:metrics:v2");

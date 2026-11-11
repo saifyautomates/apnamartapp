@@ -755,7 +755,7 @@ export function CheckoutPageView() {
             {cartSummary ? (
               <div className="space-y-2 text-xs text-neutral-600">
                 <div className="flex justify-between">
-                  <span>Item Total ({cartSummary.lines.reduce((s, l) => s + l.qty, 0)} items)</span>
+                  <span>Item Total ({(cartSummary.lines ?? []).reduce((s, l) => s + l.qty, 0)} items)</span>
                   <Price paise={subtotal} />
                 </div>
                 <div className="flex justify-between">

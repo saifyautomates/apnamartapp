@@ -10,9 +10,10 @@ export type Session =
   | { kind: "CUSTOMER"; userId: string }
   | { kind: "ADMIN"; adminId: string; roles: string[]; permissions: string[] };
 
-const ACCESS_COOKIE = "gcp_access";
-const REFRESH_COOKIE = "gcp_refresh";
-const CSRF_COOKIE = "gcp_csrf";
+export const ACCESS_COOKIE = "gcp_access";
+export const REFRESH_COOKIE = "gcp_refresh";
+export const CSRF_COOKIE = "gcp_csrf";
+export const LOGGED_IN_COOKIE = "gcp_logged_in";
 
 function jwtSecret(): string {
   const s = process.env.JWT_SECRET;
@@ -57,7 +58,7 @@ function isSecureCookie(): boolean {
   return true;
 }
 
-function cookieOpts(maxAge: number) {
+export function cookieOpts(maxAge: number) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
@@ -71,12 +72,20 @@ export function setSessionCookies(access: string, refresh: string): void {
   const jar = cookies();
   jar.set(ACCESS_COOKIE, access, cookieOpts(60 * 15));
   jar.set(REFRESH_COOKIE, refresh, { ...cookieOpts(60 * 60 * 24 * 7), path: "/api/auth/refresh" });
+  jar.set(LOGGED_IN_COOKIE, "1", {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+    httpOnly: false,
+    sameSite: "lax",
+    secure: isSecureCookie(),
+  });
 }
 
 export function clearSessionCookies(): void {
   const jar = cookies();
   jar.set(ACCESS_COOKIE, "", { ...cookieOpts(0) });
   jar.set(REFRESH_COOKIE, "", { ...cookieOpts(0), path: "/api/auth/refresh" });
+  jar.set(LOGGED_IN_COOKIE, "", { path: "/", maxAge: 0, httpOnly: false });
 }
 
 export function newCsrfToken(): string {

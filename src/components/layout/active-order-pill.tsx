@@ -22,10 +22,25 @@ export function ActiveOrderPill() {
       return;
     }
 
+    // High performance guard: Do not poll orders if guest / not logged in
+    const isClientLoggedIn = typeof document !== "undefined" && document.cookie.includes("gcp_logged_in=1");
+    if (!isClientLoggedIn) {
+      setActiveOrder(null);
+      return;
+    }
+
     let mounted = true;
+    let stopPolling = false;
+
     async function checkActiveOrders() {
+      if (stopPolling || !mounted) return;
       try {
         const res = await fetch("/api/orders");
+        if (res.status === 401 || res.status === 403) {
+          stopPolling = true;
+          if (mounted) setActiveOrder(null);
+          return;
+        }
         if (res.ok) {
           const json = await res.json();
           const orders = (json?.data?.orders ?? []) as ActiveOrderSummary[];
@@ -37,7 +52,7 @@ export function ActiveOrderPill() {
           }
         }
       } catch {
-        /* guest or not logged in */
+        /* guest or network offline */
       }
     }
 

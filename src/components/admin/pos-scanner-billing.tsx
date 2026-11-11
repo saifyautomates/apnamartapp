@@ -93,25 +93,25 @@ const CATEGORY_CHIPS = [
 const QUICK_CATALOG: Record<string, Array<{ name: string; pack: string; price: number; mrp: number; gst: number; barcode: string; image: string }>> = {
   grocery: [
     { name: "Aashirvaad Atta", pack: "5 kg", price: 269, mrp: 315, gst: 5, barcode: "8901491101837", image: "/images/products/aashirvaad-shudh-chakki-atta.jpg" },
-    { name: "Tata Salt", pack: "1 kg", price: 27, mrp: 30, gst: 0, barcode: "8901030383451", image: "/images/products/tata-salt-iodised.jpg" },
-    { name: "Fortune Oil", pack: "1 L", price: 159, mrp: 180, gst: 5, barcode: "8906007281234", image: "/images/products/fortune-sunflower-oil.jpg" },
-    { name: "Daawat Basmati Rice", pack: "1 kg", price: 145, mrp: 175, gst: 5, barcode: "8901537001015", image: "/images/products/aashirvaad-shudh-chakki-atta.jpg" },
+    { name: "Tata Salt", pack: "1 kg", price: 27, mrp: 30, gst: 0, barcode: "8901030383451", image: "/images/products/tata-salt-vacuum-evaporated-iodised.jpg" },
+    { name: "Fortune Oil", pack: "1 L", price: 159, mrp: 180, gst: 5, barcode: "8906007281234", image: "/images/products/fortune-sunlite-refined-sunflower-oil.jpg" },
+    { name: "Daawat Basmati Rice", pack: "1 kg", price: 145, mrp: 175, gst: 5, barcode: "8901537001015", image: "/images/products/india-gate-classic-super-basmati-rice.jpg" },
   ],
   snacks: [
-    { name: "Maggi Noodles", pack: "70 g", price: 14, mrp: 14, gst: 12, barcode: "8901058852441", image: "/images/products/maggi-2-minute-noodles.jpg" },
-    { name: "Haldiram's Bhujia", pack: "200 g", price: 62, mrp: 65, gst: 12, barcode: "8904063200125", image: "/images/products/maggi-2-minute-noodles.jpg" },
-    { name: "Britannia Good Day", pack: "100 g", price: 30, mrp: 35, gst: 18, barcode: "8901063012111", image: "/images/products/maggi-2-minute-noodles.jpg" },
+    { name: "Maggi Noodles", pack: "70 g", price: 14, mrp: 14, gst: 12, barcode: "8901058852441", image: "/images/products/maggi-2-minute-masala-instant-noodles.jpg" },
+    { name: "Haldiram's Bhujia", pack: "200 g", price: 62, mrp: 65, gst: 12, barcode: "8904063200125", image: "/images/products/crispy-potato-chips.jpg" },
+    { name: "Britannia Good Day", pack: "100 g", price: 30, mrp: 35, gst: 18, barcode: "8901063012111", image: "/images/products/britannia-good-day-cashew-cookies.jpg" },
   ],
   beverages: [
-    { name: "Coca Cola", pack: "750 ml", price: 40, mrp: 45, gst: 18, barcode: "8901764012211", image: "/images/products/fortune-sunflower-oil.jpg" },
-    { name: "Red Label Tea", pack: "250 g", price: 140, mrp: 155, gst: 5, barcode: "8901030012234", image: "/images/products/tata-salt-iodised.jpg" },
+    { name: "Coca Cola", pack: "750 ml", price: 40, mrp: 45, gst: 18, barcode: "8901764012211", image: "/images/products/coca-cola-original-soft-drink.jpg" },
+    { name: "Red Label Tea", pack: "250 g", price: 140, mrp: 155, gst: 5, barcode: "8901030012234", image: "/images/products/brooke-bond-red-label-tea.jpg" },
   ],
   "home-care": [
     { name: "Surf Excel Easy Wash", pack: "1 kg", price: 139, mrp: 160, gst: 18, barcode: "8901030384729", image: "/images/products/surf-excel-easy-wash-detergent-powder.jpg" },
-    { name: "Harpic Power Plus", pack: "500 ml", price: 95, mrp: 105, gst: 18, barcode: "8901396010111", image: "/images/products/harpic-toilet-cleaner.jpg" },
+    { name: "Harpic Power Plus", pack: "500 ml", price: 95, mrp: 105, gst: 18, barcode: "8901396010111", image: "/images/products/harpic-power-plus-disinfectant-toilet-cleaner.jpg" },
   ],
   dairy: [
-    { name: "Amul Butter", pack: "100 g", price: 62, mrp: 62, gst: 12, barcode: "8901262010046", image: "/images/products/amul-butter.jpg" },
+    { name: "Amul Butter", pack: "100 g", price: 62, mrp: 62, gst: 12, barcode: "8901262010046", image: "/images/products/amul-salted-butter.jpg" },
   ],
 };
 
@@ -150,7 +150,7 @@ export function PosScannerBilling({
       batchNo: "B-2611",
       expiryDate: "11/28",
       sku: "SAL001",
-      imageUrl: "/images/products/tata-salt-iodised.jpg",
+      imageUrl: "/images/products/tata-salt-vacuum-evaporated-iodised.jpg",
     },
     {
       variantId: "pos-seed-fortune-oil-1l",
@@ -164,7 +164,7 @@ export function PosScannerBilling({
       batchNo: "B-2609",
       expiryDate: "09/27",
       sku: "OIL001",
-      imageUrl: "/images/products/fortune-sunflower-oil.jpg",
+      imageUrl: "/images/products/fortune-sunlite-refined-sunflower-oil.jpg",
     },
   ]);
 
@@ -1038,7 +1038,7 @@ export function PosScannerBilling({
                 >
                   <div className="flex items-center gap-2.5">
                     <div className="relative h-9 w-9 rounded-lg overflow-hidden bg-neutral-100 shrink-0">
-                      <Image src={sr.image} alt={sr.name} fill className="object-cover" />
+                      <Image src={sr.image} alt={sr.name} fill unoptimized className="object-cover" />
                     </div>
                     <div>
                       <div className="text-xs font-black text-neutral-900">{sr.name}</div>
@@ -1103,7 +1103,7 @@ export function PosScannerBilling({
                   className="flex items-center gap-2 rounded-xl bg-white border border-emerald-200/80 p-2 shrink-0 shadow-2xs hover:border-[#0c831f] transition"
                 >
                   <div className="relative h-9 w-9 rounded-lg overflow-hidden bg-neutral-100 shrink-0">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    <Image src={item.image} alt={item.name} fill unoptimized className="object-cover" />
                   </div>
                   <div className="text-left">
                     <div className="text-xs font-black text-neutral-800 whitespace-nowrap">{item.name}</div>
@@ -1137,7 +1137,7 @@ export function PosScannerBilling({
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative h-13 w-13 rounded-xl overflow-hidden bg-neutral-50 shrink-0 border border-neutral-100">
                     {item.imageUrl ? (
-                      <Image src={item.imageUrl} alt={item.name} fill className="object-contain p-1" />
+                      <Image src={item.imageUrl} alt={item.name} fill unoptimized className="object-contain p-1" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-lg">📦</div>
                     )}
@@ -1640,7 +1640,7 @@ export function PosScannerBilling({
                           <div className="flex items-center gap-2">
                             {item.imageUrl && (
                               <div className="relative h-7 w-7 rounded overflow-hidden bg-neutral-100 shrink-0 border border-neutral-200">
-                                <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                                <Image src={item.imageUrl} alt={item.name} fill unoptimized className="object-cover" />
                               </div>
                             )}
                             <div>
