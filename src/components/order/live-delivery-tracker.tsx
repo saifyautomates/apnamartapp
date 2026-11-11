@@ -5,6 +5,9 @@ import { Price } from "@/components/ui";
 import Link from "next/link";
 import OrderDetailClient from "./order-detail";
 import { useSupabaseRealtime } from "@/hooks";
+import { LiveMapTracker } from "./live-map-tracker";
+import { RiderAiChatModal } from "./rider-ai-chat-modal";
+import { MessageSquare, Phone, Sparkles, Navigation, Activity } from "lucide-react";
 
 export interface LiveOrder {
   id: string;
@@ -52,7 +55,9 @@ const STEPS = [
 
 function playChime() {
   try {
-    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+    const AudioContext =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
     const osc = ctx.createOscillator();
@@ -75,6 +80,9 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
   const [order, setOrder] = useState<LiveOrder>(initialOrder);
   const [activeDeliveryNote, setActiveDeliveryNote] = useState<string | null>(null);
   const [noteSent, setNoteSent] = useState(false);
+  const [mapMode, setMapMode] = useState<"gps" | "schematic">("gps");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
   const prevStatusRef = useRef(initialOrder.status);
 
   // Remaining Seconds Calculator for delivery countdown
@@ -172,12 +180,66 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
     ? Math.min(95, 70 + Math.floor((1 - countdown / 480) * 25))
     : 100;
 
-  // Rider position along map curve
+  // Rider position along SVG map curve
   const riderX = 60 + (progressPct / 100) * 360;
   const riderY = 140 - Math.sin((progressPct / 100) * Math.PI) * 55;
 
+  // Demo simulator status change
+  const handleSimulateStatus = async (targetStatus: string) => {
+    setIsSimulating(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/simulate-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: targetStatus }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.order) {
+          prevStatusRef.current = targetStatus;
+          playChime();
+          setOrder((prev) => ({
+            ...prev,
+            status: targetStatus,
+            delivery: prev.delivery ? { ...prev.delivery, status: targetStatus } : null,
+          }));
+        }
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-5 pb-12">
+      {/* 0. Live Status Simulator Bar (Virtual Code Style Demo Controls) */}
+      <div className="bg-neutral-900 text-white rounded-2xl p-3 shadow-md border border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-[#f8cb46] animate-ping" />
+          <span className="text-xs font-black text-neutral-300 uppercase tracking-wider">
+            Live Order Simulator:
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto justify-end">
+          {STEPS.map((step) => (
+            <button
+              key={step.key}
+              onClick={() => handleSimulateStatus(step.key)}
+              disabled={isSimulating}
+              className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer border ${
+                order.status === step.key
+                  ? "bg-[#0c831f] text-white border-emerald-400 shadow-xs ring-2 ring-emerald-500/30"
+                  : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border-neutral-700"
+              }`}
+            >
+              {step.icon} {step.label.split(" ")[0]}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* 1. Main Live Delivery ETA & Status Card */}
       <div className="overflow-hidden rounded-3xl bg-white border border-neutral-200/90 shadow-md">
         {/* Top Header with Glowing Delivery Dial */}
@@ -242,109 +304,141 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
           ) : null}
         </div>
 
-        {/* 2. Interactive Stylized GPS Delivery Route Map */}
+        {/* 2. Interactive GPS Delivery Route Map (Leaflet Map with View Toggle) */}
         {!isCancelled && (
           <div className="relative bg-[#f4f7f6] p-4 sm:p-5 border-b border-neutral-200/80">
-            <div className="relative h-48 sm:h-56 w-full rounded-2xl overflow-hidden bg-[#eef3f1] border border-neutral-300/70 shadow-inner">
-              {/* Map SVG Canvas */}
-              <svg className="w-full h-full" viewBox="0 0 480 200" preserveAspectRatio="none">
-                <defs>
-                  {/* Road Grid Pattern */}
-                  <pattern id="roadGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e0e8e4" strokeWidth="1" />
-                  </pattern>
-                  <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#0c831f" />
-                    <stop offset="50%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#f59e0b" />
-                  </linearGradient>
-                </defs>
-
-                {/* Subtle Map Base Grid */}
-                <rect width="100%" height="100%" fill="#edf3f0" />
-                <rect width="100%" height="100%" fill="url(#roadGrid)" />
-
-                {/* City Blocks / Buildings Shape Accents */}
-                <rect x="20" y="20" width="70" height="45" rx="6" fill="#dfe7e2" opacity="0.7" />
-                <rect x="110" y="15" width="85" height="50" rx="6" fill="#dfe7e2" opacity="0.7" />
-                <rect x="220" y="25" width="110" height="40" rx="6" fill="#dfe7e2" opacity="0.7" />
-                <rect x="350" y="15" width="100" height="50" rx="6" fill="#dfe7e2" opacity="0.7" />
-
-                <rect x="30" y="145" width="80" height="40" rx="6" fill="#dfe7e2" opacity="0.7" />
-                <rect x="130" y="140" width="90" height="45" rx="6" fill="#dfe7e2" opacity="0.7" />
-                <rect x="240" y="145" width="95" height="40" rx="6" fill="#dfe7e2" opacity="0.7" />
-                <rect x="360" y="135" width="85" height="50" rx="6" fill="#dfe7e2" opacity="0.7" />
-
-                {/* Planned Delivery Route Curve */}
-                <path
-                  d="M 60 140 Q 240 25 420 140"
-                  fill="none"
-                  stroke="#cbd5e1"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                />
-
-                {/* Active Animated Route (Glow) */}
-                <path
-                  d="M 60 140 Q 240 25 420 140"
-                  fill="none"
-                  stroke="url(#routeGradient)"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  strokeDasharray="8 6"
-                  className="animate-pulse"
-                />
-
-                {/* Origin: Central Mart Dark Store Hub (Left) */}
-                <g transform="translate(60, 140)">
-                  <circle r="18" fill="#0c831f" opacity="0.2" className="animate-ping" />
-                  <circle r="14" fill="#0c831f" stroke="#ffffff" strokeWidth="3" />
-                  <text x="0" y="4" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="900">
-                    🏪
-                  </text>
-                </g>
-
-                {/* Destination: Customer Home (Right) */}
-                <g transform="translate(420, 140)">
-                  <circle r="18" fill="#ef4444" opacity="0.2" className="animate-ping" />
-                  <circle r="14" fill="#ef4444" stroke="#ffffff" strokeWidth="3" />
-                  <text x="0" y="4" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="900">
-                    📍
-                  </text>
-                </g>
-
-                {/* Moving Rider Vehicle */}
-                <g
-                  transform={`translate(${riderX}, ${riderY})`}
-                  className="transition-transform duration-700 ease-linear"
-                >
-                  <circle r="16" fill="#f8cb46" stroke="#1c1c1c" strokeWidth="2.5" className="drop-shadow-md" />
-                  <text x="0" y="4.5" textAnchor="middle" fontSize="12">
-                    🛵
-                  </text>
-                </g>
-              </svg>
-
-              {/* Floating Map Badges */}
-              <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-neutral-200/90 shadow-sm flex items-center gap-1.5 text-xs font-black text-[#1c1c1c]">
-                <span className="text-emerald-600">●</span>
-                <span>Central Mart Dark Store #4</span>
+            {/* Map Mode Switcher Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1.5 text-xs font-black text-[#1c1c1c]">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-600 animate-ping" />
+                <span>Live Route Tracking Radar</span>
               </div>
-
-              <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-neutral-200/90 shadow-sm flex items-center gap-1.5 text-xs font-black text-[#1c1c1c]">
-                <span>🏠</span>
-                <span className="max-w-[140px] truncate">
-                  {order.deliveryAddress?.line1 ?? "Delivery Address"}
-                </span>
+              <div className="flex gap-1 bg-neutral-200/80 p-0.5 rounded-xl text-[10px] font-black">
+                <button
+                  type="button"
+                  onClick={() => setMapMode("gps")}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                    mapMode === "gps"
+                      ? "bg-white text-emerald-800 shadow-xs"
+                      : "text-neutral-600 hover:text-neutral-900"
+                  }`}
+                >
+                  🗺️ Live GPS Map
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapMode("schematic")}
+                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                    mapMode === "schematic"
+                      ? "bg-white text-emerald-800 shadow-xs"
+                      : "text-neutral-600 hover:text-neutral-900"
+                  }`}
+                >
+                  ⚡ Schematic Radar
+                </button>
               </div>
             </div>
+
+            {mapMode === "gps" ? (
+              <LiveMapTracker
+                orderStatus={order.status}
+                deliveryAddress={order.deliveryAddress}
+                progressPct={progressPct}
+                countdown={countdown}
+              />
+            ) : (
+              <div className="relative h-48 sm:h-56 w-full rounded-2xl overflow-hidden bg-[#eef3f1] border border-neutral-300/70 shadow-inner">
+                {/* Schematic SVG Canvas */}
+                <svg className="w-full h-full" viewBox="0 0 480 200" preserveAspectRatio="none">
+                  <defs>
+                    <pattern id="roadGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e0e8e4" strokeWidth="1" />
+                    </pattern>
+                    <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#0c831f" />
+                      <stop offset="50%" stopColor="#10b981" />
+                      <stop offset="100%" stopColor="#f59e0b" />
+                    </linearGradient>
+                  </defs>
+
+                  <rect width="100%" height="100%" fill="#edf3f0" />
+                  <rect width="100%" height="100%" fill="url(#roadGrid)" />
+
+                  <rect x="20" y="20" width="70" height="45" rx="6" fill="#dfe7e2" opacity="0.7" />
+                  <rect x="110" y="15" width="85" height="50" rx="6" fill="#dfe7e2" opacity="0.7" />
+                  <rect x="220" y="25" width="110" height="40" rx="6" fill="#dfe7e2" opacity="0.7" />
+                  <rect x="350" y="15" width="100" height="50" rx="6" fill="#dfe7e2" opacity="0.7" />
+
+                  <rect x="30" y="145" width="80" height="40" rx="6" fill="#dfe7e2" opacity="0.7" />
+                  <rect x="130" y="140" width="90" height="45" rx="6" fill="#dfe7e2" opacity="0.7" />
+                  <rect x="240" y="145" width="95" height="40" rx="6" fill="#dfe7e2" opacity="0.7" />
+                  <rect x="360" y="135" width="85" height="50" rx="6" fill="#dfe7e2" opacity="0.7" />
+
+                  <path
+                    d="M 60 140 Q 240 25 420 140"
+                    fill="none"
+                    stroke="#cbd5e1"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                  />
+
+                  <path
+                    d="M 60 140 Q 240 25 420 140"
+                    fill="none"
+                    stroke="url(#routeGradient)"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray="8 6"
+                    className="animate-pulse"
+                  />
+
+                  <g transform="translate(60, 140)">
+                    <circle r="18" fill="#0c831f" opacity="0.2" className="animate-ping" />
+                    <circle r="14" fill="#0c831f" stroke="#ffffff" strokeWidth="3" />
+                    <text x="0" y="4" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="900">
+                      🏪
+                    </text>
+                  </g>
+
+                  <g transform="translate(420, 140)">
+                    <circle r="18" fill="#ef4444" opacity="0.2" className="animate-ping" />
+                    <circle r="14" fill="#ef4444" stroke="#ffffff" strokeWidth="3" />
+                    <text x="0" y="4" textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="900">
+                      📍
+                    </text>
+                  </g>
+
+                  <g
+                    transform={`translate(${riderX}, ${riderY})`}
+                    className="transition-transform duration-700 ease-linear"
+                  >
+                    <circle r="16" fill="#f8cb46" stroke="#1c1c1c" strokeWidth="2.5" className="drop-shadow-md" />
+                    <text x="0" y="4.5" textAnchor="middle" fontSize="12">
+                      🛵
+                    </text>
+                  </g>
+                </svg>
+
+                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-neutral-200/90 shadow-sm flex items-center gap-1.5 text-xs font-black text-[#1c1c1c]">
+                  <span className="text-emerald-600">●</span>
+                  <span>Central Mart Dark Store (80 Feet Rd)</span>
+                </div>
+
+                <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-neutral-200/90 shadow-sm flex items-center gap-1.5 text-xs font-black text-[#1c1c1c]">
+                  <span>🏠</span>
+                  <span className="max-w-[140px] truncate">
+                    {order.deliveryAddress?.line1 ?? "Delivery Address"}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 3. Delivery Partner Profile Card */}
+        {/* 3. Delivery Partner Profile Card with AI Chat & Call */}
         {!isCancelled && !isDelivered && (
           <div className="p-5 border-b border-neutral-100 bg-white">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
               <div className="flex items-center gap-3.5">
                 <div className="relative">
                   <div className="h-13 w-13 rounded-2xl bg-gradient-to-tr from-[#0c831f] to-[#16a34a] flex items-center justify-center text-white text-xl font-black shadow-md ring-2 ring-emerald-500/20">
@@ -367,19 +461,30 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
                     Central Mart Express Rider · Ather 450X (RJ-20-CM-8821)
                   </p>
                   <p className="text-[10px] text-emerald-700 font-bold mt-0.5 flex items-center gap-1">
-                    <span>🛡️</span> 100% Vaccinated · Temperature 98.2°F
+                    <span>🛡️</span> 100% Vaccinated · Temperature 98.2°F · Thermal Cooler Bag
                   </p>
                 </div>
               </div>
 
-              {/* Call Partner Button */}
-              <a
-                href="tel:+919876543210"
-                className="flex items-center gap-1.5 rounded-xl bg-emerald-50 hover:bg-[#0c831f] hover:text-white border border-[#0c831f]/30 px-3.5 py-2.5 text-xs font-black text-[#0c831f] transition shadow-xs active:scale-95 cursor-pointer shrink-0"
-              >
-                <span>📞</span>
-                <span className="hidden sm:inline">Call Rider</span>
-              </a>
+              {/* Action Buttons: Chat with Rider & Call Rider */}
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  onClick={() => setIsChatOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0c831f] to-[#16a34a] hover:from-[#0a701a] hover:to-[#15803d] text-white px-3.5 py-2.5 text-xs font-black shadow-md transition active:scale-95 cursor-pointer shrink-0"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Chat with Rider</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#f8cb46] animate-ping" />
+                </button>
+
+                <a
+                  href="tel:+919876543210"
+                  className="flex items-center gap-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 px-3.5 py-2.5 text-xs font-black transition active:scale-95 cursor-pointer shrink-0"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Call</span>
+                </a>
+              </div>
             </div>
 
             {/* Quick Delivery Instructions Chips */}
@@ -393,13 +498,18 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
                   "🚪 Leave at door",
                   "📞 Call upon arrival",
                   "🛡️ Leave with security",
+                  "💬 Ask via AI Chat",
                 ].map((chip) => (
                   <button
                     key={chip}
                     onClick={() => {
-                      setActiveDeliveryNote(chip);
-                      setNoteSent(true);
-                      setTimeout(() => setNoteSent(false), 3000);
+                      if (chip === "💬 Ask via AI Chat") {
+                        setIsChatOpen(true);
+                      } else {
+                        setActiveDeliveryNote(chip);
+                        setNoteSent(true);
+                        setTimeout(() => setNoteSent(false), 3000);
+                      }
                     }}
                     className={`rounded-xl px-2.5 py-1.5 text-xs font-bold transition cursor-pointer border ${
                       activeDeliveryNote === chip
@@ -582,6 +692,15 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
           ← Back to Shopping
         </Link>
       </div>
+
+      {/* 8. AI Chat Modal / Floating Drawer */}
+      <RiderAiChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        orderId={order.id}
+        orderNumber={order.orderNumber}
+        riderName={order.delivery?.assignedTo || "Ramesh Kumar"}
+      />
     </div>
   );
 }
