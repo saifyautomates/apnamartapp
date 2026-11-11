@@ -67,81 +67,50 @@ export function BlinkitHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#0a6833] sm:bg-white/95 sm:backdrop-blur-md sm:border-b sm:border-neutral-200/80 shadow-md sm:shadow-xs transition-colors">
-        {/* Mobile Header Top Row (< sm) - Matches Phone 1 Mockup */}
-        <div className="flex sm:hidden items-center justify-between px-3.5 pt-3 pb-2 text-white">
-          {/* Hamburger Menu on Left */}
-          <button
-            onClick={openCategoriesModal}
-            className="flex h-9 w-9 items-center justify-center rounded-2xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
-            aria-label="Open categories menu"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
-          {/* Central Mart Logo */}
-          <CentralMartLogo theme="greenHeader" logoUrl={logoUrl} storeName={storeName} />
-
-          {/* Right Action: Notifications Bell & Cart */}
-          <div className="flex items-center gap-2">
+      <header className="sticky top-0 z-40 bg-gradient-to-b from-[#032e16] via-[#063b1e] to-[#074724] sm:bg-white/95 sm:backdrop-blur-md sm:border-b sm:border-neutral-200/80 shadow-md sm:shadow-xs transition-colors">
+        {/* Mobile Header (< sm) - Matches Phone Screen 2 Mockup */}
+        <div className="flex sm:hidden flex-col px-3.5 pt-2.5 pb-2.5 text-white gap-2">
+          {/* Top Row: Location on Left, Notification Bell on Right */}
+          <div className="flex items-center justify-between">
             <button
-              onClick={openLoginModal}
-              className="relative flex h-9 w-9 items-center justify-center rounded-2xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
-              aria-label="Notifications"
+              onClick={() => setLocationOpen(true)}
+              className="flex items-center gap-1.5 text-left text-white/90 hover:text-white transition cursor-pointer active:scale-95 group"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#0a6833]" />
-            </button>
-
-            <button
-              onClick={openCart}
-              className="relative flex h-9 w-9 items-center justify-center rounded-2xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
-              aria-label="Open Cart"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              {count > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-black ring-2 ring-[#0a6833]">
-                  {count}
+              <MapPin className="w-3.5 h-3.5 text-[#a3e635] shrink-0" />
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] font-bold text-white/95 tracking-tight">
+                  Deliver to {activeLocation.zoneName || "Kota, Rajasthan"}
                 </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Deliver to Home Location Bar Card (< sm) - Matches Phone 1 Mockup */}
-        <div className="flex sm:hidden px-3.5 py-1">
-          <button
-            onClick={() => setLocationOpen(true)}
-            className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-white shadow-sm border border-neutral-100 text-left group transition cursor-pointer active:scale-[0.99]"
-          >
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <MapPin className="w-4 h-4 text-[#0c831f] shrink-0" />
-              <div className="min-w-0 leading-tight">
-                <div className="flex items-center gap-1 text-xs font-black text-[#1c1c1c]">
-                  <span>Deliver to Home</span>
-                  <ChevronDown className="w-3 h-3 text-neutral-400" />
-                </div>
-                <p className="text-[11px] text-neutral-500 font-semibold truncate max-w-[200px]">
-                  {activeLocation.address || activeLocation.zoneName || "Kota Central, Nayapura - 324001"}
-                </p>
+                <ChevronDown className="w-3 h-3 text-white/70 group-hover:text-white transition-transform" />
               </div>
-            </div>
-            <span className="text-[10px] font-black text-amber-900 bg-[#fef08a] px-2.5 py-1 rounded-xl shadow-xs shrink-0 flex items-center gap-1">
-              <Zap className="w-3 h-3 fill-amber-700 text-amber-700" />
-              <span>Get in {deliveryPromiseText || "12-15 min"}</span>
-            </span>
-          </button>
-        </div>
+            </button>
 
-        {/* Mobile Search Bar (< sm) - Matches Phone 1 Mockup */}
-        <div className="sm:hidden px-3.5 pb-3 pt-1">
-          <SearchInput />
+            {/* Notification Bell with Red Badge "2" */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={openLoginModal}
+                className="relative flex h-8 w-8 items-center justify-center rounded-xl text-white hover:bg-white/15 transition cursor-pointer active:scale-90"
+                aria-label="Notifications"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 px-0.5 items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black ring-2 ring-[#063b1e]">
+                  2
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Centered Brand Wordmark & Speed Cart Emblem */}
+          <div className="flex justify-center items-center py-0.5">
+            <CentralMartLogo theme="greenHeader" logoUrl={logoUrl} storeName={storeName} />
+          </div>
+
+          {/* Search Bar with Mic Icon */}
+          <div className="pt-0.5">
+            <SearchInput />
+          </div>
         </div>
 
         {/* Desktop Header Row (>= sm) */}

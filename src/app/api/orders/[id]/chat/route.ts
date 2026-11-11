@@ -243,3 +243,4 @@ Rules:
     return NextResponse.json({ error: error.message || "Chat failed" }, { status: 500 });
   }
 }
+

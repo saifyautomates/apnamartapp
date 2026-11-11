@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { ProductImage } from "@/components/product/product-image";
 import { Price, Mrp, EmptyState } from "@/components/ui";
@@ -8,6 +9,7 @@ import { CartSkeleton } from "@/components/ui/skeletons";
 import { formatPaise } from "@/lib/money";
 import Link from "next/link";
 import { useDelivery } from "@/lib/delivery-context";
+import { ArrowLeft, Trash2, ArrowRight } from "lucide-react";
 
 export type CartLine = {
   variantId: string;
@@ -32,6 +34,7 @@ export type Cart = {
 };
 
 export function CartPageView() {
+  const router = useRouter();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -73,6 +76,22 @@ export function CartPageView() {
       window.dispatchEvent(new Event("cart-updated"));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function clearCart() {
+    if (!cart?.lines) return;
+    setBusy(true);
+    try {
+      for (const line of cart.lines) {
+        await api("/api/cart", { method: "POST", body: JSON.stringify({ variantId: line.variantId, qty: 0 }) });
+      }
+      await load();
+      window.dispatchEvent(new Event("cart-updated"));
+    } catch {
+      /* ignore */
     } finally {
       setBusy(false);
     }
@@ -177,7 +196,30 @@ export function CartPageView() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-5 pb-12">
+      {/* Top Header matching Mockup Screen 6: "← My Cart" + Trash can */}
+      <div className="flex items-center justify-between py-2 border-b border-neutral-100">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-base font-black text-[#1c1c1c] hover:text-[#0c831f] transition cursor-pointer active:scale-95"
+        >
+          <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
+          <span>My Cart</span>
+        </button>
+
+        {cart && cart.lines.length > 0 && (
+          <button
+            onClick={clearCart}
+            disabled={busy}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer active:scale-90"
+            title="Empty Cart"
+            aria-label="Empty Cart"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       {/* Delivery Promise Alert */}
       <div className="rounded-2xl bg-[#e8f5e9] border border-[#0c831f]/20 p-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
@@ -248,22 +290,34 @@ export function CartPageView() {
                   </div>
                 </div>
 
-                {/* Blinkit Stepper */}
-                <div className="flex items-center rounded-lg bg-[#0c831f] text-white shadow-xs shrink-0">
+                {/* Blinkit Stepper & Trash Delete Action */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-xl bg-[#0c831f] text-white shadow-xs shrink-0">
+                    <button
+                      onClick={() => setQty(l.variantId, l.qty - 1)}
+                      disabled={busy}
+                      className="px-2.5 py-1 text-xs font-extrabold hover:bg-[#0a701a] rounded-l-xl transition cursor-pointer"
+                    >
+                      −
+                    </button>
+                    <span className="px-2 text-xs font-black min-w-6 text-center">{l.qty}</span>
+                    <button
+                      onClick={() => setQty(l.variantId, l.qty + 1)}
+                      disabled={busy}
+                      className="px-2.5 py-1 text-xs font-extrabold hover:bg-[#0a701a] rounded-r-xl transition cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+
                   <button
-                    onClick={() => setQty(l.variantId, l.qty - 1)}
+                    onClick={() => setQty(l.variantId, 0)}
                     disabled={busy}
-                    className="px-2.5 py-1 text-xs font-extrabold hover:bg-[#0a701a] rounded-l-md transition cursor-pointer"
+                    className="flex h-8 w-8 items-center justify-center rounded-xl text-neutral-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                    title="Remove item"
+                    aria-label="Remove item"
                   >
-                    −
-                  </button>
-                  <span className="px-2 text-xs font-black min-w-6 text-center">{l.qty}</span>
-                  <button
-                    onClick={() => setQty(l.variantId, l.qty + 1)}
-                    disabled={busy}
-                    className="px-2.5 py-1 text-xs font-extrabold hover:bg-[#0a701a] rounded-r-md transition cursor-pointer"
-                  >
-                    +
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -351,27 +405,27 @@ export function CartPageView() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-xs space-y-3.5">
-            <h3 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider">Bill Summary</h3>
-            <div className="space-y-2 text-xs text-neutral-600">
-              <div className="flex justify-between">
-                <span>Item Total</span>
-                <span className="font-semibold text-[#1c1c1c]">{formatPaise(subtotal)}</span>
+          <div className="rounded-3xl border border-neutral-200/80 bg-white p-5 shadow-xs space-y-4">
+            <h3 className="text-sm font-black text-[#1c1c1c] tracking-tight">Price Details</h3>
+            <div className="space-y-2.5 text-xs text-neutral-600">
+              <div className="flex justify-between font-medium">
+                <span>Items Total</span>
+                <span className="font-bold text-[#1c1c1c]">{formatPaise(subtotal)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Delivery Charge</span>
+              <div className="flex justify-between font-medium">
+                <span>Delivery Fee</span>
                 {deliveryCharge === 0 ? (
-                  <span className="font-bold text-[#0c831f]">FREE</span>
+                  <span className="font-black text-[#0c831f]">FREE</span>
                 ) : (
-                  <span className="font-semibold text-[#1c1c1c]">{formatPaise(deliveryCharge)}</span>
+                  <span className="font-bold text-[#1c1c1c]">{formatPaise(deliveryCharge)}</span>
                 )}
               </div>
-              <div className="flex justify-between">
-                <span>Handling Fee</span>
-                <span className="font-semibold text-[#1c1c1c]">{formatPaise(handlingCharge)}</span>
+              <div className="flex justify-between font-medium">
+                <span>Platform Fee</span>
+                <span className="font-bold text-[#1c1c1c]">₹5</span>
               </div>
               {discountPaise > 0 && (
-                <div className="flex justify-between text-xs text-[#0c831f] font-bold bg-[#e8f5e9] p-2 rounded-lg">
+                <div className="flex justify-between text-xs text-[#0c831f] font-bold bg-[#e8f5e9] p-2 rounded-xl">
                   <span>Offer Discount ({couponCode})</span>
                   <span>-{formatPaise(discountPaise)}</span>
                 </div>
@@ -383,19 +437,19 @@ export function CartPageView() {
                 </div>
               ) : null}
               {cart.savingsPaise > 0 ? (
-                <div className="flex justify-between text-[#0c831f] font-bold bg-[#e8f5e9] p-2 rounded-lg">
+                <div className="flex justify-between text-[#0c831f] font-bold bg-[#e8f5e9] p-2 rounded-xl">
                   <span>Total Savings</span>
                   <span>-{formatPaise(cart.savingsPaise)}</span>
                 </div>
               ) : null}
               <div className="flex justify-between pt-3 border-t border-neutral-200 text-base font-black text-[#1c1c1c]">
-                <span>To Pay</span>
+                <span>Total Amount</span>
                 <span className="text-[#0c831f] font-black">{formatPaise(grandTotal)}</span>
               </div>
             </div>
 
             {/* Delivery Partner Tip Selector */}
-            <div className="rounded-xl border border-neutral-100 bg-[#f8f8f8] p-3">
+            <div className="rounded-2xl border border-neutral-100 bg-[#f8f8f8] p-3">
               <p className="text-xs font-bold text-[#1c1c1c] flex items-center gap-1.5">
                 <span>🚴</span> Tip your delivery partner
               </p>
@@ -418,10 +472,10 @@ export function CartPageView() {
 
             <Link
               href="/checkout"
-              className="w-full flex items-center justify-between rounded-xl bg-[#0c831f] hover:bg-[#0a701a] px-5 py-3 text-white font-black shadow-md transition active:scale-[0.99] cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#0c831f] hover:bg-[#0a701a] py-3.5 px-5 text-white font-black shadow-md transition active:scale-[0.99] cursor-pointer"
             >
-              <span>Proceed to Checkout</span>
-              <span className="text-lg">→</span>
+              <span>Proceed to Pay</span>
+              <span className="text-base font-bold">→</span>
             </Link>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { formatPaise } from "@/lib/money";
 import { useSupabaseRealtime } from "@/hooks";
+import { CentralMartAdminOverview } from "./central-mart-admin-overview";
 
 export interface DashboardClientProps {
   displaySalesPaise: number;
@@ -268,6 +269,14 @@ export function AdminDashboardClient({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Central Mart Admin Dashboard Showcase (Matches Mockup Screen 9) */}
+      <CentralMartAdminOverview
+        salesPaise={salesPaise}
+        ordersCount={ordersCount}
+        customersCount={customersCount}
+        profitPaise={profitPaise}
+      />
+
       {/* Toast Notification */}
       {toastMessage ? (
         <div className="fixed bottom-6 right-6 z-50 rounded-2xl bg-[#0c831f] text-white px-5 py-3 shadow-2xl flex items-center gap-2.5 text-xs font-black animate-in fade-in slide-in-from-bottom-4 duration-200">

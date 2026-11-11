@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Price } from "@/components/ui";
 import Link from "next/link";
 import OrderDetailClient from "./order-detail";
 import { useSupabaseRealtime } from "@/hooks";
 import { LiveMapTracker } from "./live-map-tracker";
 import { RiderAiChatModal } from "./rider-ai-chat-modal";
-import { MessageSquare, Phone, Sparkles, Navigation, Activity } from "lucide-react";
+import { MessageSquare, Phone, Sparkles, Navigation, Activity, ArrowLeft } from "lucide-react";
 
 export interface LiveOrder {
   id: string;
@@ -77,6 +78,7 @@ function playChime() {
 }
 
 export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder }) {
+  const router = useRouter();
   const [order, setOrder] = useState<LiveOrder>(initialOrder);
   const [activeDeliveryNote, setActiveDeliveryNote] = useState<string | null>(null);
   const [noteSent, setNoteSent] = useState(false);
@@ -213,7 +215,19 @@ export function LiveDeliveryTracker({ initialOrder }: { initialOrder: LiveOrder 
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 pb-12">
+    <div className="max-w-2xl mx-auto space-y-4 pb-12">
+      {/* Top Header matching Mockup Screen 7: "← Track Order" */}
+      <div className="flex items-center justify-between py-2 border-b border-neutral-100">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-base font-black text-[#1c1c1c] hover:text-[#0c831f] transition cursor-pointer active:scale-95"
+        >
+          <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
+          <span>Track Order</span>
+        </button>
+        <span className="text-xs font-bold text-neutral-400">#{order.orderNumber}</span>
+      </div>
+
       {/* 0. Live Status Simulator Bar (Virtual Code Style Demo Controls) */}
       <div className="bg-neutral-900 text-white rounded-2xl p-3 shadow-md border border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-2.5">
         <div className="flex items-center gap-2">

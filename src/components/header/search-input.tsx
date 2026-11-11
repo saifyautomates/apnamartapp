@@ -50,21 +50,21 @@ export function SearchInput({
               }
             }}
             onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-            placeholder="Search for groceries, snacks, personal care..."
-            aria-label="Search for groceries, snacks, personal care"
+            placeholder="Search for products..."
+            aria-label="Search for products"
             className="w-full rounded-2xl border border-neutral-200/90 bg-white pl-10 pr-10 py-2.5 text-xs sm:text-sm text-[#1c1c1c] font-medium placeholder-neutral-400 focus:bg-white focus:border-[#0c831f] focus:outline-hidden transition cursor-pointer shadow-xs"
           />
 
-          {/* Barcode Scanner Icon (Matching Screen 1 Mockup) */}
+          {/* Voice Search / Mic Icon (Matching Mockup Screen 2) */}
           <button
             type="button"
             onClick={() => openSearchModal(query)}
             className="absolute right-3 text-neutral-400 hover:text-[#0c831f] transition cursor-pointer"
-            title="Scan barcode or browse"
-            aria-label="Scan barcode"
+            title="Search by voice or keywords"
+            aria-label="Voice search"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2m-10 0H5a2 2 0 01-2-2v-2M8 12h8" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
             </svg>
           </button>
         </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ShoppingCart, Search } from "lucide-react";
 import { openSearchModal } from "@/components/search/search-modal";
 
 export interface CategoryHeaderClientProps {
@@ -9,6 +10,7 @@ export interface CategoryHeaderClientProps {
 }
 
 export function CategoryHeaderClient({ categoryName }: CategoryHeaderClientProps) {
+  const router = useRouter();
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export function CategoryHeaderClient({ categoryName }: CategoryHeaderClientProps
   }, []);
 
   const handleOpenCart = () => {
-    window.dispatchEvent(new Event("open-cart"));
+    router.push("/cart");
   };
 
   const handleOpenSearch = () => {
@@ -48,15 +50,15 @@ export function CategoryHeaderClient({ categoryName }: CategoryHeaderClientProps
   };
 
   return (
-    <div className="sm:hidden -mx-4 -mt-4 bg-[#0a6833] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md">
+    <div className="sm:hidden -mx-4 -mt-4 bg-gradient-to-r from-[#032e16] via-[#063b1e] to-[#074724] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md">
       <div className="flex items-center gap-3 min-w-0">
-        <Link
-          href="/"
+        <button
+          onClick={() => router.back()}
           className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition cursor-pointer shrink-0"
-          aria-label="Back to home"
+          aria-label="Go back"
         >
-          ←
-        </Link>
+          <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
+        </button>
         <h1 className="text-base font-black text-white leading-tight truncate">{categoryName}</h1>
       </div>
 
@@ -66,16 +68,16 @@ export function CategoryHeaderClient({ categoryName }: CategoryHeaderClientProps
           className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition cursor-pointer"
           aria-label="Search this category"
         >
-          🔍
+          <Search className="w-4 h-4" />
         </button>
         <button
           onClick={handleOpenCart}
           className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition relative cursor-pointer"
           aria-label="Open cart"
         >
-          🛒
+          <ShoppingCart className="w-4 h-4 stroke-[2.2]" />
           {cartCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-black ring-2 ring-[#0a6833]">
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-black ring-2 ring-[#063b1e]">
               {cartCount}
             </span>
           )}

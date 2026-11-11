@@ -140,17 +140,36 @@ export default async function CategoryPage({
 
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
-  // Category Subcategory Pills
-  const subcategoryPills = [
-    { label: "All Items", slug: "" },
+  // Category Subcategory Pills matching Screen 4
+  const categorySpecificPills: Record<string, Array<{ label: string; slug: string }>> = {
+    snacks: [
+      { label: "All", slug: "" },
+      { label: "Chips", slug: "chips" },
+      { label: "Namkeen", slug: "namkeen" },
+      { label: "Cookies", slug: "cookies" },
+    ],
+    "cold-drinks": [
+      { label: "All", slug: "" },
+      { label: "Soft Drinks", slug: "soft-drinks" },
+      { label: "Juices", slug: "juices" },
+      { label: "Energy Drinks", slug: "energy" },
+    ],
+    "personal-care": [
+      { label: "All", slug: "" },
+      { label: "Soaps", slug: "soaps" },
+      { label: "Shampoos", slug: "shampoos" },
+      { label: "Skin Care", slug: "skincare" },
+    ],
+  };
+
+  const subcategoryPills = categorySpecificPills[category.slug] || [
+    { label: "All", slug: "" },
     ...(category.subcategories.length > 0
       ? category.subcategories.map((s) => ({ label: s.name, slug: s.slug }))
       : [
           { label: "Atta & Flours", slug: "atta-flours" },
           { label: "Rice", slug: "rice" },
           { label: "Pulses & Beans", slug: "pulses-beans" },
-          { label: "Sugar & Salt", slug: "sugar-salt" },
-          { label: "Grains & More", slug: "grains" },
         ]),
   ];
 
@@ -235,28 +254,18 @@ export default async function CategoryPage({
         </Link>
       </div>
 
-      {/* Products Listing: List View on Mobile (Matches Phone 2 Mockup) & Grid on Desktop */}
+      {/* Products Listing: 2-Column Grid on Mobile (Matching Mockup Screen 4) & Multi-column on Desktop */}
       {variants.length === 0 ? (
         <EmptyState
           title="No products found in this category"
           body="Try selecting another subcategory or check back soon."
         />
       ) : (
-        <>
-          {/* Mobile Phone 2 List View */}
-          <div className="flex sm:hidden flex-col gap-2.5">
-            {variants.map((v) => (
-              <ProductListItem key={v.id} v={v as unknown as VariantCardProps} />
-            ))}
-          </div>
-
-          {/* Desktop Grid View */}
-          <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-            {variants.map((v) => (
-              <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
-            ))}
-          </div>
-        </>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-4">
+          {variants.map((v) => (
+            <BlinkitProductCard key={v.id} v={v as unknown as VariantCardProps} />
+          ))}
+        </div>
       )}
 
       {/* Pagination */}

@@ -5,4 +5,5 @@ export * from "./empty-state";
 export * from "./stat-card";
 export * from "./skeletons";
 export * from "./logo";
+export * from "./trust-card";
 

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AddButton } from "./add-button";
 import { ProductImage } from "./product-image";
 import { Price, Mrp, DiscountBadge, EtaBadge } from "@/components/ui";
+import { CentralMartTrustCard } from "@/components/ui/trust-card";
 import { discountPercent } from "@/lib/pricing";
 import { formatPaise } from "@/lib/money";
 import { useDelivery } from "@/lib/delivery-context";
@@ -19,6 +21,8 @@ import {
   Info,
   Clock,
   Award,
+  ArrowLeft,
+  ShoppingCart,
 } from "lucide-react";
 
 export type VariantDetail = {
@@ -51,6 +55,7 @@ export function ProductDetailView({
   categorySlug = "groceries",
   description,
 }: ProductDetailProps) {
+  const router = useRouter();
   const { deliveryPromiseText, activeLocation } = useDelivery();
   const [selected, setSelected] = useState<VariantDetail>(variants[0] || {} as VariantDetail);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
@@ -130,6 +135,29 @@ export function ProductDetailView({
           <span>Product link copied to clipboard!</span>
         </div>
       )}
+
+      {/* Mobile Top Navigation Bar matching Screen 5 (← Back on Left, Wishlist on Right) */}
+      <div className="flex sm:hidden items-center justify-between py-2 border-b border-neutral-100">
+        <button
+          onClick={() => router.back()}
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-800 hover:text-[#0c831f] transition cursor-pointer active:scale-90"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
+        </button>
+
+        <span className="text-xs font-bold text-neutral-500 truncate max-w-[180px]">
+          {brandName || categoryName}
+        </span>
+
+        <button
+          onClick={() => setWishlisted(!wishlisted)}
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 hover:text-rose-500 transition cursor-pointer active:scale-90"
+          aria-label="Wishlist"
+        >
+          <Heart className={`w-5 h-5 ${wishlisted ? "fill-rose-500 text-rose-500" : "text-neutral-500"}`} />
+        </button>
+      </div>
 
       {/* Main Dual-Column Product Showcase Box */}
       <div className="grid gap-6 lg:gap-10 lg:grid-cols-12 bg-white rounded-3xl border border-neutral-200/80 p-4 sm:p-7 shadow-xs">
@@ -220,43 +248,8 @@ export function ProductDetailView({
             </div>
           )}
 
-          {/* Trust Guarantees Column Banner */}
-          <div className="mt-6 w-full rounded-2xl bg-neutral-50/80 p-4 border border-neutral-100 space-y-3">
-            <h4 className="text-xs font-black text-[#1c1c1c] uppercase tracking-wider flex items-center gap-1.5">
-              <Award className="w-3.5 h-3.5 text-[#0c831f]" />
-              <span>Central Mart Promise</span>
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="flex items-start gap-2">
-                <Zap className="w-4 h-4 fill-amber-500 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-[#1c1c1c] leading-tight">10-15 Min Delivery</p>
-                  <p className="text-[11px] text-neutral-500">80 Feet Road dispatch</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#0c831f] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-[#1c1c1c] leading-tight">100% Genuine</p>
-                  <p className="text-[11px] text-neutral-500">Direct from brands</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <Tag className="w-4 h-4 text-[#0c831f] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-[#1c1c1c] leading-tight">Best Wholesale Prices</p>
-                  <p className="text-[11px] text-neutral-500">Direct distributor rates</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <RotateCcw className="w-4 h-4 text-[#0c831f] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-[#1c1c1c] leading-tight">Doorstep Returns</p>
-                  <p className="text-[11px] text-neutral-500">Instant resolution</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Exact 4-Badge Central Mart Trust Card (Matching User's Attached Image 1) */}
+          <CentralMartTrustCard className="mt-6 w-full" />
         </div>
 
         {/* Right Column: Product Hierarchy, Variant Picker, Pricing & Buy Actions */}
@@ -278,6 +271,22 @@ export function ProductDetailView({
             <h1 className="text-2xl sm:text-3xl font-black text-[#1c1c1c] leading-tight tracking-tight">
               {productName}
             </h1>
+
+            {/* Rating Badge matching Mockup Screen 5: ★ 4.5 (12k+ reviews) */}
+            <div className="flex items-center gap-2 pt-0.5">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-[#16a34a] text-white px-2 py-0.5 text-xs font-black shadow-xs">
+                <span>★</span>
+                <span>4.5</span>
+              </span>
+              <span className="text-xs font-bold text-neutral-500">
+                (12k+ reviews)
+              </span>
+            </div>
+
+            {/* Product Description */}
+            <p className="text-xs sm:text-sm font-medium text-neutral-600 leading-relaxed">
+              {description || "Crispy and tasty potato chips with classic salt flavour."}
+            </p>
 
             {/* Pack Size / Subtitle */}
             <p className="text-sm font-semibold text-neutral-500">

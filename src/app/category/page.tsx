@@ -1,58 +1,53 @@
 import { prisma, withDbTimeout } from "@/lib/prisma";
-import Link from "next/link";
-import { ProductImage } from "@/components/product";
 import { getFallbackCategories } from "@/lib/resilient-catalog";
-import { Zap } from "lucide-react";
+import { CategoriesScreenView, CategoryCardData } from "@/components/category/categories-screen-view";
+import type { Metadata } from "next";
 
-const CATEGORY_MAP: Record<string, string> = {
-  "baby-care": "/images/categories/baby-care-cat.jpg",
-  "personal-care": "/images/categories/personal-care-cat.jpg",
-  "pet-care": "/images/categories/pet-care-cat.jpg",
-  "dairy-eggs": "/images/categories/dairy-bread.jpg",
-  "dairy": "/images/categories/dairy-bread.jpg",
-  "staples": "/images/categories/atta-rice-dal.jpg",
-  "cooking-essentials": "/images/categories/masala-oil.jpg",
-  "masala-oil": "/images/categories/masala-oil.jpg",
-  "packaged-instant-foods": "/images/categories/breakfast-instant.jpg",
-  "breakfast": "/images/categories/breakfast-instant.jpg",
-  "snacks": "/images/categories/snacks-munchies.jpg",
-  "snacks-munchies": "/images/categories/snacks-munchies.jpg",
-  "sweet-tooth": "/images/categories/sweet-tooth.jpg",
-  "tea-coffee": "/images/categories/tea-coffee.jpg",
-  "beverages": "/images/categories/cold-drinks.jpg",
-  "cold-drinks": "/images/categories/cold-drinks.jpg",
-  "cleaning-essentials": "/images/categories/cleaning-essentials.jpg",
-  "household": "/images/categories/household.jpg",
-  "pharma-wellness": "/images/categories/pharma-wellness.jpg",
-  "chicken-meat": "/images/categories/chicken-meat.jpg",
-  "fruits-vegetables": "/images/categories/fruits-vegetables.jpg",
-  "sauces-spreads": "/images/categories/sauces-spreads.jpg",
-  "organic-healthy": "/images/categories/organic-healthy.jpg",
-  "home-office": "/images/categories/home-office.jpg",
-  "paan-corner": "/images/categories/paan-corner.jpg",
+export const metadata: Metadata = {
+  title: "All Categories | Central Mart Kota (80 Feet Road)",
+  description: "Browse 100% genuine grocery categories: Snacks & Namkeen, Beverages, Personal Care, Dairy & Breakfast, Household Essentials and more with 12-15 min doorstep delivery in Kota.",
 };
 
-function getCategoryImg(slug: string) {
-  return CATEGORY_MAP[slug] || `/images/categories/${slug}.jpg`;
-}
+const CATEGORY_MAP: Record<string, string> = {
+  "baby-care": "/images/products/himalaya-baby-massage-oil.jpg",
+  "personal-care": "/images/products/dove-cream-beauty-bathing-bar.jpg",
+  "pet-care": "/images/products/pedigree-adult-dry-dog-food.jpg",
+  "dairy-eggs": "/images/products/amul-butter-pasteurised.jpg",
+  "dairy": "/images/products/amul-butter-pasteurised.jpg",
+  "staples": "/images/products/aashirvaad-shudh-chakki-atta.jpg",
+  "cooking-essentials": "/images/products/fortune-sunlite-sunflower-oil.jpg",
+  "masala-oil": "/images/products/fortune-sunlite-sunflower-oil.jpg",
+  "packaged-instant-foods": "/images/products/maggi-2-minute-instant-noodles.jpg",
+  "breakfast": "/images/products/maggi-2-minute-instant-noodles.jpg",
+  "snacks": "/images/products/lays-classic-salted-potato-chips.jpg",
+  "snacks-munchies": "/images/products/lays-classic-salted-potato-chips.jpg",
+  "sweet-tooth": "/images/products/cadbury-dairy-milk-chocolate.jpg",
+  "tea-coffee": "/images/products/taj-mahal-tea.jpg",
+  "beverages": "/images/products/coca-cola-original-soft-drink.jpg",
+  "cold-drinks": "/images/products/coca-cola-original-soft-drink.jpg",
+  "cleaning-essentials": "/images/products/surf-excel-easy-wash-detergent-powder.jpg",
+  "household": "/images/products/surf-excel-easy-wash-detergent-powder.jpg",
+  "pharma-wellness": "/images/products/dettol-original-germ-protection-liquid-handwash.jpg",
+  "fruits-vegetables": "/images/products/lays-classic-salted-potato-chips.jpg",
+  "sauces-spreads": "/images/products/maggi-2-minute-instant-noodles.jpg",
+  "organic-healthy": "/images/products/tata-salt-iodized.jpg",
+};
 
 export default async function CategoriesPage() {
   let categories: Array<{
     id: string;
     name: string;
     slug: string;
-    description: string | null;
-    subcategories: Array<{ id: string; name: string; slug: string }>;
   }> = [];
 
   try {
     categories = await withDbTimeout(
       prisma.category.findMany({
         where: { isVisible: true },
-        include: { subcategories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } } },
+        select: { id: true, name: true, slug: true },
         orderBy: { sortOrder: "asc" },
       }),
-      3500
+      2500
     );
   } catch {
     /* fallback to resilient catalog */
@@ -62,68 +57,12 @@ export default async function CategoriesPage() {
     categories = getFallbackCategories();
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="rounded-2xl bg-white p-5 sm:p-6 border border-neutral-200/80 shadow-xs flex items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#1c1c1c]">All Categories</h1>
-          <p className="mt-0.5 text-xs text-neutral-500 font-medium">All items delivered to your doorstep with Same-Day Delivery</p>
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5e9] text-[#0c831f] border border-[#0c831f]/20 px-3 py-1 text-xs font-bold">
-          <Zap className="w-3.5 h-3.5 fill-[#0c831f]" />
-          <span>Same Day Delivery</span>
-        </span>
-      </div>
+  const categoryCards: CategoryCardData[] = categories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    image: CATEGORY_MAP[c.slug] || "/images/products/lays-classic-salted-potato-chips.jpg",
+  }));
 
-      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((c) => {
-          const img = getCategoryImg(c.slug);
-          return (
-            <div
-              key={c.id}
-              className="group flex flex-col justify-between rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-xs hover:border-[#0c831f] hover:shadow-md transition duration-200"
-            >
-              <div className="flex items-start gap-3.5">
-                <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-[#f2f7fc] border border-neutral-100 p-1 flex items-center justify-center group-hover:scale-105 transition">
-                  <ProductImage
-                    src={img}
-                    alt={c.name}
-                    className="h-full w-full object-contain rounded-lg"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <Link href={`/category/${c.slug}`} className="text-base font-black text-[#1c1c1c] hover:text-[#0c831f] transition">
-                    {c.name}
-                  </Link>
-                  {c.description ? (
-                    <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">{c.description}</p>
-                  ) : null}
-                  <Link
-                    href={`/category/${c.slug}`}
-                    className="inline-block mt-1 text-xs font-bold text-[#0c831f] hover:underline"
-                  >
-                    View all items →
-                  </Link>
-                </div>
-              </div>
-
-              {c.subcategories.length > 0 ? (
-                <div className="mt-4 pt-3 border-t border-neutral-100 flex flex-wrap gap-1.5">
-                  {c.subcategories.map((s) => (
-                    <Link
-                      key={s.id}
-                      href={`/category/${c.slug}?sub=${s.slug}`}
-                      className="rounded-lg bg-[#f8f8f8] hover:bg-[#e8f5e9] hover:text-[#0c831f] px-2.5 py-1 text-[11px] font-semibold text-neutral-600 transition"
-                    >
-                      {s.name}
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+  return <CategoriesScreenView initialCategories={categoryCards} />;
 }

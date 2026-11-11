@@ -2,8 +2,10 @@ import { getHomeRailsSafe } from "@/lib/resilient-catalog";
 import { getStoreOffers } from "@/lib/offers";
 import { HeroBanner, PromoCards, CategoryGrid, DealsRail } from "@/components/home";
 import { FlashSaleBar } from "@/components/home/flash-sale-bar";
+import { CentralMartHeroFeed } from "@/components/home/central-mart-hero-feed";
 import { ProductCarousel, VariantCardProps } from "@/components/product";
-import { Leaf, ShieldCheck, Truck, Tag, MapPin, Phone, Clock } from "lucide-react";
+import { CentralMartTrustCard } from "@/components/ui/trust-card";
+import { MapPin, Phone, Clock } from "lucide-react";
 
 export default async function HomePage() {
   const [{ dairyItems, snackItems, drinkItems, stapleItems, personalCareItems, deals, storeBanners }, storeOffers] =
@@ -21,7 +23,10 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-12">
-      {/* 0. Live Ticking Flash Sale Announcement Bar */}
+      {/* 0. Central Mart Hero Showcase (Matches Mockup Screen 2: Promo Banner, 4 Circles, Trust Card, Popular Categories) */}
+      <CentralMartHeroFeed />
+
+      {/* 0.1 Live Ticking Flash Sale Announcement Bar */}
       {storeOffers && storeOffers.length > 0 ? (
         <FlashSaleBar initialOffers={storeOffers} />
       ) : null}
@@ -102,49 +107,9 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* 6. Four Central Mart Trust Badges */}
-      <section className="pt-4 pb-2 border-t border-neutral-100">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
-              <Leaf className="w-5 h-5 stroke-[2.2]" />
-            </span>
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-[#1c1c1c]">Farm Fresh Produce</p>
-              <p className="text-[10px] text-neutral-500 font-medium">Direct Sourced</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
-              <ShieldCheck className="w-5 h-5 stroke-[2.2]" />
-            </span>
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-[#1c1c1c]">100% Quality Assured</p>
-              <p className="text-[10px] text-neutral-500 font-medium">Carefully Inspected</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
-              <Truck className="w-5 h-5 stroke-[2.2]" />
-            </span>
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-[#1c1c1c]">Same Day Delivery</p>
-              <p className="text-[10px] text-[#0c831f] font-bold">12-15 Mins in Kota</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#f8faf8] border border-neutral-100 shadow-xs transition hover:border-emerald-200">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#0c831f]">
-              <Tag className="w-5 h-5 stroke-[2.2]" />
-            </span>
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-[#1c1c1c]">Everyday Value</p>
-              <p className="text-[10px] text-neutral-500 font-medium">Best Prices Guaranteed</p>
-            </div>
-          </div>
-        </div>
+      {/* 6. Exact 4 Central Mart Trust Badges (Matching Attached Image 1) */}
+      <section className="pt-2 pb-2">
+        <CentralMartTrustCard />
       </section>
 
       {/* 7. Kota Local SEO Showcase (80 Feet Road Hub) */}

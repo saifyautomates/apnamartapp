@@ -99,19 +99,16 @@ function getIcon(href: string): React.ReactNode {
 
 const SIDEBAR_ITEMS = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/orders", label: "Orders", badge: 24 },
-  { href: "/admin/pos", label: "BUSY POS", badge: "Sync" },
+  { href: "/admin/orders", label: "Orders" },
   { href: "/admin/products", label: "Products" },
-  { href: "/admin/categories", label: "Categories" },
   { href: "/admin/inventory", label: "Inventory" },
   { href: "/admin/customers", label: "Customers" },
-  { href: "/admin/coupons", label: "Coupons" },
-  { href: "/admin/delivery", label: "Delivery" },
-  { href: "/admin/banners", label: "Banners", badge: "Live" },
-  { href: "/admin/bulk", label: "Bulk Ops" },
-  { href: "/admin/offers", label: "Reviews", badge: 18 },
+  { href: "/admin/offers", label: "Offers" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/categories", label: "Categories" },
+  { href: "/admin/pos", label: "BUSY POS", badge: "Sync" },
+  { href: "/admin/delivery", label: "Delivery" },
 ];
 
 const SEARCH_LINKS = [
@@ -295,6 +292,19 @@ export default function AdminShell({
               </Link>
             );
           })}
+
+          {/* Logout Button matching Mockup Screen 9 */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-bold text-emerald-100/70 hover:bg-white/10 hover:text-white transition-all duration-200 cursor-pointer mt-2"
+          >
+            <span className="text-emerald-400">
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </span>
+            <span>Logout</span>
+          </button>
         </div>
 
         {/* Bottom Sidebar Promo Widget: Grow Your Mart Business */}
@@ -367,7 +377,7 @@ export default function AdminShell({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </span>
-              <span>Search products, orders, POS slips, settings…</span>
+              <span>Search anything...</span>
               <span className="rounded-md bg-neutral-200/80 px-2 py-0.5 text-[10px] font-black text-neutral-600">
                 Ctrl K
               </span>
@@ -474,8 +484,8 @@ export default function AdminShell({
                 className="flex items-center gap-2.5 rounded-full border border-neutral-200/90 bg-white hover:bg-neutral-50 pl-1.5 pr-3 py-1 shadow-xs transition active:scale-95 cursor-pointer"
                 aria-expanded={profileOpen}
               >
-                <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-[#0c831f] to-[#22c55e] flex items-center justify-center text-white text-xs font-black shadow-xs">
-                  👑
+                <div className="h-7 w-7 rounded-full bg-[#16a34a] flex items-center justify-center text-white text-[11px] font-black shadow-xs">
+                  AD
                 </div>
                 <div className="flex flex-col text-left leading-none hidden sm:flex">
                   <span className="text-xs font-black text-[#1c1c1c]">Super Admin</span>
